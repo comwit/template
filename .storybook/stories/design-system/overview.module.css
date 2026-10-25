@@ -1,0 +1,59 @@
+/* Catalogue layout only; specimens use the project's actual tokens and UI. */
+.page { word-break: keep-all; background: var(--background); color: var(--foreground); min-height: 100vh; --catalog-gutter: clamp(20px, 5vw, 72px); }
+.cover, .section { max-width: 1440px; margin-inline: auto; padding-inline: var(--catalog-gutter); }
+.cover { padding-top: 72px; padding-bottom: 24px; }
+.coverHeading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px; margin-bottom: 48px; }
+.cover h1 { font-size: clamp(40px, 6vw, 72px); font-weight: 750; line-height: 1.05; letter-spacing: -.05em; }
+.page code { font-size: 12px; font-family: ui-monospace, monospace; overflow-wrap: anywhere; }
+.contents { display: flex; flex-wrap: wrap; gap: 12px 28px; padding-block: 28px; border-bottom: 1px solid var(--border); }
+.contents a { color: var(--soft-foreground); font-size: 14px; padding-block: 6px; }
+.contents a:hover { color: var(--primary); }
+.contents a:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; }
+.section { display: grid; grid-template-columns: minmax(140px, 1fr) minmax(0, 4fr); gap: 40px; padding-block: 72px; scroll-margin-top: 24px; }
+.sectionTitle { font-size: 24px; font-weight: 650; letter-spacing: -.03em; }
+.sectionContent { min-width: 0; display: flex; flex-direction: column; gap: 36px; }
+.swatches { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.swatch { margin: 0; min-width: 0; }
+.swatch > div:first-child { min-height: 150px; display: flex; align-items: flex-end; padding: 20px; border: 1px solid var(--border); }
+.swatch > div:first-child > span { font-size: 24px; font-weight: 600; }
+.swatch .tint { padding: 16px 20px; font-size: 14px; }
+.swatch figcaption { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding-top: 16px; font-size: 14px; }
+.swatch code, .typeRow code, .inkScale code { color: var(--muted-foreground); }
+.inkScale { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 20px; }
+.inkScale > div { display: flex; flex-direction: column; gap: 16px; }
+.inkScale span { font-size: 64px; font-weight: 650; line-height: 1.2; }
+.typeHero { padding-bottom: 24px; }
+.typeHero > span { display: block; font-size: clamp(28px, 3.5vw, 48px); letter-spacing: -.04em; margin-bottom: 20px; }
+.typeHero > div { display: flex; flex-wrap: wrap; gap: 24px; font-size: 20px; }
+.typeRow { display: grid; grid-template-columns: 170px minmax(0, 1fr); align-items: baseline; gap: 24px; border-top: 1px solid var(--border); padding-top: 24px; }
+.sample { margin: 0; min-width: 0; }
+.sampleBody { padding-block: 24px; min-width: 0; }
+.sample figcaption { padding-bottom: 12px; border-bottom: 1px solid var(--border); color: var(--foreground); font-size: 16px; font-weight: 600; }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
+.sample { display: flex; flex-direction: column; }
+.sampleBody { flex: 1; }
+.wrap, .actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.actions { justify-content: flex-end; margin-top: 24px; }
+.form, .choices { display: flex; flex-direction: column; gap: 24px; }
+.choice { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+.materials { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.shape { width: 100%; height: 100px; background: var(--card); }
+.motion { display: flex; justify-content: space-between; width: 100%; gap: 24px; }
+.motion > span { display: block; width: 16px; height: 16px; border-radius: 50%; background: currentColor; transition: transform var(--duration-slow) ease; }
+.motion:hover > span, .motion:focus-visible > span { transform: translateX(-28px); }
+@media (max-width: 1100px) { .section { grid-template-columns: 1fr; gap: 32px; } }
+@media (max-width: 760px) {
+  .cover { padding-top: 36px; }
+  .section { padding-block: 40px; }
+  .swatches, .inkScale { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pair { grid-template-columns: 1fr; }
+  .typeRow { grid-template-columns: 1fr; gap: 12px; }
+  .materials { grid-template-columns: 1fr; }
+  .sampleBody { padding-block: 20px; }
+}
+@media (prefers-reduced-motion: reduce) { .motion > span { transition: none; } }
+
+/* The MDX document supplies its own title and page margins. */
+:global(.sbdocs) .page { --catalog-gutter: 0px; min-height: auto; }
+:global(.sbdocs) .cover { padding-top: 0; }
+:global(.sbdocs) .coverHeading { justify-content: flex-end; margin-bottom: 0; }

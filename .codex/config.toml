@@ -1,0 +1,5 @@
+# comwit:mcp:begin — Comwit MCP project configuration
+[mcp_servers.comwit]
+command = "node"
+args = [".agents/scripts/comwit-mcp.mjs"]
+# comwit:mcp:end
