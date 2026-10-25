@@ -78,7 +78,7 @@ export async function planPwa({ projectRoot, skillRoot, options, startUrl, write
     sharp = createRequire(requireFromProject.resolve('next/package.json'))('sharp')
     const info = await sharp(icon).metadata()
     if (!info.width || !info.height) throw new Error('PWA icon could not be decoded')
-  } else review.push('Replace the generic PWA icons with the product logo before launch (public/pwa/)')
+  }
 
   for (const [filename, size] of icons) {
     let content = fs.readFileSync(path.join(skillRoot, 'assets/public/pwa', filename))

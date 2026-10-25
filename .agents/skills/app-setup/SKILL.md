@@ -45,8 +45,13 @@ Write `.agents/state/app-setup-pwa.json` from the product brief, for example:
 ```
 
 Optional `icon` is an existing local logo path (PNG/SVG/etc.); the CLI uses Next's
-installed sharp to produce 192/512/maskable/Apple PNGs. Without it, neutral icons
-are installed; replace them when branding is available without blocking setup.
+installed sharp to produce 192/512/maskable/Apple PNGs. Without it, the bundled
+Comwit official blue symbol is installed. These four PNGs are unchanged copies
+of the matching root paths in [comwit.io’s manifest](https://comwit.io/manifest.webmanifest)
+(retrieved 2026-10-25): `icon-192.png`, `icon-512.png`, `icon-maskable.png`, and
+`apple-icon.png`. The maskable and Apple variants include an opaque white
+background and platform padding. Supply `icon` when the product has its own logo;
+do not redraw or substitute a generic mark for the default.
 `start_url` is the first tab's href. `--pwa` can be omitted for an initial App
 placeholder. From the project root (Node; Windows/macOS/Linux):
 
