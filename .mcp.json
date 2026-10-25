@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "comwit": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        ".agents/scripts/comwit-mcp.mjs"
+      ]
+    }
+  }
+}
