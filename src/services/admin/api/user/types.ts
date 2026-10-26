@@ -1,6 +1,16 @@
-import type { User } from '@/services/admin/state/user'
+export type User = {
+  id: string;
+  email: string;
+  name: string;
+  username?: string | null;
+  displayUsername?: string | null;
+  image?: string | null;
+  emailVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 export interface AdminUserAPI {
-  /** Get the current logged-in admin user. */
-  getMe: () => Promise<User | null>
+  /** 현재 로그인한 어드민 사용자 정보 조회 */
+  getMe: () => Promise<User | null>;
 }
