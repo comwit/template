@@ -1,38 +1,59 @@
-import { existsSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
-import type { StorybookConfig } from '@storybook/nextjs-vite'
-import remarkGfm from 'remark-gfm'
-import { apiMocks } from './api-mocks.mjs'
-
-const root = fileURLToPath(new URL('../', import.meta.url))
-// public/ may not exist yet in a fresh project; Storybook refuses a missing static dir.
-const publicDir = fileURLToPath(new URL('../public', import.meta.url))
-
+import type { StorybookConfig } from "@storybook/nextjs-vite";
+import { fileURLToPath } from "node:url";
 const config: StorybookConfig = {
-  stories: ['./stories/**/*.mdx', './stories/**/*.stories.tsx'],
-  addons: [{
-    name: '@storybook/addon-docs',
-    options: {
-      mdxPluginOptions: { mdxCompileOptions: { remarkPlugins: [remarkGfm] } },
-    },
-  }],
-  framework: {
-    name: '@storybook/nextjs-vite',
-    options: { nextConfigPath: fileURLToPath(new URL('./next.config.ts', import.meta.url)) },
-  },
-  staticDirs: existsSync(publicDir) ? ['../public'] : [],
+  stories: ["../src/stories/**/*.stories.@(ts|tsx)"],
+  addons: ["@storybook/addon-docs", "@storybook/addon-a11y"],
+  framework: { name: "@storybook/nextjs-vite", options: {} },
+  staticDirs: ["../public"],
   core: { disableTelemetry: true },
   async viteFinal(config) {
-    const { mergeConfig } = await import('vite')
-    return mergeConfig(config, {
-      resolve: {
-        alias: [
-          { find: '@', replacement: fileURLToPath(new URL('../src', import.meta.url)) },
-        ],
+    const mockRoot = fileURLToPath(
+      new URL("../src/stories/mocks", import.meta.url),
+    );
+    const existingAliases = config.resolve?.alias ?? [];
+    config.resolve = {
+      ...config.resolve,
+      alias: [
+        // Exact public API boundaries only. The real state modules remain unchanged.
+        {
+          find: /^@\/services\/(app|admin)\/api\/([^/]+)(?:\/index(?:\.ts)?)?$/,
+          replacement: mockRoot + "/$1-api/$2.ts",
+        },
+        {
+          find: /^@\/lib\/auth-client\/(app|admin)$/,
+          replacement: mockRoot + "/auth-client.ts",
+        },
+        {
+          find: "@tosspayments/tosspayments-sdk",
+          replacement: mockRoot + "/payment-sdk.ts",
+        },
+        ...(Array.isArray(existingAliases)
+          ? existingAliases
+          : Object.entries(existingAliases).map(([find, replacement]) => ({
+              find,
+              replacement,
+            }))),
+        {
+          find: "@",
+          replacement: fileURLToPath(new URL("../src", import.meta.url)),
+        },
+      ],
+    };
+    config.plugins = [
+      ...(config.plugins ?? []),
+      {
+        name: "storybook-api-boundary",
+        enforce: "pre",
+        load(id) {
+          if (/\/src\/services\/(app|admin)\/api\//.test(id)) {
+            throw new Error(
+              "Storybook must import the mocked public API index: " + id,
+            );
+          }
+        },
       },
-      plugins: [apiMocks(root)],
-    })
+    ];
+    return config;
   },
-}
-
-export default config
+};
+export default config;

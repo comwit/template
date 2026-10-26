@@ -110,7 +110,7 @@
     "syncEffects": [
       "persist_binding",
       "fetch_latest_cloud_detail",
-      "upsert_cg_environment",
+      "upsert_cg_gitea_environment",
       "apply_live_session_environment"
     ],
     "deploymentReconcileBeforePublish": true,

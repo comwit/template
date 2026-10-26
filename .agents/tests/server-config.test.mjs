@@ -66,3 +66,21 @@ test('required settings reject blank values without exposing credentials', () =>
   env.COMWIT_CLOUD_TOKEN = '  ';
   assert.throws(() => requireServerConfig('COMWIT_CLOUD_TOKEN'), { message: 'Required server configuration is missing: COMWIT_CLOUD_TOKEN' });
 });
+
+test('commerce and auth settings read late bindings and keep storefront URL overrides', () => {
+  const { env, config } = loadConfig();
+  assert.equal(config.SHOP_SHIPPING_FEE, '3000');
+  for (const key of ['APP_AUTH_SECRET', 'ADMIN_AUTH_SECRET', 'TOSS_SECRET_KEY', 'COMMERCE_CRON_SECRET']) {
+    assert.equal(config[key], undefined);
+    env[key] = 'fixture-value';
+    assert.equal(config[key], 'fixture-value');
+    delete env[key];
+    assert.equal(config[key], undefined);
+  }
+  env.SHOP_SHIPPING_FEE = '5000';
+  assert.equal(config.SHOP_SHIPPING_FEE, '5000');
+  env.APP_URL = 'https://shop.example.test';
+  assert.equal(config.SITE_URL, env.APP_URL);
+  env.SITE_URL = 'https://store.example.test';
+  assert.equal(config.SITE_URL, env.SITE_URL);
+});

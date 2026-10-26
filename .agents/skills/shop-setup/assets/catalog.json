@@ -1,0 +1,262 @@
+{
+  "source": "https://comwit.io/shop-studio",
+  "sourceRepository": "comwit application (maintainer-provided)",
+  "sourceRevision": "a206f884587c86ac5b2c2e905226d44e363bd910",
+  "captureDate": "2026-10-15",
+  "usage": "Maintainer supplied these existing public-site screenshots for this template skill and documentation. The source does not declare a separate image license. Treat them as visual references, not as product-photo or logo assets for new storefronts.",
+  "brands": [
+    {
+      "id": "aurelle",
+      "name": "AURELLE",
+      "category": "여성 패션",
+      "url": "https://bf032686ba614aef9850bbd5885fd377.app.comwit.link",
+      "productPath": "/products/01a13a04-673a-708a-b67f-2e748d22ea9d",
+      "type": "fashion",
+      "typeLabelEn": "Fashion",
+      "screens": [
+        {
+          "kind": "home",
+          "file": "aurelle-home-720.webp",
+          "sourcePath": "public/shop-studio/aurelle-home-720.webp",
+          "sha256": "28661bbd9f3e24e5a61b12c9f6ccfcf8ae5317eb249eee47ee977cf2b509a68b"
+        },
+        {
+          "kind": "detail",
+          "file": "aurelle-detail-720.webp",
+          "sourcePath": "public/shop-studio/aurelle-detail-720.webp",
+          "sha256": "18f3f2ab4bcbf0363c3f8756fd4c3b3bd11dbb45ca42cabff39f624b31140d7c"
+        }
+      ]
+    },
+    {
+      "id": "greenrow",
+      "name": "그린로우",
+      "category": "푸드 · 음료",
+      "url": "https://09c396baeb244d1986b41677defc434e.app.comwit.link",
+      "productPath": "/products/01a13a74-1460-73ff-b99d-0055ba51bf82",
+      "type": "food",
+      "typeLabelEn": "Food & drink",
+      "screens": [
+        {
+          "kind": "home",
+          "file": "greenrow-home-720.webp",
+          "sourcePath": "public/shop-studio/greenrow-home-720.webp",
+          "sha256": "b758e75194e2e4b5973b42f9a782035046d5e4d4144a259c941bbe87ced7b325"
+        },
+        {
+          "kind": "detail",
+          "file": "greenrow-detail-720.webp",
+          "sourcePath": "public/shop-studio/greenrow-detail-720.webp",
+          "sha256": "68dc8d7c3f43bd813dd280feced823b1877332a914f6aa4d51289f37b889803f"
+        }
+      ]
+    },
+    {
+      "id": "pogeunpet",
+      "name": "포근펫",
+      "category": "반려동물",
+      "url": "https://3eafb5ab105e400799555c8bc00d3afa.app.comwit.link",
+      "productPath": "/products/01a13a6a-fdc2-7639-b541-edf63b2833d8",
+      "type": "pets",
+      "typeLabelEn": "Pets",
+      "screens": [
+        {
+          "kind": "home",
+          "file": "pogeunpet-home-720.webp",
+          "sourcePath": "public/shop-studio/pogeunpet-home-720.webp",
+          "sha256": "51a72d47f30804ed5bbb8d51314b8690d5b2770ebcf6c4f5c1fdaed81197f58f"
+        },
+        {
+          "kind": "detail",
+          "file": "pogeunpet-detail-720.webp",
+          "sourcePath": "public/shop-studio/pogeunpet-detail-720.webp",
+          "sha256": "3d07b32c996688e6cc05c92d88d1b0ff58994024b23b6808683dc0194404b59c"
+        }
+      ]
+    },
+    {
+      "id": "ore-atelier",
+      "name": "오르 아틀리에",
+      "category": "주얼리",
+      "url": "https://b715ce6a462b421aa9470ff39b5e953c.app.comwit.link",
+      "productPath": "/products/01a13aaa-7f47-72ff-bf0d-2e7a7a96632e",
+      "type": "accessories",
+      "typeLabelEn": "Jewelry & accessories",
+      "screens": [
+        {
+          "kind": "home",
+          "file": "ore-atelier-home-720.webp",
+          "sourcePath": "public/shop-studio/ore-atelier-home-720.webp",
+          "sha256": "40f4099b4475cbb4fee1e3cb65208bab28841cbc402313f9443d6f3709958377"
+        },
+        {
+          "kind": "detail",
+          "file": "ore-atelier-detail-720.webp",
+          "sourcePath": "public/shop-studio/ore-atelier-detail-720.webp",
+          "sha256": "4b2f4da873c61072daef744d326f89eec3513c3011844d58d10f5c76d45deeca"
+        }
+      ]
+    },
+    {
+      "id": "yunseul",
+      "name": "윤슬",
+      "category": "아이웨어",
+      "url": "https://2008d06002fc44ecb5b59f1102495df1.app.comwit.link",
+      "productPath": "/products/01a13aa1-c73c-71ba-8cf3-79cb79ec2f77",
+      "type": "accessories",
+      "typeLabelEn": "Jewelry & accessories",
+      "screens": [
+        {
+          "kind": "home",
+          "file": "yunseul-home-720.webp",
+          "sourcePath": "public/shop-studio/yunseul-home-720.webp",
+          "sha256": "f5721ca8457ea7df00566e28c9ef673fa8caa6109d98f3a7ed7b0376557f91cf"
+        },
+        {
+          "kind": "detail",
+          "file": "yunseul-detail-720.webp",
+          "sourcePath": "public/shop-studio/yunseul-detail-720.webp",
+          "sha256": "b3421dc68d6c942f00dedc85ee5f496e52a2676ed2dd4c11ddb019f74c1e7ea4"
+        }
+      ]
+    },
+    {
+      "id": "heukgyeol",
+      "name": "흙결",
+      "category": "도자기 · 리빙",
+      "url": "https://32830ae26b044078bb6a426ef62cff01.app.comwit.link",
+      "productPath": "/products/01a13a68-0c2b-70aa-9a0c-c26d9d2b333d",
+      "type": "living",
+      "typeLabelEn": "Living & craft",
+      "screens": [
+        {
+          "kind": "home",
+          "file": "heukgyeol-home-720.webp",
+          "sourcePath": "public/shop-studio/heukgyeol-home-720.webp",
+          "sha256": "e7be6f341f3b3714a917f43e00142e75be434cbad1893f361a3e91be8b0d6f35"
+        },
+        {
+          "kind": "detail",
+          "file": "heukgyeol-detail-720.webp",
+          "sourcePath": "public/shop-studio/heukgyeol-detail-720.webp",
+          "sha256": "6010a774c4f7ec424c5f5f3118f6b3ea9087a030424b5d6bcc0d6f3f95f4990b"
+        }
+      ]
+    },
+    {
+      "id": "maison-ruelle",
+      "name": "메종 루엘",
+      "category": "여성 패션",
+      "url": "https://75965ddb7a03422ca6e1e97662a7ea45.app.comwit.link",
+      "productPath": "/products/01a13a74-f651-72d9-965b-942b44f3e49a",
+      "type": "fashion",
+      "typeLabelEn": "Fashion",
+      "screens": [
+        {
+          "kind": "home",
+          "file": "maison-ruelle-home-720.webp",
+          "sourcePath": "public/shop-studio/maison-ruelle-home-720.webp",
+          "sha256": "41bf76c34eb57011530b1d5d62267e089d69f4f3417c07697c3ee5a1c7c01861"
+        },
+        {
+          "kind": "detail",
+          "file": "maison-ruelle-detail-720.webp",
+          "sourcePath": "public/shop-studio/maison-ruelle-detail-720.webp",
+          "sha256": "9247cefa4661877321d365c5ab1db2f2af4607668bd377e201c5a276f14e0a59"
+        }
+      ]
+    },
+    {
+      "id": "supgyeol",
+      "name": "숲결",
+      "category": "향수 · 프래그런스",
+      "url": "https://08b1fc8e1a64407fb3fa8c9a5a3dc002.app.comwit.link",
+      "productPath": "/products/01a13ac9-109e-702b-9e16-51620dc6664c",
+      "type": "beauty",
+      "typeLabelEn": "Beauty & fragrance",
+      "screens": [
+        {
+          "kind": "home",
+          "file": "supgyeol-home-720.webp",
+          "sourcePath": "public/shop-studio/supgyeol-home-720.webp",
+          "sha256": "a49d4f6009651e7fcbda46f26de4b2e86cbeda326ccc5dbac93d6fe9034dbb0e"
+        },
+        {
+          "kind": "detail",
+          "file": "supgyeol-detail-720.webp",
+          "sourcePath": "public/shop-studio/supgyeol-detail-720.webp",
+          "sha256": "f12136aa608156b6478b828c7f592eb93e070f6399c6f007de8bbd8d762850f3"
+        }
+      ]
+    },
+    {
+      "id": "bukhyang",
+      "name": "북향",
+      "category": "남성 패션",
+      "url": "https://d0614453d3904d63b5db4325c775db5c.app.comwit.link",
+      "productPath": "/products/01a13a6b-a9b8-7529-8fe6-06663d1c2d7d",
+      "type": "fashion",
+      "typeLabelEn": "Fashion",
+      "screens": [
+        {
+          "kind": "home",
+          "file": "bukhyang-home-720.webp",
+          "sourcePath": "public/shop-studio/bukhyang-home-720.webp",
+          "sha256": "47335571dfdc1f77f31f223ef2992a3a6dcd85d6d97b7400f0a2d6e09413f13d"
+        },
+        {
+          "kind": "detail",
+          "file": "bukhyang-detail-720.webp",
+          "sourcePath": "public/shop-studio/bukhyang-detail-720.webp",
+          "sha256": "b4720666852a3420065278fc9731ac42099c7d2cfb1da1697cba843854b3daa1"
+        }
+      ]
+    },
+    {
+      "id": "mongdol-soap",
+      "name": "몽돌솝",
+      "category": "뷰티 · 라이프스타일",
+      "url": "https://d93ec2ecf1b9433ba1a5b4e200bd7abe.app.comwit.link",
+      "productPath": "/products/01a13aca-5dee-72c9-a79e-ae2fb0e44654",
+      "type": "beauty",
+      "typeLabelEn": "Beauty & fragrance",
+      "screens": [
+        {
+          "kind": "home",
+          "file": "mongdol-soap-home-720.webp",
+          "sourcePath": "public/shop-studio/mongdol-soap-home-720.webp",
+          "sha256": "f66d1ffc1640b62a5357608a4fadf5e17a0a5d0a76d44802bf409ca5ff8c1072"
+        },
+        {
+          "kind": "detail",
+          "file": "mongdol-soap-detail-720.webp",
+          "sourcePath": "public/shop-studio/mongdol-soap-detail-720.webp",
+          "sha256": "7b5ad1358048b1812abdba8c16561f49bd30cbcab1eadb235be32e80cd929f49"
+        }
+      ]
+    },
+    {
+      "id": "hangyeol-leather",
+      "name": "한결 레더",
+      "category": "가죽 · 잡화",
+      "url": "https://38687e04fad94ac7a8e199f8c269b45f.app.comwit.link",
+      "productPath": "/products/01a13ad1-9e88-75a8-bb20-719085a79e24",
+      "type": "accessories",
+      "typeLabelEn": "Jewelry & accessories",
+      "screens": [
+        {
+          "kind": "home",
+          "file": "hangyeol-leather-home-720.webp",
+          "sourcePath": "public/shop-studio/hangyeol-leather-home-720.webp",
+          "sha256": "47dfc159e0b2fecacf5f0bf1af171a4f7119341fcd1db618ac3393a3b34b760a"
+        },
+        {
+          "kind": "detail",
+          "file": "hangyeol-leather-detail-720.webp",
+          "sourcePath": "public/shop-studio/hangyeol-leather-detail-720.webp",
+          "sha256": "c1759e74f9a38a0d364726f4ee3efc61c7fdd6c8e51e922554d96162a05d5e1f"
+        }
+      ]
+    }
+  ]
+}

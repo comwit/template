@@ -3,6 +3,15 @@
   "compilerOptions": {
     "incremental": false
   },
-  "include": ["./**/*.ts", "./**/*.tsx", "../next-env.d.ts"],
-  "exclude": ["../node_modules", "../storybook-static"]
+  "include": [
+    "./**/*.ts",
+    "./**/*.tsx",
+    "../src/stories/**/*.ts",
+    "../src/stories/**/*.tsx",
+    "../next-env.d.ts"
+  ],
+  "exclude": [
+    "../node_modules",
+    "../storybook-static"
+  ]
 }
