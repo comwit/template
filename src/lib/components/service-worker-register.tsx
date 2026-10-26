@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
+import { toast } from "@/lib/components/ui/toast";
+import { uiText } from "@/lib/ui-text";
+import { observeControllerChanges, setupServiceWorkerUpdates } from "@/lib/service-worker/updates";
 
 /**
  * Registers the production service worker after load. Development unregisters
@@ -21,6 +24,7 @@ export function ServiceWorkerRegister() {
       return;
     }
 
+    const stopObserving = observeControllerChanges();
     let cancelled = false;
     let cleanupRegistration: (() => void) | undefined;
     let removeLoadListener: (() => void) | undefined;
@@ -30,7 +34,17 @@ export function ServiceWorkerRegister() {
         .register("/sw.js", { scope: "/", updateViaCache: "none" })
         .then((registration) => {
           if (cancelled) return;
-          cleanupRegistration = setupServiceWorkerUpdates(registration);
+          cleanupRegistration = setupServiceWorkerUpdates(registration, (apply, status) => {
+            toast(uiText.appUpdate.title, {
+              id: "comwit-app-update",
+              duration: Infinity,
+              description: uiText.appUpdate[status],
+              action: {
+                label: uiText.appUpdate.action,
+                onClick: (event) => { event.preventDefault(); void apply(); },
+              },
+            });
+          });
         })
         .catch(() => {
           // Registration failure is non-fatal; the app continues as a normal web app.
@@ -45,6 +59,8 @@ export function ServiceWorkerRegister() {
 
     return () => {
       cancelled = true;
+      stopObserving();
+      toast.dismiss("comwit-app-update");
       removeLoadListener?.();
       cleanupRegistration?.();
     };
@@ -82,54 +98,4 @@ async function disableServiceWorkerInDevelopment() {
   } catch {
     // Development cleanup is best-effort.
   }
-}
-
-function setupServiceWorkerUpdates(registration: ServiceWorkerRegistration) {
-  let shouldReloadOnControllerChange = false;
-  let hasReloaded = false;
-  const trackedWorkers = new WeakSet<ServiceWorker>();
-
-  const promoteWaitingWorker = () => {
-    const waiting = registration.waiting;
-    if (!waiting || !navigator.serviceWorker.controller) return;
-    shouldReloadOnControllerChange = true;
-    waiting.postMessage("skip-waiting");
-  };
-
-  const trackInstallingWorker = (installing: ServiceWorker) => {
-    if (trackedWorkers.has(installing)) return;
-    trackedWorkers.add(installing);
-
-    const handleStateChange = () => {
-      if (installing.state !== "installed") return;
-      installing.removeEventListener("statechange", handleStateChange);
-      promoteWaitingWorker();
-    };
-
-    installing.addEventListener("statechange", handleStateChange);
-  };
-
-  const handleUpdateFound = () => {
-    const installing = registration.installing;
-    if (installing) trackInstallingWorker(installing);
-  };
-
-  const handleControllerChange = () => {
-    if (!shouldReloadOnControllerChange || hasReloaded) return;
-    hasReloaded = true;
-    window.location.reload();
-  };
-
-  // Registration checks for updates on document load. Do not force additional
-  // network checks when an idle tab gains focus or becomes visible.
-  registration.addEventListener("updatefound", handleUpdateFound);
-  navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
-
-  if (registration.installing) trackInstallingWorker(registration.installing);
-  promoteWaitingWorker();
-
-  return () => {
-    registration.removeEventListener("updatefound", handleUpdateFound);
-    navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
-  };
 }

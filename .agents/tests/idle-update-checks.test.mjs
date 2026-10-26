@@ -1,145 +1,199 @@
 import assert from 'node:assert/strict'
-import { readFile } from 'node:fs/promises'
+import { readFile, mkdtemp, writeFile, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { test } from 'node:test'
 import vm from 'node:vm'
 import ts from 'typescript'
+import { createAppVersion, readAppVersion } from '../../scripts/app-version.mjs'
 
-const sources = await Promise.all(['service-worker-register', 'app-version-guard'].map(async (name) => {
-  const source = await readFile(new URL(`../../src/lib/components/${name}.tsx`, import.meta.url), 'utf8')
-  return ts.transpileModule(source.replace('import { useEffect } from "react";', ''), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-  }).outputText
-}))
+const transpile = async (path) => ts.transpileModule(await readFile(new URL(path, import.meta.url), 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+}).outputText
+const source = await transpile('../../src/lib/service-worker/updates.ts')
+const activateSource = await transpile('../../src/lib/service-worker/activate-update.ts')
 
-function mount({ version = 'current', readyState = 'complete', visibilityState = 'visible', waiting = null, installing = null, offline = false } = {}) {
-  const requests = []
-  const cleanups = []
-  const storage = new Map()
+function mount({ controlled = true, waiting = null, visibility = 'visible', update = async () => {} } = {}) {
+  const notices = []
+  let checks = 0
   let reloads = 0
   const registration = Object.assign(new EventTarget(), {
-    waiting, installing,
-    update: async () => { requests.push('/sw.js (update)') },
+    waiting, installing: null,
+    update: async () => { checks++; await update() },
   })
-  const serviceWorker = Object.assign(new EventTarget(), {
-    controller: {},
-    register: async (url) => { requests.push(url); return registration },
-  })
-  const window = Object.assign(new EventTarget(), { location: { reload: () => { reloads++ } } })
-  window.parent = window
-  const document = Object.assign(new EventTarget(), { visibilityState, readyState })
-  const context = vm.createContext({
-    exports: {}, window, document, navigator: { serviceWorker },
-    process: { env: { NODE_ENV: 'production', NEXT_PUBLIC_COMWIT_APP_VERSION: 'current' } },
-    useEffect: (effect) => cleanups.push(effect()),
-    setInterval: (...args) => globalThis.setInterval(...args),
+  const serviceWorker = Object.assign(new EventTarget(), { controller: controlled ? {} : null })
+  const window = Object.assign(new EventTarget(), {
+    location: { reload: () => { reloads++ } },
     setTimeout: (...args) => globalThis.setTimeout(...args),
-    clearInterval: (...args) => globalThis.clearInterval(...args),
     clearTimeout: (...args) => globalThis.clearTimeout(...args),
-    fetch: async (url) => {
-      requests.push(url.split('?')[0])
-      if (offline) throw new TypeError('Failed to fetch')
-      return { ok: true, json: async () => ({ version }) }
-    },
-    sessionStorage: { getItem: (key) => storage.get(key), setItem: (key, value) => storage.set(key, value) },
   })
-  for (const source of sources) vm.runInContext(source, context)
-  context.exports.ServiceWorkerRegister()
-  context.exports.AppVersionGuard()
+  const document = Object.assign(new EventTarget(), { visibilityState: visibility })
+  const navigator = { serviceWorker, onLine: true }
+  const context = vm.createContext({ exports: {}, window, document, navigator, MessageChannel })
+  vm.runInContext(source, context)
+  const stopObserving = context.exports.observeControllerChanges()
+  const stopUpdates = context.exports.setupServiceWorkerUpdates(registration, (apply, status) => notices.push({ apply, status }))
   return {
-    requests, window, document, registration, serviceWorker,
-    get reloads() { return reloads },
-    unmount: () => cleanups.forEach((cleanup) => cleanup?.()),
+    window, document, navigator, registration, serviceWorker, notices,
+    get checks() { return checks }, get reloads() { return reloads },
+    unmount() { stopObserving(); stopUpdates() },
   }
 }
-
 const settle = () => new Promise(setImmediate)
+const changeController = (app) => { app.serviceWorker.controller = {}; app.serviceWorker.dispatchEvent(new Event('controllerchange')) }
 
-test('idle time and repeated tab focus do not issue additional update requests', async (t) => {
+function worker(result = 'activating') {
+  const messages = []
+  return Object.assign(new EventTarget(), {
+    state: 'installing', messages,
+    postMessage(message, ports) { messages.push(message); ports[0].postMessage(result) },
+  })
+}
+
+test('waiting worker requires acceptance and reload happens only after control changes', async () => {
+  const waiting = worker()
+  const app = mount({ waiting })
+  assert.equal(app.notices[0].status, 'ready')
+  assert.equal(waiting.messages.length, 0)
+  await app.notices[0].apply()
+  assert.equal(waiting.messages[0].type, 'COMWIT_APPLY_UPDATE')
+  assert.equal(app.reloads, 0)
+  changeController(app)
+  changeController(app)
+  assert.equal(app.reloads, 1)
+  app.unmount()
+})
+
+test('first install does not prompt or reload; a later externally activated update reloads once', () => {
+  const app = mount({ controlled: false })
+  const installing = worker()
+  app.registration.installing = installing
+  app.registration.dispatchEvent(new Event('updatefound'))
+  installing.state = 'installed'
+  installing.dispatchEvent(new Event('statechange'))
+  changeController(app)
+  assert.equal(app.notices.length, 0)
+  assert.equal(app.reloads, 0)
+  changeController(app)
+  assert.equal(app.reloads, 1)
+  app.unmount()
+})
+
+test('newly installed update is announced once without promotion', () => {
+  const app = mount()
+  const installing = worker()
+  app.registration.installing = installing
+  app.registration.dispatchEvent(new Event('updatefound'))
+  app.registration.waiting = installing
+  installing.state = 'installed'
+  installing.dispatchEvent(new Event('statechange'))
+  assert.equal(app.notices.length, 1)
+  assert.equal(installing.messages.length, 0)
+  app.unmount()
+})
+
+test('one hour idle never checks; foreground and online events check with in-flight deduplication', async (t) => {
   t.mock.timers.enable({ apis: ['setTimeout', 'setInterval'] })
   const app = mount()
+  t.mock.timers.tick(3_600_000)
   await settle()
-  for (let minute = 0; minute < 60; minute++) {
-    t.mock.timers.tick(60_000)
-    await settle()
-  }
-  for (let visit = 0; visit < 5; visit++) {
-    app.document.visibilityState = 'hidden'
-    app.document.dispatchEvent(new Event('visibilitychange'))
-    app.document.visibilityState = 'visible'
-    app.document.dispatchEvent(new Event('visibilitychange'))
-    app.window.dispatchEvent(new Event('focus'))
-    await settle()
-  }
-  assert.deepEqual(app.requests, ['/sw.js', '/version.json'])
-  assert.equal(app.reloads, 0)
-  app.unmount()
-})
-
-test('a newly discovered worker still activates and reloads only once', async () => {
-  const app = mount()
+  assert.equal(app.checks, 0)
+  app.window.dispatchEvent(new Event('focus'))
+  app.document.dispatchEvent(new Event('visibilitychange'))
+  assert.equal(app.checks, 1)
   await settle()
-  const messages = []
-  const worker = Object.assign(new EventTarget(), {
-    state: 'installing', postMessage: (message) => messages.push(message),
-  })
-  app.registration.installing = worker
-  app.registration.dispatchEvent(new Event('updatefound'))
-  app.registration.waiting = worker
-  worker.state = 'installed'
-  worker.dispatchEvent(new Event('statechange'))
-  assert.deepEqual(messages, ['skip-waiting'])
-  app.serviceWorker.dispatchEvent(new Event('controllerchange'))
-  app.serviceWorker.dispatchEvent(new Event('controllerchange'))
-  assert.equal(app.reloads, 1)
-  app.unmount()
-})
-
-test('an already waiting worker is promoted on registration', async () => {
-  const messages = []
-  const app = mount({ waiting: { postMessage: (message) => messages.push(message) } })
-  await settle()
-  assert.deepEqual(messages, ['skip-waiting'])
-  app.serviceWorker.dispatchEvent(new Event('controllerchange'))
-  assert.equal(app.reloads, 1)
-  app.unmount()
-})
-
-test('the initial version check still reloads an old document', async () => {
-  const app = mount({ version: 'new-deployment' })
-  await settle()
-  assert.equal(app.reloads, 1)
-  app.unmount()
-})
-
-test('unmount before load prevents late registration', async () => {
-  const app = mount({ readyState: 'loading' })
-  await settle()
-  app.unmount()
-  app.window.dispatchEvent(new Event('load'))
-  await settle()
-  assert.deepEqual(app.requests, ['/version.json'])
-})
-
-test('a background document checks once and does not recheck on visibility', async () => {
-  const app = mount({ visibilityState: 'hidden' })
-  await settle()
+  app.document.visibilityState = 'hidden'
+  app.window.dispatchEvent(new Event('online'))
+  assert.equal(app.checks, 1)
   app.document.visibilityState = 'visible'
   app.document.dispatchEvent(new Event('visibilitychange'))
   await settle()
-  assert.deepEqual(app.requests, ['/sw.js', '/version.json'])
+  app.window.dispatchEvent(new Event('online'))
+  await settle()
+  assert.equal(app.checks, 3)
+  app.unmount()
+  app.window.dispatchEvent(new Event('focus'))
+  assert.equal(app.checks, 3)
+})
+
+test('offline checks and failed updates never reload or retry on their own', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'setInterval'] })
+  const app = mount({ update: async () => { throw new Error('offline') } })
+  app.navigator.onLine = false
+  app.window.dispatchEvent(new Event('focus'))
+  assert.equal(app.checks, 0)
+  app.navigator.onLine = true
+  app.window.dispatchEvent(new Event('online'))
+  await settle()
+  t.mock.timers.tick(3_600_000)
+  await settle()
+  assert.equal(app.checks, 1)
+  assert.equal(app.reloads, 0)
   app.unmount()
 })
 
-test('failed version requests do not retry while idle or on focus', async (t) => {
-  t.mock.timers.enable({ apis: ['setTimeout', 'setInterval'] })
-  const app = mount({ offline: true })
-  await settle()
-  for (let second = 0; second < 60; second += 2) {
-    t.mock.timers.tick(2000)
-    app.window.dispatchEvent(new Event('focus'))
-    await settle()
-  }
-  assert.deepEqual(app.requests, ['/sw.js', '/version.json'])
+test('blocked activation remains retryable and never reloads', async () => {
+  const app = mount({ waiting: worker('blocked') })
+  await app.notices[0].apply()
+  assert.equal(app.notices.at(-1).status, 'blocked')
+  assert.equal(app.reloads, 0)
+  app.registration.waiting = worker()
+  await app.notices.at(-1).apply()
+  assert.equal(app.registration.waiting.messages.length, 1)
+  app.unmount()
+})
+
+test('an unresponsive worker times out without discarding the running app', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] })
+  const app = mount({ waiting: { postMessage() {} } })
+  const pending = app.notices[0].apply()
+  t.mock.timers.tick(5000)
+  await pending
+  assert.equal(app.notices.at(-1).status, 'failed')
   assert.equal(app.reloads, 0)
   app.unmount()
+})
+
+test('unmount removes installation and controller listeners and cancels pending messages', async () => {
+  const app = mount({ waiting: { postMessage() {} } })
+  const pending = app.notices[0].apply()
+  app.unmount()
+  await pending
+  changeController(app)
+  assert.equal(app.reloads, 0)
+  assert.equal(app.notices.length, 1)
+})
+
+test('activation is deferred for another scoped client, including uncontrolled windows', async () => {
+  const context = vm.createContext({ exports: {} })
+  vm.runInContext(activateSource, context)
+  let activations = 0
+  let clients = [{ id: 'requester', url: 'https://app.test/' }, { id: 'other', url: 'https://app.test/form' }]
+  const scope = {
+    registration: { scope: 'https://app.test/' },
+    clients: { matchAll: async (options) => { assert.equal(options.includeUncontrolled, true); return clients } },
+    skipWaiting: async () => { activations++ },
+  }
+  assert.equal(await context.exports.activateUpdate(scope, 'requester'), 'blocked')
+  assert.equal(activations, 0)
+  clients = clients.slice(0, 1)
+  assert.equal(await context.exports.activateUpdate(scope, 'wrong-client'), 'blocked')
+  assert.equal(await context.exports.activateUpdate(scope, 'requester'), 'activating')
+  assert.equal(activations, 1)
+})
+
+test('rebuilds get unique IDs even at the same commit; explicit artifact IDs are shared', async () => {
+  assert.notEqual(createAppVersion({ GIT_SHA: 'same' }), createAppVersion({ GIT_SHA: 'same' }))
+  assert.equal(createAppVersion({ NEXT_DEPLOYMENT_ID: ' release-42 ', DEPLOYMENT_VERSION: 'other' }), 'release-42')
+  assert.equal(createAppVersion({ DEPLOYMENT_VERSION: 'release-42' }), 'release-42')
+  const dir = await mkdtemp(join(tmpdir(), 'comwit-version-'))
+  try {
+    const file = join(dir, 'version.json')
+    await writeFile(file, JSON.stringify({ version: createAppVersion({}) }))
+    const a = readAppVersion({ development: false, file })
+    assert.equal(readAppVersion({ development: false, file }), a)
+    assert.equal(readAppVersion({ development: true, file }), 'development')
+    await writeFile(file, '{}')
+    assert.throws(() => readAppVersion({ development: false, file }), /Missing deployment version/)
+  } finally { await rm(dir, { recursive: true, force: true }) }
 })

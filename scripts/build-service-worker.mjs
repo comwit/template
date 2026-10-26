@@ -1,15 +1,9 @@
 import { build } from "esbuild";
-import { readFileSync } from "node:fs";
+import { readAppVersion } from "./app-version.mjs";
 import { join } from "node:path";
 
 const rootDir = join(import.meta.dirname, "..");
-const versionPayload = JSON.parse(
-  readFileSync(join(rootDir, "public", "version.json"), "utf8"),
-);
-const appVersion =
-  typeof versionPayload.version === "string" && versionPayload.version.trim()
-    ? versionPayload.version.trim()
-    : "local";
+const appVersion = readAppVersion({ development: false });
 
 await build({
   entryPoints: [join(rootDir, "src", "app", "sw.ts")],

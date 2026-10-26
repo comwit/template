@@ -12,6 +12,8 @@ import {
   Serwist,
 } from "serwist";
 
+import { activateUpdate } from "../lib/service-worker/activate-update";
+
 import { cacheableDocument } from "../lib/service-worker";
 
 declare const __COMWIT_APP_VERSION__: string;
@@ -95,23 +97,15 @@ const cacheStaticRscResponse: SerwistPlugin = {
   },
 };
 
-const normalizeRscCacheKey: SerwistPlugin = {
-  async cacheKeyWillBeUsed({ request }) {
-    const url = new URL(request.url);
-    url.searchParams.delete("_rsc");
-    // Preserve Next's Vary-based router distinctions while removing the
-    // transport-only salt that changes on otherwise identical RSC requests.
-    return new Request(url, request);
-  },
-};
-
 const staticAssets = new CacheFirst({
   cacheName: `${CACHE_NAMESPACE}-assets`,
   plugins: [cacheSuccessfulResponse],
 });
 const staticRsc = new CacheFirst({
   cacheName: `${CACHE_NAMESPACE}-static-rsc`,
-  plugins: [normalizeRscCacheKey, cacheStaticRscResponse],
+  // Cache Storage owns the deployment lifetime; do not refill it from an old HTTP cache.
+  fetchOptions: { cache: "no-store" },
+  plugins: [cacheStaticRscResponse],
 });
 const staticDocuments = new CacheFirst({
   cacheName: `${CACHE_NAMESPACE}-documents`,
@@ -119,8 +113,9 @@ const staticDocuments = new CacheFirst({
 });
 const dynamicRsc = new NetworkFirst({
   cacheName: `${CACHE_NAMESPACE}-dynamic-rsc`,
+  fetchOptions: { cache: "no-store" },
   networkTimeoutSeconds: 4,
-  plugins: [normalizeRscCacheKey, cachePublicResponse],
+  plugins: [cachePublicResponse],
 });
 const dynamicRequests = new NetworkFirst({
   cacheName: `${CACHE_NAMESPACE}-dynamic`,
@@ -139,8 +134,8 @@ const serwist = new Serwist({
     cacheName: `${CACHE_NAMESPACE}-precache`,
     cleanupOutdatedCaches: true,
   },
-  // The registration component promotes an installed worker and reloads once
-  // on controllerchange so HTML, client bundles, and SW versions stay aligned.
+  // Updates wait for user acceptance; controllerchange reloads the document
+  // only after the new worker takes control.
   skipWaiting: false,
   clientsClaim: true,
   navigationPreload: true,
@@ -231,9 +226,17 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// Backward-compatible with the message used by the previous registration code.
+// Only the requesting window may be open when it accepts an update. Other
+// tabs (including uncontrolled ones) may contain unsaved work.
 self.addEventListener("message", (event) => {
-  if (event.data === "skip-waiting") void self.skipWaiting();
+  if (event.data?.type !== "COMWIT_APPLY_UPDATE") return;
+  const source = event.source;
+  if (!source || !("id" in source)) return;
+  event.waitUntil(
+    activateUpdate(self, source.id).then((result) => {
+      event.ports[0]?.postMessage(result);
+    }),
+  );
 });
 
 // Focus a matching app window when a push notification is clicked, or open the
