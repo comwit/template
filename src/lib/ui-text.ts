@@ -6,6 +6,13 @@
  * This Korean version is installed by comwit-ui init --locale ko (or "locale": "ko" in comwit.json).
  */
 export const uiText = {
+  appUpdate: {
+    title: '새 버전이 준비됐어요',
+    ready: '진행 중인 작업을 저장한 뒤 업데이트해 주세요.',
+    blocked: '다른 앱 탭이나 창의 작업을 저장하고 닫은 뒤 다시 눌러 주세요.',
+    failed: '업데이트를 적용하지 못했어요. 잠시 후 다시 눌러 주세요.',
+    action: '저장 후 새로고침',
+  },
   /**
    * Intl locale for date, month, and time picker display.
    */

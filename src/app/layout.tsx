@@ -6,7 +6,6 @@ import "./globals.css";
 // Let Client Component SSR .suspend() queryFn execute Server Functions in the same request scope.
 import "@/lib/server-action/ssr-bridge";
 import { RootLayout } from "@/lib/layout";
-import { AppVersionGuard } from "@/lib/components/app-version-guard";
 import { ReactGrabInit } from "@/lib/components/react-grab-init";
 import { SandboxBridge } from "@/lib/components/sandbox-bridge";
 import { ServiceWorkerRegister } from "@/lib/components/service-worker-register";
@@ -94,7 +93,6 @@ export default function Layout({
         </RootLayout>
         <ReactGrabInit />
         <SandboxBridge />
-        <AppVersionGuard />
         <ServiceWorkerRegister />
       </body>
     </html>

@@ -1,30 +1,11 @@
 import type { NextConfig } from "next";
-import { execSync } from "node:child_process";
+import { readAppVersion } from "./scripts/app-version.mjs";
 import { createRequire } from "node:module";
 import { withServerFn } from "./src/lib/server-action/next";
 
 const require = createRequire(import.meta.url);
 
-function resolveAppVersion(): string {
-  const envVersion =
-    process.env.NEXT_DEPLOYMENT_ID ||
-    process.env.DEPLOYMENT_VERSION ||
-    process.env.GIT_SHA ||
-    process.env.GIT_COMMIT_SHA;
-
-  if (envVersion?.trim()) return envVersion.trim();
-
-  try {
-    return execSync("git rev-parse HEAD", {
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-    }).trim();
-  } catch {
-    return "local";
-  }
-}
-
-const appVersion = resolveAppVersion();
+const appVersion = readAppVersion();
 const STATIC_SHELL_CACHE_SECONDS = 365 * 24 * 60 * 60;
 
 const nextConfig: NextConfig = {
@@ -35,9 +16,6 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["@libsql/isomorphic-ws"],
   reactStrictMode: false,
   deploymentId: appVersion,
-  env: {
-    NEXT_PUBLIC_COMWIT_APP_VERSION: appVersion,
-  },
   // Cache Components separates reusable static shells/RSC payloads from
   // request-time data. Partial Prefetching then fetches only the reusable shell.
   cacheComponents: true,
