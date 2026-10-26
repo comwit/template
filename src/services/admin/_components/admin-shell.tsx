@@ -1,68 +1,75 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { usePathname } from 'next/navigation'
-import { LogOutIcon, MenuIcon, type IconComponent } from '@comwit/ui/icons'
+import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { LogOut, Menu, type LucideIcon } from "lucide-react";
 
-import { ForesightLink as Link } from '@/lib/components/foresight-link'
-import { Button } from '@/lib/components/ui/button'
+import { ForesightLink as Link } from "@/lib/components/foresight-link";
+import { Button } from "@/lib/components/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from '@/lib/components/ui/sheet'
-import { cn } from '@/lib/utils'
+} from "@/lib/components/ui/sheet";
+import { cn } from "@/lib/utils";
 
-export type AdminNavItem = { label: string; href: string; icon: IconComponent }
-export type AdminNavGroup = { label: string; items: AdminNavItem[] }
+export type AdminNavItem = { label: string; href: string; icon: LucideIcon };
+export type AdminNavGroup = { label: string; items: AdminNavItem[] };
 
 type AdminShellProps = {
-  /** Brand/logo slot at the top of the sidebar. */
-  brand: React.ReactNode
-  /** Navigation arranged into logical groups. */
-  navGroups: AdminNavGroup[]
-  /** Sign-out handler; the shell closes the drawer first. */
-  onSignOut: () => void | Promise<void>
-  signOutLabel?: string
-  /** Root breadcrumb label (defaults to the localized admin label). */
-  breadcrumbRoot?: string
-  /** Public admin root path that uses exact matching for its active state. */
-  homeHref: string
-  children: React.ReactNode
-}
+  /** 사이드바 상단 로고 슬롯 (브랜드 노드) */
+  brand: React.ReactNode;
+  /** 논리 그룹으로 묶은 네비게이션 */
+  navGroups: AdminNavGroup[];
+  /** 로그아웃 핸들러 — 드로어는 셸이 먼저 닫는다 */
+  onSignOut: () => void | Promise<void>;
+  signOutLabel?: string;
+  /** breadcrumb 루트 라벨 (기본 '어드민') */
+  breadcrumbRoot?: string;
+  /** 정확 매칭으로 active 판정할 공개 관리자 루트 경로 */
+  homeHref: string;
+  children: React.ReactNode;
+};
 
 function isNavActive(href: string, pathname: string, homeHref: string) {
   return href === homeHref
     ? pathname === href
-    : pathname === href || pathname.startsWith(`${href}/`)
+    : pathname === href || pathname.startsWith(`${href}/`);
 }
 
 /**
- * Admin shell: fixed desktop sidebar, left-side mobile Sheet drawer, and menu header.
- * Owns responsive chrome; receives navGroups, brand, and onSignOut through props.
+ * 어드민 전체 셸 — 데스크톱 고정 사이드바 + 모바일 드로어(Sheet, 왼쪽) + 햄버거 헤더.
+ * 반응형 chrome 전부를 흡수하고, 콘텐츠(navGroups/brand/onSignOut)는 prop으로만 주입한다.
  */
 export function AdminShell({
   brand,
   navGroups,
   onSignOut,
-  signOutLabel = '로그아웃',
-  breadcrumbRoot = '어드민',
+  signOutLabel = "로그아웃",
+  breadcrumbRoot = "어드민",
   homeHref,
   children,
 }: AdminShellProps) {
-  const pathname = usePathname()
-  const [open, setOpen] = useState(false)
+  const rawPathname = usePathname();
+  let pathname = rawPathname;
+  try {
+    pathname = decodeURIComponent(rawPathname);
+  } catch {
+    /* Preserve malformed paths for the router. */
+  }
+  const [open, setOpen] = useState(false);
 
   const sectionLabel =
     navGroups
       .flatMap((group) => group.items)
-      .find((item) => isNavActive(item.href, pathname, homeHref))?.label ?? breadcrumbRoot
+      .find((item) => isNavActive(item.href, pathname, homeHref))?.label ??
+    breadcrumbRoot;
 
   async function handleSignOut() {
-    setOpen(false)
-    await onSignOut()
+    setOpen(false);
+    await onSignOut();
   }
 
   const sidebar = (
@@ -75,24 +82,24 @@ export function AdminShell({
             </p>
             <div className="space-y-0.5">
               {group.items.map((item) => {
-                const active = isNavActive(item.href, pathname, homeHref)
+                const active = isNavActive(item.href, pathname, homeHref);
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={() => setOpen(false)}
-                    aria-current={active ? 'page' : undefined}
+                    aria-current={active ? "page" : undefined}
                     className={cn(
-                      'flex items-center gap-3 rounded-control px-3 py-2.5 text-label transition-colors duration-fast',
+                      "flex items-center gap-3 rounded-control px-3 py-2.5 text-label transition-colors duration-fast",
                       active
-                        ? 'bg-primary-surface font-semibold text-primary-ink'
-                        : 'font-medium text-muted-foreground hover:bg-accent hover:text-foreground',
+                        ? "bg-primary-surface font-semibold text-primary-ink"
+                        : "font-medium text-muted-foreground hover:bg-accent hover:text-foreground",
                     )}
                   >
                     <item.icon className="size-[18px]" aria-hidden="true" />
                     {item.label}
                   </Link>
-                )
+                );
               })}
             </div>
           </div>
@@ -105,25 +112,28 @@ export function AdminShell({
           onClick={handleSignOut}
           className="w-full justify-start gap-3 px-3 text-muted-foreground"
         >
-          <LogOutIcon className="size-[18px]" aria-hidden="true" />
+          <LogOut className="size-[18px]" aria-hidden="true" />
           {signOutLabel}
         </Button>
       </div>
     </>
-  )
+  );
 
   return (
     <div className="flex h-dvh bg-background">
-      {/* Desktop sidebar. */}
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-card lg:flex">
-        <div className="flex h-16 items-center px-5">{brand}</div>
+      {/* 데스크톱 사이드바 */}
+      <aside className="hidden w-56 shrink-0 flex-col border-r border-border bg-card lg:flex">
+        <div className="flex h-12 items-center px-5">{brand}</div>
         {sidebar}
       </aside>
 
-      {/* Mobile drawer: the same navigation in a left-side sheet. */}
+      {/* 모바일 드로어 — 같은 내비를 왼쪽 시트로 */}
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="flex w-72 flex-col gap-0 p-0 lg:hidden">
-          <SheetHeader className="h-16 justify-center px-5">
+        <SheetContent
+          side="left"
+          className="flex w-72 flex-col gap-0 p-0 lg:hidden"
+        >
+          <SheetHeader className="h-12 justify-center px-5">
             <SheetTitle asChild>
               <div>{brand}</div>
             </SheetTitle>
@@ -133,9 +143,9 @@ export function AdminShell({
         </SheetContent>
       </Sheet>
 
-      {/* Main column. */}
+      {/* 메인 칼럼 */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <header className="flex h-16 shrink-0 items-center gap-3 border-b border-border bg-background px-4 sm:px-6">
+        <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-background px-3 lg:hidden">
           <Button
             type="button"
             variant="ghost"
@@ -144,17 +154,20 @@ export function AdminShell({
             onClick={() => setOpen(true)}
             aria-label="메뉴 열기"
           >
-            <MenuIcon className="size-5" aria-hidden="true" />
+            <Menu className="size-5" aria-hidden="true" />
           </Button>
-          <nav className="flex items-center gap-1.5 text-label" aria-label="현재 위치">
-            <span className="text-muted-foreground">{breadcrumbRoot}</span>
-            <span className="text-muted-foreground">/</span>
-            <span className="font-semibold text-foreground">{sectionLabel}</span>
+          <nav
+            className="flex items-center gap-1.5 text-label"
+            aria-label="현재 위치"
+          >
+            <span className="font-semibold text-foreground">
+              {sectionLabel}
+            </span>
           </nav>
         </header>
 
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>
-  )
+  );
 }

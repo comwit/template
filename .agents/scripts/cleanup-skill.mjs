@@ -1,35 +1,31 @@
 #!/usr/bin/env node
-// One-time skills remove themselves after they finish. A skill lives in
-// `.agents/skills/<name>/` (the only copy) plus a `.claude/skills/<name>/`
-// stub that points at it; both go together so no runtime keeps a stale entry.
-import { existsSync, rmSync } from "node:fs";
-import path from "node:path";
-import process from "node:process";
-
-const allowedSkills = new Set(["app-setup", "auth-setup"]);
-
-function fail(message) {
-  console.error(message);
-  process.exit(1);
-}
-
-function findWorkspaceRoot(startPath) {
-  let current = path.resolve(startPath);
-  while (true) {
-    if (existsSync(path.join(current, ".agents"))) return current;
-    const parent = path.dirname(current);
-    if (parent === current) fail("Could not find a workspace containing .agents/");
-    current = parent;
+import { existsSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { join } from "node:path";
+const root = fileURLToPath(new URL("../../", import.meta.url));
+try {
+  if (process.argv.length !== 3 || process.argv[2] !== "shop-setup")
+    throw new Error("Usage: node .agents/scripts/cleanup-skill.mjs shop-setup");
+  const helper = new URL(
+    "../skills/shop-setup/scripts/complete.mjs",
+    import.meta.url,
+  );
+  if (!existsSync(helper)) {
+    const state = JSON.parse(
+      readFileSync(join(root, ".agents/state/shop-setup.json"), "utf8"),
+    );
+    if (
+      state.status !== "complete" ||
+      existsSync(join(root, ".agents/skills/shop-setup")) ||
+      existsSync(join(root, ".claude/skills/shop-setup"))
+    )
+      throw new Error("Incomplete setup; restore the skill before continuing");
+    console.log("Shop setup already completed");
+  } else {
+    const { completeShop } = await import(helper.href);
+    console.log(JSON.stringify(completeShop({ root })));
   }
+} catch (error) {
+  console.error(error.message);
+  process.exitCode = 1;
 }
-
-const [, , skill] = process.argv;
-if (!allowedSkills.has(skill)) {
-  fail(`cleanup-skill only accepts: ${[...allowedSkills].join(", ")}`);
-}
-
-const workspaceRoot = findWorkspaceRoot(process.cwd());
-const targets = [".agents/skills", ".claude/skills"].map((base) => path.join(workspaceRoot, base, skill));
-if (!existsSync(targets[0])) fail(`Skill is not installed: ${skill}`);
-for (const target of targets) rmSync(target, { recursive: true, force: true });
-console.log(`SKILL_ENTRYPOINTS_REMOVED ${skill}`);

@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
 import { config } from "@/server/config";
-import { ADMIN_BASE_PATH } from "@/lib/admin-routes";
 
 /**
  * Generate /robots.txt (src/app/robots.ts).
@@ -13,8 +12,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      // Block private paths such as admin here.
-      disallow: [ADMIN_BASE_PATH],
+      // Keep the custom admin path out of public robots.txt; its layout sets noindex.
+      disallow: ["/cart", "/checkout", "/account", "/api/", "/cron/"],
     },
     sitemap: `${baseUrl}/sitemap.xml`,
   };

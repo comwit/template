@@ -41,6 +41,7 @@ state/product/
   - Call `toast` (`@/lib/components/ui/toast`), `popup.confirm` / `popup.alert` (`@/lib/popup`), etc. inside the action
   - When another model's state is needed, do not receive it as an argument in the action; instead cross-state-model import it internally via state
   - Actions should take as few arguments as possible and manage things via internal state (so callers don't need to know much)
+- When a caller needs an action outcome (checkout `prepare()` → `pay()`), return the result or `null` for handled failure. Clear stale results before requesting, and await the result before starting the next action.
 - Re-export api types or define them additionally
 - Dependency flow: `page → state → api → repository`
 - Store SSR-owned resources in a `Query` when they need a client cache. A Server Component resolves the data, then a small client route adapter seeds that query with `.hydrate()` before the first normal domain-hook read.
@@ -168,6 +169,27 @@ function ProductDetail() {
   if (!detail) return <NotFound />
   return <ProductView product={detail} />
 }
+```
+
+### Shop product and business queries — selector `.suspend()`
+
+- `.suspend(arg)` starts or reuses the query Promise for the serialized arg during render and throws while pending; the nearest `<Suspense>` shows its fallback.
+- `StateProvider` (`src/lib/state/provider.tsx`) passes `useServerInsertedHTML`, so a result resolved during SSR streams to the browser as inert JSON and hydration reuses it without calling `queryFn` again (no double API call).
+- `queryFn` calls the service API facade as usual. During Client Component SSR the facade runs the Server Function in the same request scope instead of a relative fetch (`src/lib/server-action/ssr-bridge.ts`, registered by the root layout). In build prerender and dev validation renders that Promise never settles, so the boundary stays on its fallback and renders at request time.
+- Therefore the Server Component above a `.suspend()` view must sit in a request-time dynamic hole: `await params`, `await searchParams` or `await connection()`.
+- Use it only inside an explicit `<Suspense>` below `StateProvider`. Results must be JSON-serializable; realtime and streaming resources are not supported.
+- Errors propagate to the nearest Error Boundary. When a 404 decision is needed, make it first in the RSC with a cached lookup and `notFound()`.
+- For arg changes (pagination, filters) wrap the change in `startTransition`/`useTransition` so the previous list stays visible; outside a transition the boundary falls back. Show progress with `isPending`.
+- A cache entry that already has data (filled by an action's `resource.set(data, { arg })`, or by an earlier `.suspend`/`.load` of the same arg) returns synchronously from `.suspend(arg)` and refetches in the background after commit (`staleTime: 0`). This is how intercepting routes open instantly: the card calls `catalog.actions.open(product)` before navigation and the detail view keeps its single `.suspend(id)` (`page.ai.md` → Detail Pages). Do not split a view into a seeded `.load` branch and an SSR `.suspend` branch.
+- Preserve this existing shop detail flow. Basic app/admin auth uses the separate `.hydrate()` boundary below; do not move session loading into `.suspend()`.
+
+```tsx
+const detail = useProduct((state) => state.detail.suspend(id))
+
+// pagination
+const [isPending, startPageTransition] = useTransition()
+const list = useProduct((state) => state.products.suspend({ page }))
+const changePage = (next: number) => startPageTransition(() => setPage(next))
 ```
 
 ### Basic auth and lazy separate-table data
