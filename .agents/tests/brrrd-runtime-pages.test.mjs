@@ -1,66 +1,64 @@
 import assert from 'node:assert/strict'
-import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
 import { test } from 'node:test'
-import { prepareRuntimePages } from '../../scripts/brrrd-runtime-pages.mjs'
-import { withCompleteDocuments } from '../../scripts/brrrd-adapter.mjs'
+import { createRequire } from 'node:module'
+import { dirname, join } from 'node:path'
+import { pathToFileURL } from 'node:url'
 
-function fixture() {
-  return { schemaVersion: 1, buildId: 'build', routes: [
-    { id: 'prerender-projects', type: 'prerender', pattern: '^/projects$', file: '/projects/index', ppr: true },
-    { id: 'projects', type: 'page', pattern: '^/projects(?:/)?$', pprResume: { postponedState: 'private-state' } },
-    { id: 'projects_rsc', type: 'page', pattern: '^/projects\\.rsc$', pprResume: { postponedState: 'rsc-state' } },
-    { id: 'asset', type: 'static', file: '/_next/static/chunk.js' },
-    { id: 'static', type: 'prerender', pattern: '^/terms$', file: '/terms/index', ppr: false },
-    { id: 'rsc-shell', type: 'prerender', file: '/projects.rsc', ppr: true },
-  ] }
+const require = createRequire(import.meta.url)
+const adapterDir = dirname(require.resolve('@brrrd/adapter'))
+const { createNextBuildModel } = await import(pathToFileURL(join(adapterDir, 'model.js')).href)
+const { compileRouteTable } = await import(pathToFileURL(join(adapterDir, 'routing-compiler.js')).href)
+
+function model({ appPages = [], prerenders = [], staticFiles = [] } = {}) {
+  return createNextBuildModel({
+    projectDir: '/tmp/template-ppr-fixture',
+    repoRoot: '/tmp/template-ppr-fixture',
+    distDir: '/tmp/template-ppr-fixture/.next',
+    config: {}, nextVersion: '16.4.3', buildId: 'fixture',
+    outputs: { pages: [], pagesApi: [], appRoutes: [], appPages, prerenders, staticFiles },
+  })
 }
 
-test('PPR HTML selects full runtime rendering; RSC, assets and static documents are preserved', () => {
-  const original = fixture()
-  const copy = structuredClone(original)
-  const prepared = prepareRuntimePages(original)
-  assert.deepEqual(prepared.routes, [
-    { id: 'projects', type: 'page', pattern: '^/projects(?:/)?$' },
-    ...original.routes.slice(2),
-  ])
-  assert.equal(prepared.buildId, 'build')
-  assert.deepEqual(original, copy)
-  assert.deepEqual(prepareRuntimePages(prepared), prepared)
+const page = pathname => ({ id: pathname, pathname, runtime: 'nodejs' })
+const resume = { headers: { 'next-resume': '1' } }
+
+test('upstream renders complete PPR documents while retaining static documents and assets', () => {
+  const routes = compileRouteTable(model({
+    appPages: [page('/')],
+    prerenders: [
+      { id: '/', pathname: '/', parentOutputId: '/', pprChain: resume, fallback: { postponedState: 'html-state' } },
+      { id: '/terms', pathname: '/terms', fallback: { filePath: '/tmp/terms.html' } },
+    ],
+    staticFiles: [{ id: '/favicon.ico', pathname: '/favicon.ico', filePath: '/tmp/favicon.ico' }],
+  }))
+  assert.equal(routes.some(route => route.type === 'prerender' && route.ppr), false)
+  const document = routes.find(route => route.type === 'page' && new RegExp(route.pattern).test('/'))
+  assert.ok(document)
+  assert.equal(document.pprResume, undefined)
+  assert.ok(routes.some(route => route.type === 'prerender' && new RegExp(route.pattern).test('/terms')))
+  assert.ok(routes.some(route => route.type === 'static' && route.file === '/favicon.ico'))
 })
 
-test('root and generated dynamic pages retain a matching runtime handler', () => {
-  const result = prepareRuntimePages({ routes: [
-    { id: 'root-shell', type: 'prerender', pattern: '^/$', file: '/index', ppr: true },
-    { id: 'root', type: 'page', pattern: '^/$', pprResume: {} },
-    { id: 'article-shell', type: 'prerender', pattern: '^/blog/hello$', file: '/blog/hello', ppr: true },
-    { id: 'article', type: 'page', pattern: '^/blog/([^/]+)(?:/)?$', pprResume: {} },
-    { id: 'renamed-rsc-handler', type: 'page', pattern: '^/blog/([^/]+)\\.rsc$', pprResume: { postponedState: 'rsc' } },
-  ] })
-  assert.deepEqual(result.routes.map(route => [route.id, route.pprResume]), [['root', undefined], ['article', undefined], ['renamed-rsc-handler', { postponedState: 'rsc' }]])
+test('upstream preserves dynamic RSC resume metadata without serving a partial HTML shell', () => {
+  const routes = compileRouteTable(model({
+    appPages: [page('/posts/[id]'), page('/posts/[id].rsc')],
+    prerenders: [
+      { id: '/posts/hello', pathname: '/posts/hello', pprChain: resume },
+      { id: '/posts/[id]', pathname: '/posts/[id]', pprChain: resume, fallback: { postponedState: 'html-state' } },
+      { id: '/posts/[id].rsc', pathname: '/posts/[id].rsc', pprChain: resume, fallback: { postponedState: 'rsc-state' } },
+    ],
+  }))
+  assert.equal(routes.some(route => route.type === 'prerender'), false)
+  const document = routes.find(route => route.type === 'page' && new RegExp(route.pattern).test('/posts/hello'))
+  assert.ok(document)
+  assert.equal(document.pprResume, undefined)
+  const rsc = routes.find(route => route.type === 'page' && route.pprResume && new RegExp(route.pattern).test('/posts/hello.rsc'))
+  assert.equal(rsc?.pprResume.postponedState, 'rsc-state')
+  assert.deepEqual(rsc.pprResume.headers, resume.headers)
 })
 
-test('an unsupported or missing runtime route stops the build instead of dropping its only response', () => {
-  assert.throws(() => prepareRuntimePages({}), /missing its route table/)
-  const manifest = fixture(); manifest.routes.splice(1, 1)
-  assert.throws(() => prepareRuntimePages(manifest), /no matching runtime page/)
-})
-
-test('the adapter hook repairs the emitted manifest after upstream completes, including direct next build', async (t) => {
-  const projectDir = await mkdtemp(join(tmpdir(), 'comwit adapter '))
-  t.after(() => rm(projectDir, { recursive: true, force: true }))
-  const file = join(projectDir, 'dist', 'brrrd', 'manifest.json')
-  const modifyConfig = config => ({ ...config, example: true })
-  const adapter = withCompleteDocuments({ name: 'upstream', modifyConfig, async onBuildComplete(context) {
-    assert.equal(context.projectDir, projectDir)
-    await mkdir(join(projectDir, 'dist', 'brrrd'), { recursive: true })
-    await writeFile(file, JSON.stringify(fixture()))
-  } })
-  assert.equal(adapter.modifyConfig, modifyConfig)
-  assert.deepEqual(adapter.modifyConfig({}), { example: true })
-  await adapter.onBuildComplete({ projectDir })
-  assert.deepEqual(JSON.parse(await readFile(file, 'utf8')), prepareRuntimePages(fixture()))
-  const failing = withCompleteDocuments({ async onBuildComplete() { throw new Error('upstream build failed') } })
-  await assert.rejects(failing.onBuildComplete({ projectDir }), /upstream build failed/)
+test('upstream refuses to drop a PPR shell without a matching runtime page', () => {
+  assert.throws(() => compileRouteTable(model({
+    prerenders: [{ id: '/orphan', pathname: '/orphan', pprChain: resume }],
+  })), /PPR document .* has no matching runtime page/)
 })

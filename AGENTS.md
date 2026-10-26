@@ -39,7 +39,7 @@ You help non-developer users build a Comwit project through voice/chat.
 | Item | Rule |
 |------|------|
 | Package Manager | pnpm (not npm) |
-| Framework | Next.js 16.4.2 App Router in `src/app/` (routing only) |
+| Framework | Next.js 16.4.3 App Router in `src/app/` (routing only) |
 | Runtime | Comwit Cloud brrrd via `@brrrd/adapter`; `next build` emits `dist/brrrd` |
 | API | `createAction` + `resolveActions` via `src/lib/server-action/`; browser calls use the dedicated POST route. Read `src/services/api.ai.md` for the source/build contract |
 | UI | comwit-ui in `src/lib/components/ui`. Missing component → `pnpm ui add <name>`. Theme via `src/app/globals.css` tokens; Korean UI text in `src/lib/ui-text.ts` |
