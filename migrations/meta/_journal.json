@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1791939762405,
+      "tag": "0000_striped_groot",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1791941749482,
+      "tag": "0001_rare_wasp",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791947380219,
+      "tag": "0002_talented_power_pack",
+      "breakpoints": true
+    }
+  ]
+}

@@ -32,6 +32,7 @@ export const uiText = {
   chip: { remove: '삭제' },
   dataTable: {
     empty: '아직 표시할 항목이 없어요.',
+    error: '불러오지 못했습니다.',
     refreshing: '업데이트 중',
     previous: '이전 페이지',
     next: '다음 페이지',
@@ -73,3 +74,52 @@ export const uiText = {
     ok: '확인',
   },
 }
+
+/** Shared commerce template labels; override these when localizing a derived shop. */
+export const commerceText = {
+  noPrice: "미등록",
+  defaultOption: "기본",
+  products: "상품과 SKU",
+  inventory: "재고",
+  orders: "주문과 배송",
+  payments: "결제와 환불",
+  customers: "고객",
+  settings: "연결 설정",
+  search: "검색",
+  refresh: "새로고침",
+  all: "전체",
+  save: "저장",
+  cancel: "취소",
+  close: "닫기",
+  edit: "수정",
+  details: "상세 보기",
+  addProduct: "상품 등록",
+  loading: "불러오는 중입니다",
+  retry: "다시 시도",
+  empty: "표시할 항목이 없습니다.",
+} as const;
+
+export const adminText = {
+  reference: "원문 보기",
+  productAddress: "상품 주소",
+  notificationContent: "알림 내용 보기",
+  notificationAttempts: (count: number) => `${count}회 시도`,
+  noRefund: "—",
+} as const;
+
+/** 제작용 슬롯 표시. 브랜드 화면 문구는 각 브랜드에서 자유롭게 정한다. */
+export const storefrontText = {
+  pages: {
+    home: "홈",
+    products: "상품 목록",
+    "product-detail": "상품 상세",
+    cart: "장바구니",
+    checkout: "주문서",
+    "checkout-result": "주문 결과",
+    login: "로그인",
+    signup: "회원가입",
+    account: "마이페이지",
+    orders: "주문 내역",
+    "order-detail": "주문 상세",
+  },
+} as const;

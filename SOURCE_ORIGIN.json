@@ -1,0 +1,16 @@
+{
+  "repository": "https://github.com/comwit/template.git",
+  "branch": "shop",
+  "baseMainCommit": "ab8ddf30ddc8f0da8bdf5d7cb487427f833ee904",
+  "importedFrom": {
+    "repository": "https://github.com/comwit/template-shop.git",
+    "commit": "d060508a56540d978734db4debdf7c6f8cedd0fe"
+  },
+  "integrationPolicy": {
+    "commonRuntime": "Preserve current main UI, server-action transport, tooling and lint rules; merge commerce extensions.",
+    "shopFeatures": "Preserve storefront/admin code, schema and migrations, source assets, references, skills and tracked configuration.",
+    "auth": "Use main server getMe to client hydrate boundary with shop authentication implementations.",
+    "configuration": "Preserve shop settings as lazy getters following main.",
+    "bootstrap": "Base app-setup/auth-setup and sample Storybook scaffolds are absent from shop because those features are implemented; active shop stories and main guidance are retained."
+  }
+}
