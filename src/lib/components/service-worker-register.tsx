@@ -89,12 +89,6 @@ function setupServiceWorkerUpdates(registration: ServiceWorkerRegistration) {
   let hasReloaded = false;
   const trackedWorkers = new WeakSet<ServiceWorker>();
 
-  const requestUpdate = () => {
-    void registration.update().catch(() => {
-      // Update checks are best-effort.
-    });
-  };
-
   const promoteWaitingWorker = () => {
     const waiting = registration.waiting;
     if (!waiting || !navigator.serviceWorker.controller) return;
@@ -126,23 +120,16 @@ function setupServiceWorkerUpdates(registration: ServiceWorkerRegistration) {
     window.location.reload();
   };
 
-  const handleVisibilityChange = () => {
-    if (document.visibilityState === "visible") requestUpdate();
-  };
-
+  // Registration checks for updates on document load. Do not force additional
+  // network checks when an idle tab gains focus or becomes visible.
   registration.addEventListener("updatefound", handleUpdateFound);
   navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
-  window.addEventListener("focus", requestUpdate);
-  document.addEventListener("visibilitychange", handleVisibilityChange);
 
   if (registration.installing) trackInstallingWorker(registration.installing);
   promoteWaitingWorker();
-  requestUpdate();
 
   return () => {
     registration.removeEventListener("updatefound", handleUpdateFound);
     navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
-    window.removeEventListener("focus", requestUpdate);
-    document.removeEventListener("visibilitychange", handleVisibilityChange);
   };
 }

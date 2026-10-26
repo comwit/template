@@ -35,13 +35,8 @@ export function AppVersionGuard() {
     if (!CURRENT_APP_VERSION) return;
 
     let stopped = false;
-    let checkInFlight = false;
 
     const checkLatestVersion = async () => {
-      if (stopped || checkInFlight) return;
-      if (document.visibilityState === "hidden") return;
-
-      checkInFlight = true;
       try {
         const res = await fetch(`/version.json?t=${Date.now()}`, {
           cache: "no-store",
@@ -62,23 +57,15 @@ export function AppVersionGuard() {
         window.location.reload();
       } catch {
         // Checks are best-effort; offline and flaky networks should keep working.
-      } finally {
-        checkInFlight = false;
       }
     };
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") void checkLatestVersion();
-    };
-
-    window.addEventListener("focus", checkLatestVersion);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+    // Check once per document load, including loads in a background tab.
+    // Focus and visibility changes must not keep an idle backend awake.
     void checkLatestVersion();
 
     return () => {
       stopped = true;
-      window.removeEventListener("focus", checkLatestVersion);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 
