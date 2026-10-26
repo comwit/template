@@ -29,7 +29,7 @@ const STATIC_SHELL_CACHE_SECONDS = 365 * 24 * 60 * 60;
 
 const nextConfig: NextConfig = {
   // Comwit Cloud's brrrd build adapter emits dist/brrrd during `next build`.
-  adapterPath: require.resolve("./scripts/brrrd-adapter.mjs"),
+  adapterPath: require.resolve("@brrrd/adapter"),
   // Keep libSQL's websocket implementation outside the server bundle. The
   // brrrd runtime loads it from the packaged node_modules tree.
   serverExternalPackages: ["@libsql/isomorphic-ws"],
