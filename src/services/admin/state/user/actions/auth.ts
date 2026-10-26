@@ -1,33 +1,38 @@
-import { action } from '@comwit/state'
-import type { User, UserActions } from '../types'
-import { user } from '../model'
+// ============================================================
+// 레퍼런스: src/services/admin/state/user/actions/auth.ts
+// 관리자 공개 가입은 없고 로그인/비밀번호 변경/로그아웃만 제공한다.
+// ============================================================
+
+import { action } from "@comwit/state";
+import { adminRoutes } from "@/lib/admin-routes";
+import { adminAuth } from "@/lib/auth-client/admin";
+import type { UserActions } from "../types";
+import { user } from "../model";
 
 type UserAuthActions = Pick<
   UserActions,
-  'signIn' | 'changePassword' | 'signOut'
->
+  "signIn" | "changePassword" | "signOut"
+>;
 
 export const userAuthActions = action<UserAuthActions>(({ state }) => {
   class UserAuthActions {
-    private model = state(user)
+    private model = state(user);
 
-    async signIn({ email, password }: { email: string; password: string }): Promise<void> {
-      this.model.isLoading = true
+    async signIn({
+      email,
+      password,
+    }: {
+      email: string;
+      password: string;
+    }): Promise<void> {
+      this.model.isLoading = true;
+
       try {
-        const nextUser: User = {
-          id: '1',
-          email,
-          name: 'Admin User',
-          username: email,
-          displayUsername: email,
-          image: null,
-          emailVerified: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }
-        this.model.me.set(nextUser)
+        const { error } = await adminAuth.signIn.email({ email, password });
+        if (error) throw new Error(error.message);
+        window.location.href = adminRoutes.dashboard;
       } finally {
-        this.model.isLoading = false
+        this.model.isLoading = false;
       }
     }
 
@@ -35,27 +40,36 @@ export const userAuthActions = action<UserAuthActions>(({ state }) => {
       currentPassword,
       newPassword,
     }: {
-      currentPassword: string
-      newPassword: string
+      currentPassword: string;
+      newPassword: string;
     }): Promise<void> {
-      this.model.isLoading = true
+      this.model.isLoading = true;
+
       try {
-        if (!currentPassword) throw new Error('현재 비밀번호를 입력해주세요.')
-        if (newPassword.length < 8) throw new Error('새 비밀번호는 8자 이상이어야 합니다.')
+        const { error } = await adminAuth.changePassword({
+          currentPassword,
+          newPassword,
+          revokeOtherSessions: true,
+        });
+        if (error) throw new Error(error.message);
       } finally {
-        this.model.isLoading = false
+        this.model.isLoading = false;
       }
     }
 
     async signOut(): Promise<void> {
-      this.model.isLoading = true
+      this.model.isLoading = true;
+
       try {
-        this.model.me.set(null)
+        const { error } = await adminAuth.signOut();
+        if (error) throw new Error(error.message);
+        this.model.me.set(null);
+        window.location.href = adminRoutes.login;
       } finally {
-        this.model.isLoading = false
+        this.model.isLoading = false;
       }
     }
   }
 
-  return new UserAuthActions()
-})
+  return new UserAuthActions();
+});

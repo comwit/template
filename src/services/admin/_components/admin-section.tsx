@@ -1,25 +1,25 @@
-'use client'
+"use client";
 
-import type { IconComponent } from '@comwit/ui/icons'
-import { adminCardRaised } from '@/services/admin/_components/styles'
-import { cn } from '@/lib/utils'
+import type { LucideIcon } from "lucide-react";
+import { adminCardRaised } from "@/services/admin/_components/styles";
+import { cn } from "@/lib/utils";
 
 type AdminSectionProps = {
-  title: string
-  icon?: IconComponent
-  description?: React.ReactNode
-  action?: React.ReactNode
-  /** Inline supporting text beside the header, such as accumulated duration. */
-  meta?: React.ReactNode
-  className?: string
-  /** Remove content padding so lists/tables reach the card edges. */
-  flush?: boolean
-  children?: React.ReactNode
-}
+  title: string;
+  icon?: LucideIcon;
+  description?: React.ReactNode;
+  action?: React.ReactNode;
+  /** 헤더 우측 인라인 보조 텍스트 (예: "누적 1시간 30분") */
+  meta?: React.ReactNode;
+  className?: string;
+  /** 본문 패딩 제거(리스트/테이블을 카드 가장자리까지 붙일 때) */
+  flush?: boolean;
+  children?: React.ReactNode;
+};
 
 /**
- * Toss-inspired admin card section: white surface, hairline border, large radius.
- * Header structure: optional icon + title + optional description | meta | action.
+ * 어드민 카드 섹션 — Toss 톤(화이트 표면 + 헤어라인 보더 + 큰 라운드).
+ * 헤더는 (아이콘? + 제목 + description?) | meta? | action? 구조.
  */
 export function AdminSection({
   title,
@@ -35,14 +35,14 @@ export function AdminSection({
     <section
       className={cn(
         adminCardRaised,
-        flush ? 'overflow-hidden' : 'p-5 sm:p-6',
+        flush ? "overflow-hidden" : "p-4",
         className,
       )}
     >
       <div
         className={cn(
-          'flex items-start justify-between gap-3',
-          flush && 'px-5 pt-5 sm:px-6',
+          "flex items-start justify-between gap-3",
+          flush && "px-4 pt-4",
         )}
       >
         <div className="min-w-0 flex-1">
@@ -50,7 +50,7 @@ export function AdminSection({
             {Icon ? (
               <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
             ) : null}
-            <h2 className="text-title-sm">{title}</h2>
+            <h2 className="text-title-md">{title}</h2>
           </div>
           {description ? (
             <p className="mt-1 text-body-sm leading-relaxed text-muted-foreground">
@@ -64,8 +64,8 @@ export function AdminSection({
         {action ? <div className="shrink-0">{action}</div> : null}
       </div>
       {children != null ? (
-        <div className={cn(flush ? 'mt-4' : 'mt-4 space-y-4')}>{children}</div>
+        <div className={cn(flush ? "mt-3" : "mt-3 space-y-3")}>{children}</div>
       ) : null}
     </section>
-  )
+  );
 }

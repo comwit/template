@@ -71,6 +71,8 @@ interface DataTableProps<TData, TValue> {
    * Area above the table for filters, search, buttons, or other content.
    */
   toolbar?: React.ReactNode
+  /** Fill partial pages with empty rows; disable for compact operational tables. */
+  padRows?: boolean
   /**
    * Display labels, defaulting to English. Override for the locale.
    */
@@ -93,6 +95,7 @@ function DataTable<TData, TValue>({
   emptyMessage = uiText.dataTable.empty,
   toolbar,
   labels,
+  padRows = true,
 }: DataTableProps<TData, TValue>) {
   // TanStack Table v8's internal mutable state is incompatible with automatic memoization.
   // Remove this directive after migrating to a compiler-compatible API.
@@ -124,9 +127,9 @@ function DataTable<TData, TValue>({
   const rangeStart = total > 0 ? (page - 1) * limit + 1 : 0
   const rangeEnd = Math.min(page * limit, total)
 
-  // Keep the table one full page (limit rows) tall during loading and on partial pages.
+  // Reserve a full page by default; compact tables use at most five loading rows.
   const rows = table.getRowModel().rows
-  const rowsToFill = limit > 0 ? limit : 10
+  const rowsToFill = padRows ? (limit > 0 ? limit : 10) : Math.min(limit || 5, 5)
   // Show skeletons before the first successful fetch too, preventing an empty-state flash for lazy queries.
   const showSkeleton = isLoading || (!isSuccess && !isError)
 
@@ -147,6 +150,12 @@ function DataTable<TData, TValue>({
     <div className="overflow-hidden rounded-card border border-border bg-card shadow-card">
       {/* Toolbar: freely arrange filters, search, buttons, and other content. */}
       {toolbar && <div className="border-b border-border px-4 py-3">{toolbar}</div>}
+
+      {isError && rows.length > 0 && (
+        <p role="alert" className="px-4 py-3 text-body-sm text-destructive-surface-foreground">
+          {queryData.error || uiText.dataTable.error}
+        </p>
+      )}
 
       {/* Table. */}
       <div className="relative">
@@ -204,7 +213,7 @@ function DataTable<TData, TValue>({
                   </TableRow>
                 ))}
                 {/* Partial page: pad with empty rows to preserve the height of one full page. */}
-                {rows.length < rowsToFill &&
+                {padRows && rows.length < rowsToFill &&
                   Array.from({ length: rowsToFill - rows.length }).map((_, ri) => (
                     <TableRow key={`pad-${ri}`} aria-hidden className="pointer-events-none">
                       <TableCell colSpan={columns.length}>
@@ -219,7 +228,13 @@ function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-32 text-center text-muted-foreground"
                 >
-                  {emptyMessage}
+                  {isError ? (
+                    <span role="alert" className="text-destructive-surface-foreground">
+                      {queryData.error || uiText.dataTable.error}
+                    </span>
+                  ) : (
+                    emptyMessage
+                  )}
                 </TableCell>
               </TableRow>
             )}

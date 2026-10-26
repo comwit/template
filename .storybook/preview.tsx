@@ -1,36 +1,58 @@
-import type { Preview } from '@storybook/nextjs-vite'
-import { RootLayoutClient } from '../src/lib/layout/client'
-import '../src/app/globals.css'
-import './preview.css'
-import { withPageShell } from './stories/shell'
-import { user } from './mocks/api/app-user'
-import { adminUser } from './mocks/api/admin-user'
-import { initialUserForPage } from './mocks/session'
-
+import type { Preview } from "@storybook/nextjs-vite";
+import { OverlayProvider } from "overlay-kit";
+import { Toaster } from "../src/lib/components/ui/toast";
+import { PreviewState } from "../src/stories/mocks/preview-state";
+import { resetApiMocks } from "../src/stories/mocks/runtime";
+import { resetAuthMocks } from "../src/stories/mocks/auth-client";
+import { resetPaymentMocks } from "../src/stories/mocks/payment-sdk";
+import "../src/app/globals.css";
+import "./preview.css";
 const preview: Preview = {
-  beforeEach(context) {
-    user.getMe.mockReset().mockResolvedValue(null)
-    adminUser.getMe.mockReset().mockImplementation(async () =>
-      initialUserForPage(context.title, context.parameters.nextjs?.navigation?.pathname),
-    )
-  },
   parameters: {
-    layout: 'fullscreen',
+    layout: "fullscreen",
     nextjs: { appDirectory: true },
+    controls: { matchers: { color: /(background|color)$/i, date: /Date$/i } },
+    a11y: { test: "todo" },
+    docs: { story: { inline: false } },
     options: {
       storySort: {
-        order: ['디자인 시스템', '어드민', ['사용자 관리', '내 계정', '로그인'], '사용자', '*'],
+        order: [
+          "쇼핑몰",
+          "어드민",
+          [
+            "대시보드",
+            "상품",
+            "재고",
+            "주문",
+            "결제",
+            "고객",
+            "알림",
+            "연결 설정",
+            "내 계정",
+            "로그인",
+          ],
+          "*",
+        ],
       },
     },
   },
+  beforeEach: ({ parameters }) => {
+    resetApiMocks(parameters.apiMock);
+    resetAuthMocks();
+    resetPaymentMocks();
+  },
   decorators: [
-    withPageShell,
     (Story, context) => (
-      <RootLayoutClient key={context.id}>
-        <Story />
-      </RootLayoutClient>
+      <PreviewState key={context.id}>
+        <OverlayProvider>
+          <div className="min-h-dvh bg-background text-foreground">
+            <Story />
+            <Toaster />
+          </div>
+        </OverlayProvider>
+      </PreviewState>
     ),
   ],
-}
-
-export default preview
+  tags: ["autodocs"],
+};
+export default preview;

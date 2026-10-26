@@ -28,7 +28,7 @@ page/layout/
   └── content.tsx     # Optional child: user subscriptions + App UI
 ```
 
-- The app-router service wrapper renders `<Suspense fallback={null}>` above the async service layout. Keep this structure before auth setup; the skill replaces the marked mock/session wiring.
+- The app-router service wrapper renders `<Suspense fallback={null}>` above the async service layout. Keep the installed shop session API inside this boundary; do not rerun auth scaffolding.
 - Server component (`index.tsx`): awaits basic `getMe()` and passes `initialUser: User | null` to the client adapter. Only Better Auth session/user fields belong in this result.
 - Client component (`client.tsx`): only calls `useUser.hydrate({ me: { data: initialUser } })` and renders children. Keep normal user-hook subscriptions, account effects, and interactive UI in child components (e.g. `content.tsx`). This prevents user mutations from rerendering the adapter and replaying an old server seed after logout. Consumers read `state.me.data` without initiating another load.
 - The auth boundary has no skeleton or anonymous shell. Separate member/profile/business table data loads lazily through separate queries after the user is known; see `state.ai.md`.
@@ -53,13 +53,13 @@ page/layout/
 ## Storybook
 
 - Read [`.storybook/stories/.ai.md`](../../.storybook/stories/.ai.md) before page work.
-- Maintain page stories with real service layouts in `.storybook/stories/{service}/`.
-- Group by design system/user type, then page/state. Do not create standalone component/layout stories or a `/design` route.
-- **Mock only the API boundary.** Use real state/query/action, pages, and layouts. Do not inject store state to simulate loading, empty, or error screens. Only the layout's server-auth `initialUser` receives a fixed fixture.
+- Maintain page stories with real service layouts in `src/stories/{service}/`.
+- Group by shop/admin user type, then page/state. Do not create standalone component/layout stories or a `/design` route.
+- **Mock only the API boundary.** Use real state/query/action, pages, and layouts. Do not inject store state to simulate loading, empty, or error screens. Only `PreviewState` session hydration or the layout's server-auth `initialUser` receives a fixed fixture.
 
 ## Design
 
-- **[Storybook design guide](../../.storybook/stories/design-system/design.mdx) is the design source of truth. Read its MDX source first** before page work and **update it first** when design direction changes. The same file renders in Storybook under **디자인 시스템 → 가이드** and presents concise Korean principles with live theme and component specimens. Developer-only theme instructions live in `.storybook/stories/.ai.md`. Keep design documentation there instead of creating a separate `design.md`.
+- **[Storybook design guide](../../.storybook/stories/design-system/design.mdx) is the design source of truth. Read its MDX source first** before page work and **update it first** when design direction changes. Keep it concise and user-facing, with Korean principles and shared theme specimens. Shop screen previews remain in `src/stories/`. Developer-only theme instructions live in `.storybook/stories/.ai.md`. Keep design documentation there instead of creating a separate `design.md`.
 - Every design element needs a purpose: hierarchy, understanding, action, state feedback, or brand impression. Remove elements whose absence leaves meaning and usability unchanged.
 - Until the project defines its own principles, follow the design guide. Public landing pages use **one message per section**, expressed as **a large statement and a supporting visual**. Avoid habitual eyebrows, subtitles, and helper captions.
 - Use `text-soft-foreground` for body copy and descriptions. Reserve `text-muted-foreground` for supporting dates, counts, authors, and field help unnecessary for the core task.
@@ -81,7 +81,7 @@ page/layout/
   - Overlays: `Dialog`, `Sheet`, `BottomSheet` (drag to dismiss), `Popover`, `DropdownMenu`, and `popup.confirm`/`popup.alert`/`popup.sheet` from `@/lib/popup`.
   - Notifications: `toast` from `@/lib/components/ui/toast` (never import `sonner` directly), `Alert`.
   - Display/data: `Card`, `Badge`, `Avatar`, `Skeleton`, `EmptyState`, `Separator`, `Tabs`, `Accordion`, `Collapsible`, `Table`, `DataTable` (server pagination), `Pagination`, `Pager`.
-  - Mobile apps: only `Glass`, `Chat` (virtualized messages/composer), and `DragScroller` are preinstalled. App shells (`AppShell`/`TabShell`, `AppScreen`/`DetailScreen`, `AppBar`, `BottomNav`/`TabBar`, `PageTransition` + `RouteBoundary`, `PullToRefresh`) are installed and routed by `app-setup` with `pnpm ui add app-shell app-screen`. Do not recreate app bars, bottom navigation, or scrollers.
+  - This branch is a storefront, not an app-shell scaffold. Preserve its cart, checkout and account navigation when branding it.
 - Import scroll chrome (`ScrollChromeProvider`/`useScrollChrome`) and `useMobile` from `@comwit/ui`; they have no installed source files.
 - **Admin pages:** `@/services/admin/_components` contains only admin compositions: responsive `AdminShell`, `AdminPage`/`AdminSection`/`AdminPageHeader`, `AdminStatCard`/`AdminChartCard`/`AdminCharts`, `AdminDefinitionList`, `AdminListRow`, `AdminReasonDialog`, and card surface classes such as `adminCard`. Reuse UI controls (`TextField` + `Input`, `Chip`, `Avatar`, `EmptyState`, `DataTable`, etc.).
 - **Date/time inputs & bottom sheets**: `<Input type="date">` renders the shared `DatePicker` internally while keeping input-style `value` / `defaultValue`, `onChange(event)`, form submission/reset, and `min` / `max` / `required`. Use `DatePicker` directly for its string-valued `onChange`, locale, or picker labels. `DatePicker` / `TimePicker` / `MonthPicker` auto-switch desktop Popover ↔ mobile bottom sheet via `useMobile`. For imperative mobile sheets/confirms use `popup.sheet` / `popup.confirm` / `popup.alert`.
@@ -90,30 +90,33 @@ page/layout/
 - **Animation**: Tailwind CSS animations by default. For complex effects, use `motion` from `motion/react` (avoid relayout: prefer scale, translate, opacity over x, y, width, height)
 - Use regular `<img>` tags (NOT Next.js `<Image>` component)
 - For initial design: use Unsplash images (`https://images.unsplash.com/...`)
-- Icons: `@comwit/ui/icons` (static SVG, `<SearchIcon />`) and `@comwit/ui/icons/animated` for spring motion; browse names at https://library.comwit.io/ui/icons. No other icon package.
+- Icons: prefer `@comwit/ui/icons` and `/icons/animated` for new common UI. Existing shop screens retain their `lucide-react` icons; do not replace commerce UI merely to change its icon package.
 
 ## Image Uploads
 
-**Resize images on the client before uploading** and store the standard **`ImageAsset { url, width, height }`** shape. (The `resizeImage` utility and `ImageAsset` type live in `@/lib/image`, installed by the Comwit MCP `setup_storage` script.)
+이미지는 **업로드 전 클라에서 리사이즈**하고, **`ImageAsset { url, width, height, thumb? }` 하나로 통일**해서 저장한다. (리사이즈 유틸 `resizeImageVariants`·`resizeImage` 와 `ImageAsset` 타입은 `@/lib/image`.)
 
-- **Always call `resizeImage()` before uploading.** Do not upload unchanged originals; resizing reduces mobile transfer time/size and storage costs.
-- Save the resulting `width`/`height` in `ImageAsset`. The DB `image` column stores `JSON.stringify(ImageAsset)`; use `ImageAsset[]` for multiple images. See repository conventions.
-- Render `<img src={image.url} width={image.width} height={image.height} />` to **prevent cumulative layout shift (CLS)**.
-- **The client page handles resizing and PUT uploads; the API/server action issues presigned URLs**, connected through state actions.
-- The utility handles EXIF orientation, decode-stage downsampling, and WebP encoding for mobile photos.
+- **상품 이미지는 `resizeImageVariants()`** — 본 이미지(긴 변 1600px) + 썸네일(480px)을 webp 로 만든다. 원본을 그대로 올리지 않는다. 한 장만 필요한 곳(프로필 등)은 `resizeImage()`.
+- 저장 형태는 `ImageAsset` 로 통일. 리사이즈 결과의 `width`/`height` 를 그대로 넣는다. (DB `image` 칼럼 = `JSON.stringify(ImageAsset)` — repository 규약 참고, 여러 장은 `ImageAsset[]`)
+- **썸네일은 서버가 묶는다.** 썸네일 업로드를 먼저 완료하고 본 이미지 `complete` 때 그 id 를 넘기면 서버가 `thumb` 를 기록한다. 클라에서 `{ ...image, thumb }` 로 붙이면 상품 저장 검증(기록한 JSON 과 문자열 비교)에 걸린다.
+- 표시: 카드·목록·장바구니는 `<img src={image.thumb ?? image.url} width={image.width} height={image.height} loading="lazy" decoding="async" />`, 상세 갤러리는 `image.url`. width/height 를 넘겨 **레이아웃 시프트(CLS) 방지**. 갤러리 첫 장은 이미 받아 둔 `thumb` 를 배경으로 깔고 `url` 을 덮으면 목록 → 상세 전환 때 깜빡이지 않는다.
+- 레이어: **리사이즈·PUT 업로드는 클라(page)**, **presign·complete 는 api 레이어(server action)** → state 액션으로 연결. 어드민 `product-images.tsx` 가 기준 구현이다.
+- 모바일 안전: EXIF 회전 고정 + 디코드-단계 다운샘플 + webp 인코딩을 유틸이 처리하므로 폰 사진도 그대로 넘기면 된다.
+- 시드·스크립트(서버)는 `scripts/seed/images.ts` 의 `uploadProductImage`·`uploadPublicImage`·`uploadImageSet` 을 쓴다(sharp, 같은 규격).
 
 ```tsx
-import { resizeImage, type ImageAsset } from "@/lib/image"
+import { resizeImageVariants, uploadPresignedImage, type ImageAsset } from "@/lib/image"
 
-// 1) Resize on the client (1600px longest edge, WebP).
-const { blob, width, height } = await resizeImage(file)
-// 2) Obtain a presigned URL through a state action (internally API → Comwit Cloud).
-const { key, url, method, headers, publicUrl } = await upload.actions.getUploadUrl(blob.type)
-// 3) Send directly to the S3 data plane using the API's method/headers unchanged.
-await fetch(url, { method, headers, body: blob })
-// 4) The server builds publicUrl from storage settings and the key; never return the token.
-if (!publicUrl) throw new Error("This image upload requires public storage.")
-const image: ImageAsset = { url: publicUrl, width, height }
+// 1) 클라에서 본 이미지 + 썸네일 생성
+const { full, thumb } = await resizeImageVariants(file)
+// 2) 썸네일 먼저: presign → PUT → complete (state 액션 경유, 내부적으로 api → Comwit Cloud)
+const thumbTicket = await media.actions.prepare(thumb.blob.type)
+await uploadPresignedImage(thumbTicket, thumb.blob)
+await media.actions.complete(thumbTicket.id, thumb.width, thumb.height)
+// 3) 본 이미지: complete 에 썸네일 id 를 넘기면 서버가 ImageAsset.thumb 로 묶어 돌려준다
+const ticket = await media.actions.prepare(full.blob.type)
+await uploadPresignedImage(ticket, full.blob)
+const image: ImageAsset = await media.actions.complete(ticket.id, full.width, full.height, thumbTicket.id)
 ```
 
 ## How to Use Domain State
@@ -132,6 +135,7 @@ import type { DomainType } from "@/services/{service}/state/{domain}";
 - Access via `domain.field` and `domain.actions.method()`
 - When the view owns an initial query, start it inside the selector: `.suspend(arg)` for screens (server-rendered, cached on return), `.load(arg)` only for client-only reads (`state.ai.md` → Query loading). Do not trigger the initial load with `useEffect`.
 - Select a query field without `.suspend()`/`.load()` only when a state action intentionally owns loading.
+- When checkout `prepare()` must finish before `pay()`, await its return value in the action sequence. Do not start payment from an effect watching an intermediate state field.
 
 ### Example
 
