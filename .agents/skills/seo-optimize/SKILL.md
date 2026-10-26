@@ -47,7 +47,9 @@ Replace inline metadata with the shared utilities.
   export const metadata: Metadata = rootMetadata(config.SITE_URL);
   ```
 - `config.SITE_URL` is the deployment URL. It defaults to the Comwit app address
-  `https://<COMWIT_APP without svc_>.app.comwit.link`; update that line in `src/server/config.ts` when adding a custom domain.
+  `https://<COMWIT_APP without svc_>.app.comwit.link`. Set `SITE_URL` in the project
+  build/deployment environment for a custom domain or a local build without injected
+  `COMWIT_APP`; keep the existing lazy configuration getter.
   It supplies `metadataBase`, resolving paths such as `/og.png` to absolute URLs required by KakaoTalk/Facebook previews.
 - **Never read the host with `headers()` in metadata, sitemap, or robots.** With Cache Components (`cacheComponents: true`), request-dependent metadata blocks static builds. Workarounds can stream OG tags outside `<head>` for `kakaotalk-scrap`, which is absent from Next's default bot list.
 - `rootMetadata` omits canonical and og:url so child pages do not all inherit "/". Each page sets these with `buildMetadata({ path })`.
@@ -65,7 +67,9 @@ cp .agents/skills/seo-optimize/assets/robots.ts  src/app/robots.ts
 ```
 
 - Both use `config.SITE_URL` and build statically without request host reads.
-- Check that `robots.ts` `disallow` includes `ADMIN_BASE_PATH` and other private routes.
+- Keep private shop routes (`/cart`, `/checkout`, `/account`, `/api/`, `/cron/`)
+  in `robots.ts` disallow. Do not publish the custom admin path there; preserve the
+  admin layout’s `robots: { index: false }` metadata and server authorization.
 - Add public paths to `sitemap.ts` `routes`. Read dynamic lists such as posts from the repository and expand them with `map`.
 
 ## 4. Place favicon and OG images

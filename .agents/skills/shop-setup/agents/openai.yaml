@@ -1,0 +1,4 @@
+interface:
+  display_name: "Shop setup"
+  short_description: "Set up a branded shop with real references"
+  default_prompt: "Use $shop-setup to build my first storefront from the existing shop template."

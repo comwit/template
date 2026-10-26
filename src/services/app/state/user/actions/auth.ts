@@ -1,96 +1,76 @@
 import { action } from "@comwit/state";
-import type { User, UserActions } from "../types";
+import type { UserActions } from "../types";
 import { user } from "../model";
+import { appAuth } from "@/lib/auth-client/app";
 
-type UserAuthActions = Pick<
-  UserActions,
-  "signIn" | "signUp" | "signOut"
->;
+type UserAuthActions = Pick<UserActions, "signIn" | "signUp" | "signOut">;
 
 export const userAuthActions = action<UserAuthActions>(({ state }) => {
   class UserAuthActions {
     private model = state(user);
 
-    /**
-     * Sign in with username and password
-     * TODO: Replace with actual API call
-     * TODO: Connect with auth API client and persist session token
-     */
     async signIn({
-      username,
+      email,
       password,
     }: {
-      username: string;
+      email: string;
       password: string;
     }): Promise<void> {
       this.model.isLoading = true;
 
       try {
-        // TODO: const { error, user } = await authClient.signIn({ username, password })
-        const nextUser: User = {
-          id: "1",
-          email: `${username}@example.com`,
-          name: "Mock User",
-          username,
-          displayUsername: username,
-          image: null,
-          emailVerified: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-        this.model.me.set(nextUser);
+        const { error } = await appAuth.signIn.email({
+          email,
+          password,
+        });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        // 세션 쿠키가 설정되었으므로 service home으로 이동해 서버에서 user를 다시 가져옴
+        window.location.href = "/";
       } finally {
         this.model.isLoading = false;
       }
     }
 
-    /**
-     * Sign up with email, username, name, and password
-     * TODO: Replace with actual API call
-     * TODO: Fetch user profile immediately after signup
-     */
     async signUp({
       email,
-      username,
       name,
       password,
     }: {
       email: string;
-      username: string;
       name: string;
       password: string;
     }): Promise<void> {
       this.model.isLoading = true;
 
       try {
-        // TODO: const { error, user } = await authClient.signUp({ email, username, name, password })
-        const nextUser: User = {
-          id: "1",
+        const { error } = await appAuth.signUp.email({
           email,
           name,
-          username,
-          displayUsername: username,
-          image: null,
-          emailVerified: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-        this.model.me.set(nextUser);
+          password,
+        });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        window.location.href = "/";
       } finally {
         this.model.isLoading = false;
       }
     }
 
-    /**
-     * Sign out current user
-     * TODO: Replace with actual API call
-     */
     async signOut(): Promise<void> {
       this.model.isLoading = true;
 
       try {
-        // TODO: await authClient.signOut()
+        const { error } = await appAuth.signOut();
+        if (error) throw new Error(error.message);
         this.model.me.set(null);
+        window.location.href = "/";
       } finally {
         this.model.isLoading = false;
       }
