@@ -196,7 +196,7 @@
     "src/lib/admin-routes.ts": "3f0f6b8f2b27d39ff8c44d0d9cee90729640d9553c52225f0071f8617b9f67f1",
     "src/lib/components/brand-mark.tsx": "990a7cca72ee38c7fb8d1fbf476b17241ffcbfc944fa03eb052adb5bb831e402",
     "src/lib/components/foresight-link.tsx": "9707a6fc147ca83fa6e6ea7d49fe0cdb5d0fb7a967e3b65feb3a3c97a89f3883",
-    "src/lib/components/react-grab-init.tsx": "b6858d285e0c1da9dfc63ff3af80317b948dca26392d8d9bfe00a707706a06fe",
+    "src/lib/components/react-grab-init.tsx": "d3e29edca6e27a16e22e5874c306027701032569c308d11d4c1064f390940bca",
     "src/lib/components/sandbox-bridge.tsx": "6950e1b13681f9b163fd7bdaa5383ae1a5d46323a9ca29f9879f738de41b0b6d",
     "src/lib/components/service-unavailable.tsx": "2f07f7ef74d923d8fe11ce9cf3954f384fa21402f7ea9d7696343728078a45d2",
     "src/lib/components/service-worker-register.tsx": "1aea74012887951db448cfefb113b0efe4f9d6c60f6a68d2d588d0c5719316b5",
