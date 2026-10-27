@@ -32,6 +32,14 @@ export function ReactGrabInit() {
       lastPointer = { x: event.clientX, y: event.clientY };
     };
 
+    // react-grab has no option for its right-click / long-press menu, so stop the
+    // event before its listener (registered later) while selection is active.
+    const handleContextMenu = (event: MouseEvent) => {
+      if (!reactGrab?.isActive()) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    };
+
     const activateReactGrab = () => {
       if (!reactGrab) {
         activateWhenReady = true;
@@ -104,6 +112,7 @@ export function ReactGrabInit() {
     window.addEventListener("pointerdown", handlePointer, pointerOptions);
     window.addEventListener("pointermove", handlePointer, pointerOptions);
     window.addEventListener("pointerup", handlePointer, pointerOptions);
+    window.addEventListener("contextmenu", handleContextMenu, true);
     window.addEventListener("message", handleParentCommand);
 
     const initReactGrab = async () => {
@@ -120,8 +129,12 @@ export function ReactGrabInit() {
         });
         reactGrab.registerPlugin({
           name: "mvpstar-sandbox",
+          // Comwit draws the annotation input, so only keep the selection highlights.
           theme: {
             hue: 53,
+            elementLabel: {
+              enabled: false,
+            },
             toolbar: {
               enabled: false,
             },
@@ -144,6 +157,7 @@ export function ReactGrabInit() {
       window.removeEventListener("pointerdown", handlePointer, true);
       window.removeEventListener("pointermove", handlePointer, true);
       window.removeEventListener("pointerup", handlePointer, true);
+      window.removeEventListener("contextmenu", handleContextMenu, true);
       window.removeEventListener("message", handleParentCommand);
       reactGrab?.dispose();
     };
