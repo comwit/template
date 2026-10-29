@@ -1,6 +1,6 @@
 # 강의 플랫폼(LMS) 공용 템플릿
 
-수강생 화면 디자인은 담지 않습니다. 수강생 라우트(`/`, `/courses`, `/courses/[id]`, `/checkout/[courseId]`, `/checkout/result`, `/learn/[courseId]/[lessonId]`, `/account`, `/account/courses`, `/account/orders`, `/account/orders/[id]`, `/account/certificates/[id]`, `/notices`, `/notices/[id]`, `/login`, `/signup`)는 상태(state)가 연결된 최소 골격 컴포넌트이고, 강의·수강·주문·결제·쿠폰·수강평·Q&A API와 state, 운영 어드민은 완성된 상태로 제공합니다. 파생 프로젝트는 이 템플릿을 복사한 뒤 `src/services/design.md`와 `src/app/globals.css`의 프로젝트 테마 블록을 자기 브랜드에 맞게 고치고 수강생 화면을 채웁니다.
+수강생 화면 디자인은 담지 않습니다. 수강생 라우트(`/`, `/courses`, `/courses/[id]`, `/products`, `/products/[id]`, `/checkout/[type]/[id]`, `/checkout/result`, `/learn/[courseId]/[lessonId]`, `/account`, `/account/courses`, `/account/products`, `/account/orders`, `/account/orders/[id]`, `/account/certificates/[id]`, `/notices`, `/notices/[id]`, `/login`, `/signup`)는 상태(state)가 연결된 최소 골격 컴포넌트이고, 강의·수강·주문·결제·쿠폰·수강평·Q&A API와 state, 운영 어드민은 완성된 상태로 제공합니다. 파생 프로젝트는 이 템플릿을 복사한 뒤 `src/services/design.md`와 `src/app/globals.css`의 프로젝트 테마 블록을 자기 브랜드에 맞게 고치고 수강생 화면을 채웁니다.
 
 ## 앱 업데이트
 
@@ -11,17 +11,19 @@
 ## 포함 기능
 
 - 강의·카테고리·강사(표시용 프로필) 관리, 섹션·레슨 커리큘럼 편집, 레슨 영상 등록(YouTube 또는 직접 영상 URL), 미리보기 레슨, 정가·할인가·할인 기간, 공개 상태, 썸네일 업로드, TipTap 소개 본문
-- 수강 신청과 결제(토스페이먼츠 결제위젯, 서버 승인, 무료 강의 즉시 수강), 쿠폰(정률·정액, 강의 한정, 기간·한도·1인 제한)
+- 디지털 상품: 전자책 PDF·자료·템플릿 파일 상품과 강의+파일 묶음, 구매자만 받는 짧게 사는 다운로드 링크(횟수 제한·다운로드 로그), 묶음 결제 시 강의 수강 자동 개설
+- 무료 강의·무료 자료 신청 시 연락처(이름·이메일·전화·수신 동의) 수집 → 관리자 리드 화면 조회·CSV
+- 수강 신청과 결제(토스페이먼츠 결제위젯, 서버 승인, 무료 항목 즉시 개설), 쿠폰(정률·정액, 강의·상품 한정, 기간·한도·1인 제한)
 - 수강 권한(enrollment): 결제 승인 시 자동 개설, 운영자 수동 부여·회수, 수강 기간
 - 강의실(플레이어): 레슨 목록, 이어보기, 진도 저장(10초 간격 + 일시정지·종료), 배속, 레슨 자료, 레슨 Q&A·댓글, 수강평
 - 진도율·완강 처리, 완강 시 수료증 자동 발급
 - 마이페이지: 내 강의실, 결제 내역, 미결제 취소, 환불 신청(기간·진도율 제한)
-- 어드민: 대시보드(매출·수강생·완강률), 강의, 수강생·수강 현황·진도 조회, 주문, 결제·대사·환불 재시도, 환불 신청 승인·거절, 쿠폰, 수강평 답글·숨김, Q&A 답변, 공지, 배너, 연결 설정, 관리자 로그인·비밀번호 변경
+- 어드민: 대시보드(매출·수강생·완강률), 강의, 디지털 상품(파일 업로드·묶음 강의), 수강생·수강·구매 현황·진도 조회, 리드, 주문, 결제·대사·환불 재시도, 환불 신청 승인·거절, 쿠폰, 수강평 답글·숨김, Q&A 답변, 공지, 배너, 연결 설정, 관리자 로그인·비밀번호 변경
 - 중복 요청 방지, 승인 응답 유실 복구, 환불 재시도, 웹훅 저장과 결제 대사
 - 수강생/관리자 Better Auth 분리, 관리자 공개 가입 차단
 - 공용 UI, 어드민 목록·폼·상세 및 빈 상태/로딩/오류 Storybook
 
-기본 범위는 **단일 운영자**(운영자가 강의를 올림), 원화, 주문당 강의 1개, 전액 환불입니다. 다중 강사 마켓·정산, 영상 직접 업로드·스트리밍(HLS/DRM), 라이브 강의, 가상계좌·정기결제, 문자/알림톡 발송은 포함하지 않습니다.
+기본 범위는 **단일 운영자**(운영자가 강의·상품을 올림), 원화, 주문당 강의 또는 상품 1개, 전액 환불입니다. 파일은 Comwit 스토리지에 두고 15분짜리 presigned URL + 다운로드 횟수 제한으로 내려줍니다. 공개 스토리지 바인딩에서는 URL 경로만으로 영구 접근이 가능하므로 유출 방지가 꼭 필요하면 비공개 스토리지 바인딩이나 서버 프록시 다운로드를 붙여야 하며, PDF 워터마크(구매자 표시)는 포함하지 않습니다. 다중 강사 마켓·정산, 영상 직접 업로드·스트리밍(HLS/DRM), 라이브 강의, 가상계좌·정기결제, 문자/알림톡 발송은 포함하지 않습니다.
 
 ## 영상 호스팅
 
@@ -92,6 +94,7 @@ src/services/app/api            강의·결제·수강·주문·커뮤니티·�
 src/services/admin/page         공통 어드민 화면
 src/services/admin/state        조회·검색·편집·저장·오류 상태
 src/services/admin/api          관리자 권한 검사와 화면별 응답
+src/server/db/tables            도메인별 Drizzle 테이블(`*-schema.ts`), schema.ts 가 재수출
 src/server/repository           DB 읽기와 업무 규칙의 단일 진입점
 src/server/course               presenter·결제 콜백·cron 핸들러
 src/server/payments             토스 서버 API 연결
@@ -102,7 +105,7 @@ src/stories                     운영 DB와 분리된 문서용 예시
 
 의존 방향은 `page → state → api → repository`입니다. 수강생 화면은 `useCatalog`, `useCheckout`, `useEnrollments`, `useOrders`, `useCommunity`, `useContent`, `useUser`를 연결합니다. 서버는 로그인 사용자와 관리자 권한을 직접 확인합니다.
 
-결제 흐름: `useCheckout.actions.prepare({ courseId })`가 주문을 만들고(무료 강의는 즉시 확정·수강 개설, `free: true`), `mount()`가 토스 결제위젯을 `#payment-method`·`#agreement`에 그린 뒤 `pay()`가 결제를 요청합니다. 성공·실패 콜백은 `/api/payments/success|fail` 서버 경로가 처리하고 `/checkout/result?payment=…&order=…`로 돌아옵니다. 웹훅은 `/api/payments/webhook`에 등록합니다.
+결제 흐름: `useCheckout.actions.prepare({ itemType, itemId, contact })`가 주문을 만들고(무료 항목은 연락처를 받아 즉시 확정·개설, `free: true` + `continueUrl`), `mount()`가 토스 결제위젯을 `#payment-method`·`#agreement`에 그린 뒤 `pay()`가 결제를 요청합니다. 성공·실패 콜백은 `/api/payments/success|fail` 서버 경로가 처리하고 `/checkout/result?payment=…&order=…`로 돌아옵니다. 웹훅은 `/api/payments/webhook`에 등록합니다.
 
 운영 cron: `/cron/expire-orders`(미결제 만료)와 `/cron/reconcile-payments`(결제·환불·웹훅 대사)를 `X-Comwit-Cron-Secret` 헤더와 함께 주기 호출합니다.
 

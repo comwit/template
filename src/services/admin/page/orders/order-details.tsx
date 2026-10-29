@@ -69,7 +69,7 @@ export function OrderDetails(props: OrderDetailsProps) {
       </div>
       <AdminDefinitionList
         items={[
-          { label: "강의", value: o.courseTitle },
+          { label: "강의", value: o.itemTitle },
           { label: "정가", value: o.listPriceLabel },
           { label: "강의 할인", value: o.discountLabel },
           {

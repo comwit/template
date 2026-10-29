@@ -94,6 +94,75 @@ export const categorySchema = z.object({
   name: z.string().trim().min(1).max(60),
   slug: slug.pipe(z.string().max(80)),
 });
+// ── 디지털 상품 ──────────────────────────────────────────────────
+export const productSchema = z
+  .object({
+    id: entityId.optional(),
+    title: z.string().trim().min(1).max(120),
+    slug,
+    categoryId: entityId.nullable().default(null),
+    summary: z.string().trim().max(300).default(""),
+    description: html,
+    thumbnail: imageSchema.nullable().default(null),
+    kind: z.enum(["file", "bundle"]).default("file"),
+    price: money,
+    discountPrice: money.nullable().default(null),
+    discountEndsAt: dateInput,
+    status: z.enum(["draft", "published", "archived"]).default("draft"),
+    downloadLimit: z.number().int().min(1).max(1000).nullable().default(null),
+    /** 완료된 파일 업로드 id 목록(순서대로). 빠진 파일은 삭제된다. */
+    fileIds: z.array(entityId).max(50).default([]),
+    /** 묶음에 포함할 강의 id 목록(순서대로) */
+    courseIds: z.array(entityId).max(50).default([]),
+  })
+  .superRefine((value, ctx) => {
+    if (value.discountPrice !== null && value.discountPrice >= value.price)
+      ctx.addIssue({
+        code: "custom",
+        path: ["discountPrice"],
+        message: "할인가는 정가보다 낮아야 합니다.",
+      });
+    if (value.kind === "bundle" && !value.courseIds.length)
+      ctx.addIssue({
+        code: "custom",
+        path: ["courseIds"],
+        message: "묶음 상품에는 강의를 하나 이상 넣어주세요.",
+      });
+    if (value.status === "published" && !value.fileIds.length && !value.courseIds.length)
+      ctx.addIssue({
+        code: "custom",
+        path: ["status"],
+        message: "파일이나 강의가 하나 이상 있어야 공개할 수 있습니다.",
+      });
+    if (new Set(value.courseIds).size !== value.courseIds.length)
+      ctx.addIssue({ code: "custom", path: ["courseIds"], message: "강의가 중복됩니다." });
+  });
+export const productFileSchema = z.object({
+  productId: entityId,
+  name: z.string().trim().min(1).max(200),
+  contentType: z.string().trim().min(1).max(120),
+  size: z.number().int().min(1).max(2 * 1024 * 1024 * 1024),
+});
+export const grantPurchaseSchema = z.object({
+  productId: entityId,
+  email: z.string().trim().email(),
+});
+export const revokePurchaseSchema = z.object({
+  purchaseId: entityId,
+  reason: z.string().trim().min(2).max(200),
+});
+/** 무료 강의·자료 신청 때 받는 연락처 */
+export const leadContactSchema = z.object({
+  name: z.string().trim().min(1).max(60),
+  email: z.string().trim().email(),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^[0-9+ -]{8,20}$/, "연락처 형식을 확인해주세요.")
+    .or(z.literal(""))
+    .default(""),
+  consent: z.boolean().default(false),
+});
 export const instructorSchema = z.object({
   id: entityId.optional(),
   name: z.string().trim().min(1).max(60),
@@ -136,6 +205,7 @@ export const couponSchema = z
     minAmount: money.default(0),
     maxDiscount: money.nullable().default(null),
     courseId: entityId.nullable().default(null),
+    productId: entityId.nullable().default(null),
     startsAt: dateInput,
     endsAt: dateInput,
     usageLimit: z.number().int().min(1).max(1_000_000).nullable().default(null),
@@ -148,6 +218,12 @@ export const couponSchema = z
         code: "custom",
         path: ["value"],
         message: "할인율은 100% 이하여야 합니다.",
+      });
+    if (value.courseId && value.productId)
+      ctx.addIssue({
+        code: "custom",
+        path: ["productId"],
+        message: "강의와 상품 중 하나만 한정할 수 있습니다.",
       });
     if (
       value.startsAt &&
@@ -162,11 +238,17 @@ export const couponSchema = z
   });
 
 // ── 주문·결제·환불 ──────────────────────────────────────────────
+export const itemTypeSchema = z.enum(["course", "product"]);
 export const quoteSchema = z.object({
-  courseId: entityId,
+  itemType: itemTypeSchema,
+  itemId: entityId,
   couponCode: couponCode.nullable().default(null),
 });
-export const checkoutSchema = quoteSchema.extend({ requestKey });
+/** 무료(총액 0) 신청은 `contact` 가 필수다. 유료 결제는 null. */
+export const checkoutSchema = quoteSchema.extend({
+  requestKey,
+  contact: leadContactSchema.nullable().default(null),
+});
 export const confirmSchema = z.object({
   orderId: z
     .string()
@@ -250,6 +332,13 @@ export const listFilterSchema = z.object({
 export const enrollmentFilterSchema = listFilterSchema.extend({
   courseId: z.string().max(64).default(""),
 });
+/** 공개 상품 목록 */
+export const productFilterSchema = z.object({
+  search: z.string().trim().max(120).default(""),
+  category: z.string().trim().max(80).default(""),
+  kind: z.string().max(20).default(""),
+  sort: z.enum(["latest", "popular", "price_asc", "price_desc"]).default("latest"),
+});
 /** 공개 강의 목록 */
 export const courseFilterSchema = z.object({
   search: z.string().trim().max(120).default(""),
@@ -266,6 +355,13 @@ export type LessonInput = z.infer<typeof lessonSchema>;
 export type VideoInput = z.infer<typeof videoSchema>;
 export type CategoryInput = z.infer<typeof categorySchema>;
 export type InstructorInput = z.infer<typeof instructorSchema>;
+export type ProductInput = z.infer<typeof productSchema>;
+export type ProductFileInput = z.infer<typeof productFileSchema>;
+export type GrantPurchaseInput = z.infer<typeof grantPurchaseSchema>;
+export type RevokePurchaseInput = z.infer<typeof revokePurchaseSchema>;
+export type LeadContact = z.infer<typeof leadContactSchema>;
+export type ItemType = z.infer<typeof itemTypeSchema>;
+export type ProductFilter = z.infer<typeof productFilterSchema>;
 export type GrantInput = z.infer<typeof grantSchema>;
 export type RevokeInput = z.infer<typeof revokeSchema>;
 export type ProgressInput = z.infer<typeof progressSchema>;

@@ -5,6 +5,8 @@ import {
   LayoutDashboard,
   UserRoundCog,
   BookOpen,
+  FileDown,
+  Contact,
   GraduationCap,
   Receipt,
   CreditCard,
@@ -29,7 +31,9 @@ const navGroups: AdminNavGroup[] = [
     items: [
       { label: "대시보드", href: adminRoutes.dashboard, icon: LayoutDashboard },
       { label: "강의", href: adminRoutes.courses, icon: BookOpen },
+      { label: "디지털 상품", href: adminRoutes.products, icon: FileDown },
       { label: "수강생", href: adminRoutes.students, icon: GraduationCap },
+      { label: "리드", href: adminRoutes.leads, icon: Contact },
       { label: "수강평", href: adminRoutes.reviews, icon: Star },
       { label: "Q&A", href: adminRoutes.questions, icon: MessageCircleQuestion },
     ],

@@ -27,11 +27,11 @@ Read `AGENTS.md`, `src/app/.ai.md`, `src/services/{page,state,api}.ai.md`,
 `src/server/repository/.ai.md`, `src/services/design.md` and
 `src/services/admin/.ai.md`. Keep routing in `src/app/` and screen implementations
 in `src/services/app/page/`. The learner routes are working skeletons: home,
-`/courses`, `/courses/[id]`, `/checkout/[courseId]`, `/checkout/result`,
-`/learn/[courseId]/[lessonId]` (player), `/account`, `/account/courses`,
+`/courses`, `/courses/[id]`, `/products`, `/products/[id]`, `/checkout/[type]/[id]`, `/checkout/result`,
+`/learn/[courseId]/[lessonId]` (player), `/account`, `/account/courses`, `/account/products`,
 `/account/orders`, `/account/orders/[id]`, `/account/certificates/[id]`,
 `/notices`, `/notices/[id]`, `/login`, `/signup`. Extend them before adding routes.
-Reuse the real state/API contracts (`useCatalog`, `useCheckout`, `useEnrollments`,
+Reuse the real state/API contracts (`useCatalog`, `useCheckout`, `useEnrollments`, `usePurchases`,
 `useOrders`, `useCommunity`, `useContent`, `useUser`), not a parallel static site.
 The lesson player (`src/services/app/page/learn/lesson-player.tsx`) already saves
 progress and supports playback speed; restyle it, do not replace its wiring.

@@ -6,4 +6,6 @@ import { categories } from "./actions/categories";
 import { reviews } from "./actions/reviews";
 import { questions } from "./actions/questions";
 import { question } from "./actions/question";
-export const catalog = resolveActions({ findAll, find, categories, reviews, questions, question });
+import { products } from "./actions/products";
+import { product } from "./actions/product";
+export const catalog = resolveActions({ findAll, find, categories, reviews, questions, question, products, product });

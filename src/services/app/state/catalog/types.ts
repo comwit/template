@@ -7,9 +7,13 @@ import type {
   CategoryView,
   ReviewView,
   QuestionView,
+  ProductFilter,
+  ProductSummary,
+  ProductView,
 } from "@/lib/course";
 export type * from "@/lib/course";
 export type ListArgs = { filter: CourseFilter; pageable: PageRequest };
+export type ProductListArgs = { filter: ProductFilter; pageable: PageRequest };
 export type ReviewArgs = { courseId: string; page: number };
 export type QuestionArgs = {
   courseId: string;
@@ -27,6 +31,11 @@ export type DomainState = {
   reviews: Query<Pageable<ReviewView>, ReviewArgs>;
   questions: Query<Pageable<QuestionView>, QuestionArgs>;
   question: Query<QuestionView | null, string>;
+  /** 디지털 상품(자료·전자책·묶음) 목록·상세. 강의와 같은 카탈로그 모델에 둔다. */
+  products: Query<Pageable<ProductSummary>, ProductListArgs>;
+  productFilter: ProductFilter;
+  productPage: number;
+  product: Query<ProductView | null, string>;
 };
 export type DomainActions = {
   setFilter(filter: Partial<CourseFilter>): void;
@@ -38,4 +47,8 @@ export type DomainActions = {
   refreshReviews(): Promise<void>;
   refreshQuestions(): Promise<void>;
   refreshQuestion(): Promise<void>;
+  setProductFilter(filter: Partial<ProductFilter>): void;
+  setProductPage(page: number): void;
+  /** 상품 카드 → 상세 소프트 내비 직전에 product 캐시를 채운다. */
+  openProduct(product: ProductSummary): void;
 };

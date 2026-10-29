@@ -40,7 +40,7 @@ export const orders = {
       orderId: order.id,
       displayNumber: order.displayNumber,
       customerEmail: order.customerEmail,
-      courseTitle: order.courseTitle,
+      itemTitle: order.itemTitle,
       amount: order.total,
       amountLabel: order.totalLabel,
       reason: input.reason,
