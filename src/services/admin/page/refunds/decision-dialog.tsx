@@ -57,7 +57,7 @@ export function DecisionDialog(props: {
                   {r.amountLabel}
                 </span>
               </div>
-              <p className="truncate text-soft-foreground">{r.courseTitle}</p>
+              <p className="truncate text-soft-foreground">{r.itemTitle}</p>
               <p className="truncate text-caption text-muted-foreground">
                 {r.customerEmail} · {r.createdLabel}
               </p>

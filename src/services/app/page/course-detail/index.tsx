@@ -88,7 +88,7 @@ export default function CourseDetail({ courseId }: { courseId: string }) {
           </Button>
         ) : (
           <Button asChild>
-            <Link href={`/checkout/${course.id}`}>
+            <Link href={`/checkout/course/${course.id}`}>
               {siteText.pages["checkout"]}
             </Link>
           </Button>

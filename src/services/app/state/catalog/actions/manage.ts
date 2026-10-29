@@ -1,5 +1,12 @@
 import { action } from "@comwit/state";
-import type { CourseFilter, CourseSummary, CourseView } from "@/lib/course";
+import type {
+  CourseFilter,
+  CourseSummary,
+  CourseView,
+  ProductFilter,
+  ProductSummary,
+  ProductView,
+} from "@/lib/course";
 import type { DomainActions } from "../types";
 import { domain } from "../model";
 export const manageActions = action<DomainActions>(({ state }) => {
@@ -38,6 +45,24 @@ export const manageActions = action<DomainActions>(({ state }) => {
     }
     async refreshQuestion() {
       await this.model.question.refetch();
+    }
+    setProductFilter(filter: Partial<ProductFilter>) {
+      this.model.productFilter = { ...this.model.productFilter, ...filter };
+      this.model.productPage = 1;
+    }
+    setProductPage(page: number) {
+      this.model.productPage = page;
+    }
+    /** 상품 카드 → 상세. 목록 항목에 상세 전용 필드를 비워 채워 `.suspend(id)` 가 바로 그리고 뒤에서 재조회한다. */
+    openProduct(product: ProductSummary) {
+      const seed: ProductView = {
+        ...product,
+        description: "",
+        files: [],
+        courses: [],
+        purchase: null,
+      };
+      this.model.product.set(seed, { arg: product.id });
     }
   }
   return new ManageActions();

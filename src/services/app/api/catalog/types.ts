@@ -8,4 +8,6 @@ export interface CatalogAPI {
   reviews(courseId: string, pageable: PageRequest): Promise<Pageable<Types.ReviewView>>;
   questions(courseId: string, lessonId: string | null, pageable: PageRequest): Promise<Pageable<Types.QuestionView>>;
   question(id: string): Promise<Types.QuestionView>;
+  products(filter: Types.ProductFilter, pageable: PageRequest): Promise<Pageable<Types.ProductSummary>>;
+  product(id: string): Promise<Types.ProductView>;
 }

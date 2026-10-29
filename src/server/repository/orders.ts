@@ -18,6 +18,8 @@ import {
   enrollments,
   orders,
   payments,
+  products,
+  purchases,
   refundRequests,
   refunds,
 } from "@/server/db/schema";
@@ -29,6 +31,8 @@ import {
 } from "@/lib/course";
 import { enroll, findActive } from "./enrollments";
 import * as coupons from "./coupons";
+import * as purchaseRepository from "./purchases";
+import { record as recordLead } from "./leads";
 import {
   audit,
   CourseError,
@@ -38,6 +42,7 @@ import {
   platformSettings,
   stamp,
   updated,
+  type Executor,
 } from "./support";
 import { uuid } from "./id";
 import type { PageRequest } from "./types";
@@ -58,7 +63,7 @@ export async function findAll(
       ? or(
           like(orders.number, `%${filter.search}%`),
           like(orders.customerEmail, `%${filter.search}%`),
-          like(orders.courseTitle, `%${filter.search}%`),
+          like(orders.itemTitle, `%${filter.search}%`),
         )
       : undefined,
   );
@@ -86,7 +91,7 @@ export async function findById(id: string, customerId?: string) {
       ),
     );
   ensure(order, "주문을 찾을 수 없습니다.", "NOT_FOUND");
-  const [paymentRows, refundRows, requestRows, enrollmentRows, history] =
+  const [paymentRows, refundRows, requestRows, enrollmentRows, purchaseRows, history] =
     await Promise.all([
       db.select().from(payments).where(eq(payments.orderId, id)),
       db
@@ -104,6 +109,10 @@ export async function findById(id: string, customerId?: string) {
         .select({ id: enrollments.id, progressPercent: enrollments.progressPercent, status: enrollments.status })
         .from(enrollments)
         .where(eq(enrollments.orderId, id)),
+      db
+        .select({ id: purchases.id, status: purchases.status })
+        .from(purchases)
+        .where(eq(purchases.orderId, id)),
       db
         .select()
         .from(auditLogs)
@@ -134,63 +143,86 @@ export async function findById(id: string, customerId?: string) {
     refunds: refundRows,
     refundRequest: requestRows[0] ?? null,
     enrollment,
+    purchase: purchaseRows[0] ?? null,
     canRequestRefund,
     history,
   };
 }
 
+type Sellable = {
+  itemType: "course" | "product";
+  id: string;
+  title: string;
+  price: number;
+  discountPrice: number | null;
+  discountEndsAt: Date | null;
+};
+/** 강의·상품 공통으로 결제 대상을 읽는다. 공개 상태만. */
+export async function findSellable(
+  db: Executor,
+  itemType: "course" | "product",
+  id: string,
+): Promise<Sellable> {
+  if (itemType === "course") {
+    const [course] = await db
+      .select()
+      .from(courses)
+      .where(
+        and(eq(courses.id, id), isNull(courses.deletedAt), eq(courses.status, "published")),
+      );
+    ensure(course, "수강 신청할 수 없는 강의입니다.", "NOT_FOUND");
+    return { itemType, ...course };
+  }
+  const [product] = await db
+    .select()
+    .from(products)
+    .where(
+      and(eq(products.id, id), isNull(products.deletedAt), eq(products.status, "published")),
+    );
+  ensure(product, "구매할 수 없는 상품입니다.", "NOT_FOUND");
+  return { itemType, ...product };
+}
+async function alreadyOwned(item: Sellable, userId: string) {
+  return item.itemType === "course"
+    ? Boolean(await findActive(item.id, userId))
+    : Boolean(await purchaseRepository.findActive(item.id, userId));
+}
+
 /** 결제 전 금액 미리보기. 쿠폰이 안 맞으면 오류 대신 couponError 로 알린다. */
 export async function quote(input: QuoteInput, userId: string) {
   const db = await getDb();
-  const [course] = await db
-    .select()
-    .from(courses)
-    .where(
-      and(
-        eq(courses.id, input.courseId),
-        isNull(courses.deletedAt),
-        eq(courses.status, "published"),
-      ),
-    );
-  ensure(course, "수강 신청할 수 없는 강의입니다.", "NOT_FOUND");
-  const listPrice = course.price;
-  const sale = salePrice(course);
+  const item = await findSellable(db, input.itemType, input.itemId);
+  const listPrice = item.price;
+  const sale = salePrice(item);
   const discount = listPrice - sale;
   let couponDiscount = 0;
   let couponError: string | null = null;
   let couponCode: string | null = null;
   if (input.couponCode && sale > 0) {
     try {
-      const result = await coupons.evaluate(
-        db,
-        input.couponCode,
-        userId,
-        course.id,
-        sale,
-      );
+      const result = await coupons.evaluate(db, input.couponCode, userId, item.itemType === "course" ? { itemType: "course", itemId: item.id } : { itemType: "product", itemId: item.id }, sale);
       couponDiscount = result.discount;
       couponCode = result.coupon.code;
     } catch (error) {
       couponError =
         error instanceof CourseError ? error.message : "쿠폰을 확인해주세요.";
     }
-  } else if (input.couponCode) couponError = "무료 강의에는 쿠폰을 쓸 수 없습니다.";
-  const enrollment = await findActive(course.id, userId);
+  } else if (input.couponCode) couponError = "무료 항목에는 쿠폰을 쓸 수 없습니다.";
   return {
-    course,
+    item,
     listPrice,
     discount,
     couponCode,
     couponDiscount,
     couponError,
     total: sale - couponDiscount,
-    alreadyEnrolled: Boolean(enrollment),
+    alreadyOwned: await alreadyOwned(item, userId),
   };
 }
 
 /**
  * 주문 생성. 유료는 pending 주문 + ready 결제를 만들고 토스 위젯이 이어서 결제한다.
- * 무료(총액 0)는 결제 없이 바로 confirmed 처리하고 같은 배치에서 수강을 연다.
+ * 무료(총액 0)는 결제 없이 바로 confirmed 처리하고 같은 배치에서 수강·구매를 열며, 연락처를 리드로 남긴다.
  */
 export async function create(
   input: CheckoutInput,
@@ -210,32 +242,28 @@ export async function create(
       );
     if (old) {
       ensure(
-        old.courseId === input.courseId &&
+        old.itemType === input.itemType &&
+          (old.courseId ?? old.productId) === input.itemId &&
           (old.couponCode ?? null) === (input.couponCode ?? null),
         "다른 주문에 사용된 요청키입니다.",
       );
       return old;
     }
-    const [course] = await tx
-      .select()
-      .from(courses)
-      .where(
-        and(
-          eq(courses.id, input.courseId),
-          isNull(courses.deletedAt),
-          eq(courses.status, "published"),
-        ),
-      );
-    ensure(course, "수강 신청할 수 없는 강의입니다.", "NOT_FOUND");
-    const active = await findActive(course.id, customer.id);
-    ensure(!active, "이미 수강 중인 강의입니다.", "ALREADY_ENROLLED");
+    const item = await findSellable(tx, input.itemType, input.itemId);
+    ensure(
+      !(await alreadyOwned(item, customer.id)),
+      item.itemType === "course" ? "이미 수강 중인 강의입니다." : "이미 구매한 상품입니다.",
+      "ALREADY_OWNED",
+    );
     const [pendingOrder] = await tx
       .select({ id: orders.id })
       .from(orders)
       .where(
         and(
           eq(orders.customerId, customer.id),
-          eq(orders.courseId, course.id),
+          item.itemType === "course"
+            ? eq(orders.courseId, item.id)
+            : eq(orders.productId, item.id),
           eq(orders.status, "pending"),
         ),
       );
@@ -244,14 +272,20 @@ export async function create(
       "결제 대기 중인 주문이 있습니다. 결제 내역에서 취소하거나 이어서 결제해주세요.",
       "PENDING_ORDER",
     );
-    const listPrice = course.price;
-    const sale = salePrice(course);
+    const listPrice = item.price;
+    const sale = salePrice(item);
     let couponDiscount = 0;
     let coupon: Awaited<ReturnType<typeof coupons.evaluate>>["coupon"] | null =
       null;
     if (input.couponCode) {
-      ensure(sale > 0, "무료 강의에는 쿠폰을 쓸 수 없습니다.");
-      const result = await coupons.evaluate(tx, input.couponCode, customer.id, course.id, sale);
+      ensure(sale > 0, "무료 항목에는 쿠폰을 쓸 수 없습니다.");
+      const result = await coupons.evaluate(
+        tx,
+        input.couponCode,
+        customer.id,
+        { itemType: item.itemType, itemId: item.id },
+        sale,
+      );
       coupon = result.coupon;
       couponDiscount = result.discount;
     }
@@ -260,16 +294,19 @@ export async function create(
       Number.isSafeInteger(total) && total >= 0 && total <= 1_000_000_000,
       "결제 금액을 확인해주세요.",
     );
-    const id = uuid();
     const free = total === 0;
+    ensure(!free || input.contact, "무료 신청에는 이름과 이메일이 필요합니다.", "CONTACT_REQUIRED");
+    const id = uuid();
     const order: typeof orders.$inferSelect = {
       id,
       number: `order-${id}`,
       customerId: customer.id,
       customerEmail: customer.email,
       requestKey: input.requestKey,
-      courseId: course.id,
-      courseTitle: course.title,
+      itemType: item.itemType,
+      courseId: item.itemType === "course" ? item.id : null,
+      productId: item.itemType === "product" ? item.id : null,
+      itemTitle: item.title,
       status: free ? "confirmed" : "pending",
       paymentStatus: free ? "free" : "unpaid",
       listPrice,
@@ -294,14 +331,38 @@ export async function create(
         free ? "used" : "held",
       );
     if (free) {
-      const enrollmentId = await enroll(tx, add, {
-        courseId: course.id,
+      const openedId =
+        item.itemType === "course"
+          ? await enroll(tx, add, {
+              courseId: item.id,
+              userId: customer.id,
+              source: "free",
+              orderId: id,
+            })
+          : await purchaseRepository.open(tx, add, {
+              productId: item.id,
+              userId: customer.id,
+              source: "free",
+              orderId: id,
+            });
+      recordLead(tx, add, input.contact!, {
         userId: customer.id,
-        source: "free",
+        source: item.itemType === "course" ? "free_course" : "free_product",
+        courseId: order.courseId,
+        productId: order.productId,
         orderId: id,
+        itemTitle: item.title,
       });
       add(audit(tx, customer.id, "order.created", id, { free: true }));
-      add(audit(tx, customer.id, "enrollment.opened", enrollmentId, { orderId: id }));
+      add(
+        audit(
+          tx,
+          customer.id,
+          item.itemType === "course" ? "enrollment.opened" : "purchase.opened",
+          openedId,
+          { orderId: id },
+        ),
+      );
       return order;
     }
     add(
@@ -319,7 +380,6 @@ export async function create(
     return order;
   });
 }
-
 export async function cancelUnpaid(
   id: string,
   actorId: string,

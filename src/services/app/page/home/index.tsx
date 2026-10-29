@@ -15,8 +15,14 @@ export default function Home() {
         <Link href="/courses" className="underline">
           {siteText.pages["courses"]}
         </Link>
+        <Link href="/products" className="underline">
+          {siteText.pages["products"]}
+        </Link>
         <Link href="/account/courses" className="underline">
           {siteText.pages["my-courses"]}
+        </Link>
+        <Link href="/account/products" className="underline">
+          {siteText.pages["my-products"]}
         </Link>
         <Link href="/account/orders" className="underline">
           {siteText.pages["orders"]}

@@ -14,6 +14,12 @@ import {
   type DashboardView,
   type CourseSummary,
   type CourseView,
+  type DownloadLinkView,
+  type LeadView,
+  type ProductFileView,
+  type ProductSummary,
+  type ProductView,
+  type PurchaseView,
   type EnrollmentView,
   type InstructorView,
   type LessonView,
@@ -37,9 +43,11 @@ import type { ImageAsset } from "@/lib/image";
 import type {
   banners,
   instructors,
+  leads,
   notices,
   orders,
   payments,
+  productFiles,
   questionComments,
   refundRequests,
 } from "@/server/db/schema";
@@ -51,6 +59,8 @@ import type {
   operationsRepository,
   orderRepository,
   paymentRepository,
+  productRepository,
+  purchaseRepository,
 } from "@/server/repository";
 import type { CurriculumRow } from "@/server/repository/catalog";
 
@@ -92,6 +102,12 @@ const labels: Record<string, string> = {
   fixed: "정액",
   inactive: "중지",
   exhausted: "소진",
+  course: "강의",
+  product: "상품",
+  file: "파일",
+  bundle: "강의 묶음",
+  free_course: "무료 강의",
+  free_product: "무료 자료",
 };
 const historyLabels: Record<string, string> = {
   "order.created": "주문 생성",
@@ -293,8 +309,12 @@ export function presentOrder(order: typeof orders.$inferSelect): OrderSummary {
     displayNumber: formatOrderNumber(order.number),
     customerId: order.customerId,
     customerEmail: order.customerEmail,
+    itemType: order.itemType,
+    itemTypeLabel: statusLabel(order.itemType),
+    itemId: order.courseId ?? order.productId ?? "",
+    itemTitle: order.itemTitle,
     courseId: order.courseId,
-    courseTitle: order.courseTitle,
+    productId: order.productId,
     status: order.status,
     statusLabel: statusLabel(order.status),
     paymentStatus: order.paymentStatus,
@@ -334,11 +354,11 @@ export function presentPayment(
 }
 export function presentPaymentRow(
   row: Awaited<ReturnType<typeof paymentRepository.findAll>>["items"][number],
-): PaymentView & { customerEmail: string; courseTitle: string } {
+): PaymentView & { customerEmail: string; itemTitle: string } {
   return {
     ...presentPayment(row.payment),
     customerEmail: row.customerEmail,
-    courseTitle: row.courseTitle,
+    itemTitle: row.itemTitle,
   };
 }
 export function presentRefundRequest(
@@ -350,7 +370,7 @@ export function presentRefundRequest(
     orderId: order.id,
     displayNumber: formatOrderNumber(order.number),
     customerEmail: order.customerEmail,
-    courseTitle: order.courseTitle,
+    itemTitle: order.itemTitle,
     amount: order.total,
     amountLabel: formatMoney(order.total),
     reason: request.reason,
@@ -384,6 +404,7 @@ export function presentOrderDetail(
       : null,
     canRequestRefund: order.canRequestRefund,
     enrollmentId: order.enrollment?.id ?? null,
+    purchaseId: order.purchase?.id ?? null,
     history: admin
       ? order.history.map((h) => ({
           id: h.id,
@@ -417,6 +438,8 @@ export function presentCoupon(
     maxDiscount: row.maxDiscount,
     courseId: row.courseId,
     courseTitle: row.courseTitle,
+    productId: row.productId,
+    productTitle: row.productTitle,
     startsLabel: dateLabel(row.startsAt),
     endsLabel: dateLabel(row.endsAt),
     startsAt: row.startsAt?.toISOString() ?? null,
@@ -574,8 +597,10 @@ export function presentQuote(
   data: Awaited<ReturnType<typeof orderRepository.quote>>,
 ): QuoteView {
   return {
-    courseId: data.course.id,
-    courseTitle: data.course.title,
+    itemType: data.item.itemType,
+    itemId: data.item.id,
+    itemTitle: data.item.title,
+    requiresContact: data.total === 0,
     listPrice: data.listPrice,
     listPriceLabel: formatMoney(data.listPrice),
     discount: data.discount,
@@ -586,6 +611,142 @@ export function presentQuote(
     total: data.total,
     totalLabel: formatMoney(data.total),
     isFree: data.total === 0,
-    alreadyEnrolled: data.alreadyEnrolled,
+    alreadyEnrolled: data.alreadyOwned,
+  };
+}
+// ── 디지털 상품 ──────────────────────────────────────────────────
+const sizeLabel = (bytes: number) =>
+  bytes >= 1024 * 1024
+    ? `${(bytes / 1024 / 1024).toFixed(1)}MB`
+    : `${Math.max(1, Math.round(bytes / 1024))}KB`;
+export function presentProductFile(
+  row: typeof productFiles.$inferSelect,
+): ProductFileView {
+  return {
+    id: row.id,
+    name: row.name,
+    contentType: row.contentType,
+    size: row.size,
+    sizeLabel: sizeLabel(row.size),
+    position: row.position,
+    status: row.status,
+  };
+}
+export function presentProduct(
+  product: Awaited<ReturnType<typeof productRepository.findAll>>["items"][number],
+): ProductSummary {
+  const sale = salePrice(product);
+  const discounting = sale < product.price;
+  return {
+    id: product.id,
+    title: product.title,
+    slug: product.slug,
+    summary: product.summary,
+    thumbnail: parseImage(product.thumbnail),
+    categoryId: product.categoryId,
+    categoryName: product.category?.name ?? null,
+    kind: product.kind,
+    kindLabel: statusLabel(product.kind),
+    status: product.status,
+    statusLabel: statusLabel(product.status),
+    price: product.price,
+    discountPrice: product.discountPrice,
+    salePrice: sale,
+    priceLabel: formatMoney(sale),
+    originalPriceLabel: discounting ? formatMoney(product.price) : null,
+    discountRate: discounting
+      ? Math.round(((product.price - sale) / product.price) * 100)
+      : 0,
+    discountEndsLabel: discounting ? dateLabel(product.discountEndsAt) : null,
+    discountEndsAt:
+      product.discountPrice !== null
+        ? (product.discountEndsAt?.toISOString() ?? null)
+        : null,
+    isFree: sale === 0,
+    downloadLimit: product.downloadLimit,
+    fileCount: product.fileCount,
+    courseCount: product.courseCount,
+    purchaseCount: product.purchaseCount,
+    createdLabel: kstCompactDateTime(product.createdAt),
+    publishedLabel: dateLabel(product.publishedAt),
+  };
+}
+export function presentProductDetail(
+  product: Awaited<ReturnType<typeof productRepository.findById>>,
+  purchase: ProductView["purchase"] = null,
+): ProductView {
+  return {
+    ...presentProduct(product),
+    description: product.description,
+    files: product.files.map(presentProductFile),
+    courses: product.courses.map((c) => ({
+      id: c.id,
+      title: c.title,
+      slug: c.slug,
+      thumbnail: parseImage(c.thumbnail),
+      lessonCount: c.lessonCount,
+    })),
+    purchase,
+  };
+}
+export function presentPurchase(
+  row: Awaited<ReturnType<typeof purchaseRepository.findAll>>["items"][number] & {
+    files?: (typeof productFiles.$inferSelect)[];
+    courses?: { id: string; title: string }[];
+  },
+): PurchaseView {
+  const limit = row.product.downloadLimit;
+  return {
+    id: row.id,
+    productId: row.product.id,
+    productTitle: row.product.title,
+    productSlug: row.product.slug,
+    thumbnail: parseImage(row.product.thumbnail),
+    kind: row.product.kind,
+    kindLabel: statusLabel(row.product.kind),
+    userId: row.user.id,
+    userEmail: row.user.email,
+    userName: row.user.name ?? "",
+    orderId: row.orderId,
+    source: row.source,
+    sourceLabel: statusLabel(row.source),
+    status: row.status,
+    statusLabel: row.status === "active" ? "구매 완료" : statusLabel(row.status),
+    downloadCount: row.downloadCount,
+    downloadLimit: limit,
+    downloadsLabel: limit === null ? `${row.downloadCount}회` : `${row.downloadCount}/${limit}회`,
+    files: (row.files ?? []).map(presentProductFile),
+    courses: (row.courses ?? []).map((c) => ({ id: c.id, title: c.title })),
+    purchasedLabel: kstCompactDateTime(row.createdAt),
+    lastDownloadedLabel: dateLabel(row.lastDownloadedAt),
+  };
+}
+export function presentDownloadLink(
+  data: Awaited<ReturnType<typeof purchaseRepository.downloadLink>>,
+): DownloadLinkView {
+  return {
+    url: data.url,
+    method: data.method,
+    headers: data.headers,
+    expiresAt: data.expiresAt,
+    fileName: data.fileName,
+    remaining: data.remaining,
+  };
+}
+export function presentLead(row: typeof leads.$inferSelect): LeadView {
+  return {
+    id: row.id,
+    userId: row.userId,
+    name: row.name,
+    email: row.email,
+    phone: row.phone,
+    source: row.source,
+    sourceLabel: statusLabel(row.source),
+    itemTitle: row.itemTitle,
+    courseId: row.courseId,
+    productId: row.productId,
+    consent: row.consent,
+    note: row.note,
+    createdLabel: kstCompactDateTime(row.createdAt),
   };
 }

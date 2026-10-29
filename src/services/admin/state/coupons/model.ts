@@ -1,11 +1,13 @@
 import { model, query, keepPreviousData } from "@comwit/state";
 import { adminCoupons as api } from "@/services/admin/api/coupons";
 import { adminCourses } from "@/services/admin/api/courses";
+import { adminProducts } from "@/services/admin/api/products";
 import {
   emptyPage,
   type CouponInput,
   type CouponView,
   type CourseSummary,
+  type ProductSummary,
 } from "@/lib/course";
 import type { Pageable } from "@/server/repository/types";
 import type { DomainState, ListArgs } from "./types";
@@ -17,6 +19,7 @@ export const freshDraft = (): CouponInput => ({
   minAmount: 0,
   maxDiscount: null,
   courseId: null,
+  productId: null,
   startsAt: null,
   endsAt: null,
   usageLimit: null,
@@ -49,6 +52,7 @@ export const draftFromView = (coupon: CouponView): CouponInput => ({
   minAmount: coupon.minAmount,
   maxDiscount: coupon.maxDiscount,
   courseId: coupon.courseId,
+  productId: coupon.productId,
   startsAt: isoToDateInput(coupon.startsAt),
   endsAt: isoToDateInput(coupon.endsAt),
   usageLimit: coupon.usageLimit,
@@ -66,6 +70,16 @@ export const domain = model<DomainState>({
     queryFn: async () =>
       (
         await adminCourses.findAll(
+          { search: "", status: "published" },
+          { page: 1, limit: 100 },
+        )
+      ).items,
+  }),
+  products: query<ProductSummary[]>({
+    initialData: [],
+    queryFn: async () =>
+      (
+        await adminProducts.findAll(
           { search: "", status: "published" },
           { page: 1, limit: 100 },
         )
