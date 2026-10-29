@@ -7,9 +7,17 @@ import {
   type CategoryView,
   type ReviewView,
   type QuestionView,
+  type ProductSummary,
+  type ProductView,
 } from "@/lib/course";
 import type { Pageable } from "@/server/repository/types";
-import type { DomainState, ListArgs, ReviewArgs, QuestionArgs } from "./types";
+import type {
+  DomainState,
+  ListArgs,
+  ProductListArgs,
+  ReviewArgs,
+  QuestionArgs,
+} from "./types";
 const LIMIT = 20;
 export const domain = model<DomainState>({
   list: query<Pageable<CourseSummary>, ListArgs>({
@@ -43,5 +51,16 @@ export const domain = model<DomainState>({
   question: query<QuestionView | null, string>({
     initialData: null,
     queryFn: (id) => api.question(id),
+  }),
+  products: query<Pageable<ProductSummary>, ProductListArgs>({
+    initialData: emptyPage<ProductSummary>(),
+    queryFn: (arg) => api.products(arg.filter, arg.pageable),
+    placeholderData: keepPreviousData,
+  }),
+  productFilter: { search: "", category: "", kind: "", sort: "latest" },
+  productPage: 1,
+  product: query<ProductView | null, string>({
+    initialData: null,
+    queryFn: (id) => api.product(id),
   }),
 });

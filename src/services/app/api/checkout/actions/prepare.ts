@@ -14,14 +14,19 @@ async function _prepare(request: Types.CheckoutInput): Promise<Types.CheckoutVie
       input.checkoutSchema.parse(request),
       actor,
     );
+    const itemId = order.courseId ?? order.productId ?? "";
+    const continueUrl =
+      order.itemType === "course" ? `/learn/${itemId}` : "/account/products";
     if (order.total === 0)
       return {
         id: order.id,
         orderId: order.number,
-        orderName: order.courseTitle,
+        orderName: order.itemTitle,
         amount: 0,
         free: true,
-        courseId: order.courseId,
+        itemType: order.itemType,
+        itemId,
+        continueUrl,
         clientKey: "",
         customerKey: actor.id,
         customerEmail: actor.email,
@@ -33,10 +38,12 @@ async function _prepare(request: Types.CheckoutInput): Promise<Types.CheckoutVie
     return {
       id: order.id,
       orderId: order.number,
-      orderName: order.courseTitle,
+      orderName: order.itemTitle,
       amount: order.total,
       free: false,
-      courseId: order.courseId,
+      itemType: order.itemType,
+      itemId,
+      continueUrl,
       clientKey: settings.clientKey,
       customerKey: actor.id,
       customerEmail: actor.email,

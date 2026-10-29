@@ -54,16 +54,21 @@ function ResultBody() {
         ) : (
           <section className="mt-4">
             <p className="text-body-sm text-muted-foreground">
-              {order.displayNumber}
+              {order.displayNumber} · {order.itemTypeLabel}
             </p>
-            <p className="text-title-md">{order.courseTitle}</p>
+            <p className="text-title-md">{order.itemTitle}</p>
             <p className="text-body">
               {order.totalLabel} · {order.statusLabel} · {order.paymentLabel}
             </p>
             <p className="mt-3 flex gap-3 text-body-sm">
-              {order.enrollmentId ? (
+              {order.enrollmentId && order.courseId ? (
                 <Link href={`/learn/${order.courseId}`} className="underline">
                   {siteText.pages["learn"]}
+                </Link>
+              ) : null}
+              {order.purchaseId ? (
+                <Link href="/account/products" className="underline">
+                  {siteText.pages["my-products"]}
                 </Link>
               ) : null}
               <Link href={`/account/orders/${order.id}`} className="underline">
