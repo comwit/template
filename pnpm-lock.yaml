@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
-  '@brrrd/adapter@0.1.11': ce8d35ed57670ff9ae04fd7dafcb73788c0c97090baf07129e69212e529dfa70
+  '@brrrd/adapter@0.1.11': 19e35b4a2919c724343ab060b996a96ff121a47752e3bdb8ae9d94027b23a6eb
 
 importers:
 
@@ -13,7 +13,7 @@ importers:
     dependencies:
       '@brrrd/adapter':
         specifier: 0.1.11
-        version: 0.1.11(patch_hash=ce8d35ed57670ff9ae04fd7dafcb73788c0c97090baf07129e69212e529dfa70)(next@16.4.3(@babel/core@8.0.1)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
+        version: 0.1.11(patch_hash=19e35b4a2919c724343ab060b996a96ff121a47752e3bdb8ae9d94027b23a6eb)(next@16.4.3(@babel/core@8.0.1)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
       '@comwit/state':
         specifier: 2.5.1
         version: 2.5.1(react@19.2.4)
@@ -4605,7 +4605,7 @@ snapshots:
 
   '@better-fetch/fetch@1.1.21': {}
 
-  '@brrrd/adapter@0.1.11(patch_hash=ce8d35ed57670ff9ae04fd7dafcb73788c0c97090baf07129e69212e529dfa70)(next@16.4.3(@babel/core@8.0.1)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))':
+  '@brrrd/adapter@0.1.11(patch_hash=19e35b4a2919c724343ab060b996a96ff121a47752e3bdb8ae9d94027b23a6eb)(next@16.4.3(@babel/core@8.0.1)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))':
     dependencies:
       esbuild: 0.25.12
       next: 16.4.3(@babel/core@8.0.1)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
