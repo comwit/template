@@ -1,0 +1,4 @@
+interface:
+  display_name: "Course setup"
+  short_description: "Set up a branded course platform from the project's references"
+  default_prompt: "Use $course-setup to build my first learner screens from the existing course template."

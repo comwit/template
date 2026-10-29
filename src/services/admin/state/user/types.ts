@@ -1,24 +1,18 @@
-import type { Query } from '@comwit/state'
+import type { Query } from "@comwit/state";
 
-export type User = {
-  id: string
-  email: string
-  name: string
-  username?: string | null
-  displayUsername?: string | null
-  image?: string | null
-  emailVerified: boolean
-  createdAt: Date
-  updatedAt: Date
-}
+import type { User } from "@/services/admin/api/user";
+export type { User } from "@/services/admin/api/user";
 
 export type UserState = {
-  me: Query<User | null>
-  isLoading: boolean
-}
+  me: Query<User | null>;
+  isLoading: boolean;
+};
 
 export type UserActions = {
-  signIn(args: { email: string; password: string }): Promise<void>
-  changePassword(args: { currentPassword: string; newPassword: string }): Promise<void>
-  signOut(): Promise<void>
-}
+  signIn(args: { email: string; password: string }): Promise<void>;
+  changePassword(args: {
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<void>;
+  signOut(): Promise<void>;
+};

@@ -10,9 +10,12 @@ export const metadata: Metadata = {
   },
 };
 
-// Admin uses the shared design system (@/lib/components/ui + @comwit/ui); MUI/emotion were removed.
+// 관리자 기본 세션이 확정될 때까지 셸과 children을 함께 기다린다.
+export const instant = false;
+
+// 어드민도 공통 디자인 시스템(@/lib/components/ui + @comwit/ui)을 그대로 쓴다 — MUI/emotion 제거됨.
 export default function Layout({ children }: { children: React.ReactNode }) {
-  // Keep this before auth-setup: render admin UI after the basic session resolves.
+  // auth-setup 연결 전에도 유지: 관리자 기본 세션이 준비된 뒤 UI를 렌더한다.
   return (
     <Suspense fallback={null}>
       <AdminLayout>{children}</AdminLayout>

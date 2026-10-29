@@ -1,0 +1,18 @@
+{
+  "repository": "https://github.com/comwit/template.git",
+  "branch": "course",
+  "baseMainCommit": "125edd83d630a85feb4c194688055946e03cafb3",
+  "derivedFrom": {
+    "repository": "https://github.com/comwit/template.git",
+    "branch": "shop",
+    "commit": "0c2f8fc"
+  },
+  "integrationPolicy": {
+    "commonRuntime": "Preserve current main UI, server-action transport, tooling and lint rules; merge course platform extensions.",
+    "courseFeatures": "Preserve course/admin code, schema and migrations, skills and tracked configuration.",
+    "sharedInfrastructure": "Better Auth, Drizzle/libSQL client, atomic revision batches, Toss server client, Comwit storage presign and the admin shell are shared with the shop branch; keep them aligned when fixing common bugs.",
+    "auth": "Use main server getMe to client hydrate boundary with the installed authentication implementations.",
+    "configuration": "Preserve course settings as lazy getters following main.",
+    "bootstrap": "Base app-setup/auth-setup and sample Storybook scaffolds are absent from course because those features are implemented; active course stories and main guidance are retained."
+  }
+}

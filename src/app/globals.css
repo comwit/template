@@ -2,22 +2,23 @@
 @import "tw-animate-css";
 @import "./comwit-tokens.css";
 
-/* Project theme: override comwit-tokens.css L0 values here, without editing components.
+/* ════════════════════════════════════════════════════════════════
+   프로젝트 테마 — comwit-tokens.css 의 L0 값을 여기서 덮는다. 컴포넌트 파일은 손대지 않는다.
 
    :root {
-     --brand: #0b68ba;         Buttons, links, focus, and selection
-     --brand-strong: #08528f;  Hover
-     --radius-scale: 0.6;     Scale all radii
+     --brand: #0b68ba;          버튼·링크·포커스·선택 표식 전부
+     --brand-strong: #08528f;   hover
+     --radius-scale: 0.6;       모든 반경을 한 번에
    }
 
-   Put global element rules (button, h1, etc.) in @layer base. Unlayered rules
-   override Tailwind utilities and silently alter press states, focus rings, and fonts. */
+   전역 요소 규칙(button, h1 …)은 @layer base 안에 둔다. 레이어 밖 규칙은
+   Tailwind 유틸을 이겨 컴포넌트의 눌림·포커스 링·서체를 조용히 바꾼다.
+   ════════════════════════════════════════════════════════════════ */
 
 @layer base {
-  /* Always reserve the page scrollbar's space so layouts keep the same width whether or
-     not the page scrolls. Dialog scroll locks (react-remove-scroll) add a margin equal to
-     the scrollbar width; the gutter already holds that space, so cancel the margin.
-     A layered !important beats the library's unlayered !important. */
+  /* 스크롤바 자리를 늘 잡아 둔다 — 페이지가 스크롤되든 아니든 폭이 같다. 다이얼로그 스크롤 잠금
+     (react-remove-scroll)은 스크롤바 폭만큼 margin 을 더하는데 거터가 이미 그 자리를 잡고 있으니 되돌린다.
+     레이어 안 !important 가 라이브러리의 레이어 밖 !important 를 이긴다. */
   html {
     scrollbar-gutter: stable;
   }
