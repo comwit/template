@@ -1,114 +1,118 @@
-# Comwit Cloud Next.js Template
+# 강의 플랫폼(LMS) 공용 템플릿
 
-A new-project template for Comwit Cloud. Next.js builds a `dist/brrrd` package through `@brrrd/adapter`; databases and storage use Comwit Cloud's libSQL/S3 data plane.
+수강생 화면 디자인은 담지 않습니다. 수강생 라우트(`/`, `/courses`, `/courses/[id]`, `/checkout/[courseId]`, `/checkout/result`, `/learn/[courseId]/[lessonId]`, `/account`, `/account/courses`, `/account/orders`, `/account/orders/[id]`, `/account/certificates/[id]`, `/notices`, `/notices/[id]`, `/login`, `/signup`)는 상태(state)가 연결된 최소 골격 컴포넌트이고, 강의·수강·주문·결제·쿠폰·수강평·Q&A API와 state, 운영 어드민은 완성된 상태로 제공합니다. 파생 프로젝트는 이 템플릿을 복사한 뒤 `src/services/design.md`와 `src/app/globals.css`의 프로젝트 테마 블록을 자기 브랜드에 맞게 고치고 수강생 화면을 채웁니다.
 
-## Runtime
+## 앱 업데이트
+
+`pnpm build`는 Next.js, `public/version.json`, 서비스 워커에 같은 배포 ID를 넣습니다. 기본값은 빌드마다 새 ID입니다. 배포 파이프라인에서 산출물별 `NEXT_DEPLOYMENT_ID` 또는 `DEPLOYMENT_VERSION`을 지정할 수 있으며, 같은 배포의 모든 인스턴스에는 동일한 빌드 산출물을 배포하세요.
+
+페이지 최초 실행, 탭 복귀, 온라인 복귀 때 새 워커를 확인하며 주기적 폴링은 하지 않습니다. 업데이트가 준비되면 작업을 저장하고 **저장 후 새로고침**을 누르세요.
+
+## 포함 기능
+
+- 강의·카테고리·강사(표시용 프로필) 관리, 섹션·레슨 커리큘럼 편집, 레슨 영상 등록(YouTube 또는 직접 영상 URL), 미리보기 레슨, 정가·할인가·할인 기간, 공개 상태, 썸네일 업로드, TipTap 소개 본문
+- 수강 신청과 결제(토스페이먼츠 결제위젯, 서버 승인, 무료 강의 즉시 수강), 쿠폰(정률·정액, 강의 한정, 기간·한도·1인 제한)
+- 수강 권한(enrollment): 결제 승인 시 자동 개설, 운영자 수동 부여·회수, 수강 기간
+- 강의실(플레이어): 레슨 목록, 이어보기, 진도 저장(10초 간격 + 일시정지·종료), 배속, 레슨 자료, 레슨 Q&A·댓글, 수강평
+- 진도율·완강 처리, 완강 시 수료증 자동 발급
+- 마이페이지: 내 강의실, 결제 내역, 미결제 취소, 환불 신청(기간·진도율 제한)
+- 어드민: 대시보드(매출·수강생·완강률), 강의, 수강생·수강 현황·진도 조회, 주문, 결제·대사·환불 재시도, 환불 신청 승인·거절, 쿠폰, 수강평 답글·숨김, Q&A 답변, 공지, 배너, 연결 설정, 관리자 로그인·비밀번호 변경
+- 중복 요청 방지, 승인 응답 유실 복구, 환불 재시도, 웹훅 저장과 결제 대사
+- 수강생/관리자 Better Auth 분리, 관리자 공개 가입 차단
+- 공용 UI, 어드민 목록·폼·상세 및 빈 상태/로딩/오류 Storybook
+
+기본 범위는 **단일 운영자**(운영자가 강의를 올림), 원화, 주문당 강의 1개, 전액 환불입니다. 다중 강사 마켓·정산, 영상 직접 업로드·스트리밍(HLS/DRM), 라이브 강의, 가상계좌·정기결제, 문자/알림톡 발송은 포함하지 않습니다.
+
+## 영상 호스팅
+
+레슨 영상은 외부에 두고 주소만 저장합니다(`lessons.video = { provider: "youtube" | "url", url }`).
+
+- `youtube`: 미공개(unlisted) 영상 주소. 강의실은 YouTube IFrame API 로 재생하며 재생 위치·배속·이어보기를 지원합니다.
+- `url`: mp4 등 브라우저가 바로 재생할 수 있는 공개 영상 주소(HTML5 `<video>`).
+
+공개 강의 상세는 미리보기 레슨의 영상만 노출하고, 나머지 레슨 영상 주소는 수강 중인 회원에게만 내려갑니다. 유출 방지가 필요한 유료 영상은 Vimeo·Mux 같은 서명 재생 서비스를 `url` 제공자로 붙이는 것을 권장합니다.
+
+## 실행
+
+소스는 `comwit/template`의 `course` 브랜치입니다. 공통 기본 템플릿은 같은 저장소의 `main` 브랜치에서 관리합니다.
+
+```bash
+git clone --branch course --single-branch https://github.com/comwit/template.git my-course
+cd my-course
+```
 
 ```bash
 pnpm install
+pnpm run dev
+pnpm storybook
 pnpm run validate
 pnpm run build
+pnpm storybook:build
 ```
 
-A successful build produces `dist/brrrd/manifest.json`. Local Wrangler/OpenNext configuration is not used.
+앱 포트는 `.env`의 `PORT`, Storybook 기본 포트는 6006입니다. `pnpm run build`는 `@brrrd/adapter`를 통해 `dist/brrrd`를 생성합니다.
 
-## App updates
+## 환경설정
 
-Build with `pnpm build` so Next.js, `public/version.json`, and the service worker share one deployment ID. Each build gets a fresh ID by default. A deployment pipeline can set `NEXT_DEPLOYMENT_ID` or `DEPLOYMENT_VERSION` to an artifact-specific ID; distribute the same built artifact to every instance of that deployment.
+새 프로젝트는 Comwit 프로젝트의 설정 프롬프트로 바인딩을 준비하고, Comwit MCP의 `setup_database`/`setup_storage` 응답 `nextSteps`를 실행합니다. 이미 연결된 프로젝트는 `list_cloud_resources` 응답의 `nextSteps`로 복원합니다. 자세한 절차는 `docs/course-resources.md`에 있습니다.
 
-The app checks for a new worker on document load, foreground return, and reconnect, without periodic polling. An installed update waits until the user saves their work and chooses **저장 후 새로고침**. Close other app tabs/windows before applying it. Previous deployment caches are removed during activation, then the page reloads under the new worker. Closing all app windows also allows normal browser activation. Existing clients from before this update may need that close-and-reopen cycle once.
+`.env.example`은 설정 이름 안내입니다. `DATABASE_URL`, `COMWIT_*` 리소스 값은 Comwit 서버 바인딩에서만 받습니다. 기존 `.env`를 덮어쓰지 말고 플랫폼 설정만 추가하세요.
 
-## Screen review with Storybook
+| 설정                                             | 의미                                                                 |
+| ------------------------------------------------ | -------------------------------------------------------------------- |
+| `APP_URL`                                        | 현재 환경의 정확한 앱 주소. 로컬 포트와 일치해야 하며 운영은 HTTPS   |
+| `NEXT_PUBLIC_ADMIN_BASE_PATH`                    | 프로젝트별 관리자 공개 경로(`pnpm admin:path`). 변경 후 재빌드 필요 |
+| `APP_AUTH_SECRET`, `ADMIN_AUTH_SECRET`           | 프로젝트·서비스별 서로 다른 강한 인증 비밀키                         |
+| `PLATFORM_NAME`                                  | 플랫폼 이름                                                          |
+| `ORDER_EXPIRY_MINUTES`                           | 미결제 주문 자동 만료 시간, 5~120분                                  |
+| `REFUND_WINDOW_DAYS`                             | 결제 후 수강생이 환불을 신청할 수 있는 기간(일)                      |
+| `REFUND_PROGRESS_LIMIT`                          | 이 진도율(%) 이상이면 수강생 환불 신청 불가                          |
+| `PAYMENT_MODE`                                   | `test` 또는 `live`                                                   |
+| `TOSS_CLIENT_KEY`, `TOSS_SECRET_KEY`, `TOSS_MID` | 결제위젯용 토스 키 쌍과 상점 ID(모드와 접두어 일치)                  |
+| `COURSE_CRON_SECRET`                             | `/cron/expire-orders`, `/cron/reconcile-payments` 보호용 비밀키     |
 
-Run `pnpm storybook` and open http://localhost:6006. `pnpm build-storybook` creates a static preview in `storybook-static/`. The sidebar orders **Design system → User → Admin** using localized labels. Every story is a page with its real layout; select states beneath that page.
+비밀키는 서버의 `src/server/config.ts`에서 읽습니다. 토스 클라이언트 키만 결제 준비 응답에 포함합니다. 연결 설정 화면은 키 값 대신 설정 여부를 보여줍니다.
 
-**Mock only the API boundary**, retaining real state, pages, and layouts. Missing API mocks or included server implementations fail the Storybook build. Check Storybook types, lint, and mock boundaries separately with `pnpm validate:storybook`; unfinished mocks do not affect service `pnpm run validate` or `pnpm run build`. Use Storybook instead of `/design`. Follow [`.storybook/stories/.ai.md`](.storybook/stories/.ai.md).
+## 초기 관리자 계정
 
-## Agent configuration: `.agents/`
-
-Root `AGENTS.md` is the single rule document; `CLAUDE.md` imports it through `@AGENTS.md`. Skills, scripts, rules, workflows, DB/storage fragments, and scaffolds live only in `.agents/`. Codex and Antigravity read `.agents/skills/` directly. Claude Code reads `.claude/skills/<name>/SKILL.md` stubs with identical frontmatter and a pointer to `.agents/skills/<name>/SKILL.md`. Maintain both directories when adding, changing, or deleting skills. No generation step or symlinks are involved. `pnpm agents:test` checks stub parity, the shared MCP runner, and environment merging.
-
-## Local environment contract
-
-Project handoff and DB/storage connections reuse a single Git-ignored `.env`. The Comwit MCP `setup_database` and `setup_storage` tools manage resource connections. `.mcp.json` (Claude Code) and `.codex/config.toml` (Codex) preregister the shared stdio runner `.agents/scripts/comwit-mcp.mjs`. Never register another MCP or issue a personal MCP PAT.
-
-The runner reads `COMWIT_PROJECT_ID` and optional `USER_ID` from `.env` on each request and passes them in the body context. Missing `USER_ID` attributes work to AI; the field grants no access. New local connections use the `cwt_` from `comwit login` as `COMWIT_CLOUD_TOKEN`. The server verifies Cloud identity, project permissions, and per-member switching settings.
-
-Web coding sessions receive a server-injected `cwp_`. Once Cloud validates it, this token has full MCP authority within its bound project, independent of Git scopes, and cannot access another project's DB, storage, or app. `USER_ID` may identify a member of that project for attribution or remain empty for AI. The server determines resource targets and execution identity, never the body user ID.
-
-MCP responses contain non-secret environment values and `nextSteps`, never tokens. Do not expose tokens in LLM arguments, stdout, or logs, or paste all of `.env` into chat. Do not call Resource CLI or Cloud management APIs directly.
-
-The shared `.agents/scripts/sync-resource-env.mjs` handles both initial project snapshots and DB/storage groups (`--resource project|database|storage`). Database/storage modes read MCP environment JSON from stdin, atomically merge only that group, and install `.agents/scaffolds/<resource>/` without overwriting existing files. Never copy DB/storage values into tracked source.
-
-For local runtime credentials or CLI deployment, guide the user through browser approval in the `comwit login` device flow. After success, check `comwit projects list` and safely merge credentials with `comwit auth export-token --env-out .env`, without exposing the `cwt_`. New MCP connections use this Cloud login. Legacy project URLs and PATs remain server-compatible but are never registered or issued by this template.
-
-For a fresh clone, pass the exact project JSON on stdin before exporting the token:
+관리자 공개 회원가입은 없습니다. 로컬의 Git 제외 `.env`에 `ADMIN_INITIAL_EMAIL`, `ADMIN_INITIAL_PASSWORD`를 설정하고 아래 명령을 실행합니다.
 
 ```bash
-node .agents/scripts/sync-resource-env.mjs --resource project --env .env
+pnpm admin:create
 ```
 
-Local setup payloads include `COMWIT_EXECUTION_ENV=local`; hosted sessions receive `COMWIT_EXECUTION_ENV=sandbox`. Do not infer the environment from `.env` existence. Setup requires `COMWIT_PROJECT`; `COMWIT_APP` is optional so DB/storage setup can proceed before an app exists. Omitting the app from the snapshot removes its previous local ID; deployment still requires an app ID.
+실행 성공 후 일회용 초기 계정 변수 두 개를 로컬 `.env`에서 제거합니다. 관리자 주소는 `APP_URL + NEXT_PUBLIC_ADMIN_BASE_PATH`입니다.
 
-Allowed keys include paired `COMWIT_DATABASE_ID`/`DATABASE_URL`, optional storage keys, `COMWIT_PROJECT_ID`/nullable `USER_ID`, and `NODE_ENV`/`PORT`. Secret and unknown keys are rejected. If `.env` is missing, verify ignored/untracked status and create it atomically with mode 0600. Existing files retain unrelated lines/comments, mode, and line endings. Never log values.
+## 레이어와 확장 지점
 
-- MCP context: `COMWIT_PROJECT_ID` (internal project ID), optional `USER_ID` (AI when omitted).
-- Cloud resource context: `COMWIT_PROJECT`, distinct from the MCP project ID.
-- Optional for setup and required for deployment: `COMWIT_APP`.
-- Runtime secret: `COMWIT_CLOUD_TOKEN` (`cwt_` user login / `cwp_` project authority; Cloud validates allowed operations).
-- Optional DB binding: `COMWIT_DATABASE_ID` and `DATABASE_URL`, always paired.
-- Optional storage binding: `COMWIT_STORAGE_ID`, `COMWIT_STORAGE_ENDPOINT`, `COMWIT_STORAGE_BUCKET`, `COMWIT_STORAGE_PUBLIC_BASE_URL`.
-- Deployment-only secret: `COMWIT_DEPLOY_TOKEN`, never stored in `.env`.
-- Legacy projects only: retain existing `COMWIT_API_TOKEN`/`COMWIT_PAT` and project-specific MCP URLs.
-
-Projects need not use DB/storage; unselected resource keys may be absent or empty. Private or provisioning storage may also have no `COMWIT_STORAGE_PUBLIC_BASE_URL`. Calling an actual feature triggers clear required-environment errors in the server-only DB/storage modules.
-
-Each handoff rereads Cloud details for server-stored app/DB/storage bindings. Binding IDs fix resource identity; fresh DB URLs and storage endpoints/buckets/public URLs update local `.env` automatically. Without a binding, zero candidates means unused, exactly one may bind automatically, and multiple candidates stop with an ambiguity error instead of an invented selection surface.
-
-Project payloads are authoritative binding snapshots. Missing DB/storage groups remove only their previous managed `.env` keys, preserving `COMWIT_CLOUD_TOKEN`, comments, and unrelated keys. This reconciles local setup state; it is not a resource-unbinding API.
-
-Call `setup_database` when persistence is needed and `setup_storage` when uploads are needed. Both are idempotent: an existing binding returns current values; one candidate binds; zero candidates creates by `name` (plus `public: true|false` for storage); multiple candidates return ambiguity. The server derives idempotency keys from name/public choices, so keep retry inputs unchanged. Run the returned `nextSteps` exactly to merge `.env` and install scaffolds:
-
-```bash
-node .agents/scripts/sync-resource-env.mjs --resource database <<'COMWIT_RESOURCE_ENV_JSON'
-{ "COMWIT_DATABASE_ID": "...", "DATABASE_URL": "https://..." }
-COMWIT_RESOURCE_ENV_JSON
+```text
+src/app                         라우팅 경계
+src/services/app/state          수강생 화면에서 사용할 공개 인터페이스
+src/services/app/api            강의·결제·수강·주문·커뮤니티·콘텐츠·사용자
+src/services/admin/page         공통 어드민 화면
+src/services/admin/state        조회·검색·편집·저장·오류 상태
+src/services/admin/api          관리자 권한 검사와 화면별 응답
+src/server/repository           DB 읽기와 업무 규칙의 단일 진입점
+src/server/course               presenter·결제 콜백·cron 핸들러
+src/server/payments             토스 서버 API 연결
+src/server/storage              Comwit presign 연결
+src/lib/course                  입력 검증(zod)·공용 View 타입·표시 함수
+src/stories                     운영 DB와 분리된 문서용 예시
 ```
 
-After binding, the corresponding `setup_*` tool disappears. `list_cloud_resources` returns the same `env`/`nextSteps` for later inspection, `not_ready` polling (every five seconds, up to six attempts), and rebuilding `.env` on another computer. Only ready responses atomically update the selected resource group; errors or pending states preserve it.
+의존 방향은 `page → state → api → repository`입니다. 수강생 화면은 `useCatalog`, `useCheckout`, `useEnrollments`, `useOrders`, `useCommunity`, `useContent`, `useUser`를 연결합니다. 서버는 로그인 사용자와 관리자 권한을 직접 확인합니다.
 
-`clearSupported:false` means no user/skill removal feature. Separate server-internal exact reconciliation removes stale public URLs after public-to-private changes or managed keys for null resource bindings. It is not a user removal API and preserves unrelated CG environment values.
+결제 흐름: `useCheckout.actions.prepare({ courseId })`가 주문을 만들고(무료 강의는 즉시 확정·수강 개설, `free: true`), `mount()`가 토스 결제위젯을 `#payment-method`·`#agreement`에 그린 뒤 `pay()`가 결제를 요청합니다. 성공·실패 콜백은 `/api/payments/success|fail` 서버 경로가 처리하고 `/checkout/result?payment=…&order=…`로 돌아옵니다. 웹훅은 `/api/payments/webhook`에 등록합니다.
 
-## Database
+운영 cron: `/cron/expire-orders`(미결제 만료)와 `/cron/reconcile-payments`(결제·환불·웹훅 대사)를 `X-Comwit-Cron-Secret` 헤더와 함께 주기 호출합니다.
 
-The server-only DB client uses `process.env.DATABASE_URL` and `process.env.COMWIT_CLOUD_TOKEN` for libSQL. Retain the selected ID in paired `COMWIT_DATABASE_ID`. Accept Cloud HTTPS and libsql: URLs while preserving paths; reject URL credentials, queries, and fragments.
+## Storybook API 모킹
 
-Drizzle configuration runs in Node outside React, so it loads `.env` directly and reads `process.env` without importing server-only `config.ts`. Ordinary server code continues using `config.ts`. Define every `config` entry as a getter that reads environment values inside it; consumers keep using `config.KEY`. Never snapshot environment values at import time. `custom/server-config-getters` enforces this.
+```text
+실제 앱:    실제 페이지 → 기존 state → 실제 API
+Storybook:  같은 페이지 → 같은 state → app-api / admin-api mock
+```
 
-Review all SQL generated by `pnpm drizzle-kit generate`. Run `pnpm drizzle-kit migrate` only after the user separately confirms remote application. Seed/query operations use project-owned server-only scripts or repositories through the configured Drizzle client.
+`.storybook/main.ts`의 Vite alias가 public API import를 `src/stories/mocks/{app,admin}-api/*`로 바꿉니다. 모킹하지 않은 실제 API 소스가 번들에 들어오면 빌드를 실패시킵니다. 스토리에서 `parameters: { apiMock: { mode: "empty" | "error" | "loading", delay, data } }`로 상태를 고릅니다. 결제위젯·업로드·인증 이동은 실행하지 않고 명시적인 미리보기 응답을 돌려줍니다.
 
-## Storage
-
-Use the Comwit Cloud presign API, without an S3 SDK. `src/server/storage/index.ts` obtains PUT/GET/DELETE URLs using `COMWIT_PROJECT`, `COMWIT_STORAGE_ID`, and `COMWIT_CLOUD_TOKEN`; server deletion also fetches the presigned DELETE URL. Storage ID, endpoint, bucket, and optional public URL come from environment values, never project-specific tracked constants.
-
-MCP `setup_storage` returns ID/endpoint/bucket together and omits the public URL for ready private storage, removing only the old public URL. Public provisioning returns `not_ready`; poll `list_cloud_resources` every five seconds up to six times. Stop immediately on timeout/error/failed, or leave incomplete if the sixth attempt remains pending.
-
-Browser transfers use the exact URL/method/headers returned by the server's official presigned-URL route. Never expose the token to Client Components, response JSON, logs, or `NEXT_PUBLIC_*`. Cloud automatically configures upload CORS during storage setup. Do not add template-level CORS get/set, policy diff, approval steps, or pending blockers. Do not probe Cloud management or runtime presign APIs during resource connection.
-
-## Deploy
-
-`AGENTS.md` selects the deployment flow using `COMWIT_EXECUTION_ENV`. Process environment takes precedence over `.env`. If missing or invalid, establish the execution environment first; never guess from NODE_ENV, operating system, or `.env` existence.
-
-- `local`: validate/build, then deploy with the authenticated Comwit CLI `comwit deploy`, exact project/app IDs, and `./dist/brrrd`. Never put tokens in command arguments.
-- `sandbox`: after validation, ask the user to **click the Deploy button on screen**. The agent must not call the CLI or publish_project on their behalf.
-
-Hosted deployment refreshes Cloud bindings and reconciles deployment environment state. App validation remains required. Resource setup must synchronize both deployment configuration and the active session environment; saving a binding alone does not prove preview readiness.
-
-## External contract boundaries
-
-Authoritative sources are [OpenAPI](https://api.cloud.comwit.io/openapi.json) and [Comwit Cloud docs](https://docs.cloud.comwit.io/llms-full.txt).
-
-- CG's `/session` template-selector field remains pending. Do not invent its name before it appears in the contract; the intended value is `comwit`.
-- If the DB data plane rejects `COMWIT_CLOUD_TOKEN`, stop with `ExternalContractPendingError: database_comwit_token_auth`.
-- If the storage presign contract differs, stop with the `storage_presign_contract` pending error.
-- If a platform response lacks required IDs/bindings, never guess values or bypass it with Cloud management APIs/manual edits.
+어드민은 `어드민/페이지/스토리`로, 수강생 화면은 `src/stories/course/{페이지}.stories.tsx`에 `강의/{페이지}` 제목으로 둡니다. 파생 프로젝트에서 수강생 화면을 채울 때는 스토리를 먼저 만들고 그 화면을 보면서 작업합니다.

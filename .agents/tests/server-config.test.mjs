@@ -66,3 +66,21 @@ test('required settings reject blank values without exposing credentials', () =>
   env.COMWIT_CLOUD_TOKEN = '  ';
   assert.throws(() => requireServerConfig('COMWIT_CLOUD_TOKEN'), { message: 'Required server configuration is missing: COMWIT_CLOUD_TOKEN' });
 });
+
+test('course platform and auth settings read late bindings and keep app URL overrides', () => {
+  const { env, config } = loadConfig();
+  assert.equal(config.ORDER_EXPIRY_MINUTES, '30');
+  for (const key of ['APP_AUTH_SECRET', 'ADMIN_AUTH_SECRET', 'TOSS_SECRET_KEY', 'COURSE_CRON_SECRET']) {
+    assert.equal(config[key], undefined);
+    env[key] = 'fixture-value';
+    assert.equal(config[key], 'fixture-value');
+    delete env[key];
+    assert.equal(config[key], undefined);
+  }
+  env.ORDER_EXPIRY_MINUTES = '60';
+  assert.equal(config.ORDER_EXPIRY_MINUTES, '60');
+  env.APP_URL = 'https://course.example.test';
+  assert.equal(config.SITE_URL, env.APP_URL);
+  env.SITE_URL = 'https://store.example.test';
+  assert.equal(config.SITE_URL, env.SITE_URL);
+});

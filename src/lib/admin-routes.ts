@@ -1,11 +1,12 @@
 /**
  * Public admin routes.
  *
- * Generated projects replace ADMIN_BASE_PATH when admin is first built or
- * enabled. The filesystem route stays at /admin and src/proxy.ts rewrites
+ * NEXT_PUBLIC_ADMIN_BASE_PATH is the complete public path, set once by
+ * .agents/scripts/setup-admin-path.mjs or chosen in the project environment. The filesystem route stays at /admin and src/proxy.ts rewrites
  * the public path to it, so app-router files never need to be renamed.
  */
-export const ADMIN_BASE_PATH: string = "/관리자";
+export const ADMIN_BASE_PATH: string =
+  process.env.NEXT_PUBLIC_ADMIN_BASE_PATH || "/관리자";
 
 export const INTERNAL_ADMIN_BASE_PATH: string = "/admin";
 export const ADMIN_AUTH_BASE_PATH = `${ADMIN_BASE_PATH}/api/auth`;
@@ -13,17 +14,37 @@ export const INTERNAL_ADMIN_AUTH_BASE_PATH = `${INTERNAL_ADMIN_BASE_PATH}/api/au
 
 export const adminRoutes = {
   dashboard: ADMIN_BASE_PATH,
+  courses: `${ADMIN_BASE_PATH}/courses`,
+  courseEditor: (id: string) => `${ADMIN_BASE_PATH}/courses/${id}`,
+  students: `${ADMIN_BASE_PATH}/students`,
+  orders: `${ADMIN_BASE_PATH}/orders`,
+  payments: `${ADMIN_BASE_PATH}/payments`,
+  refunds: `${ADMIN_BASE_PATH}/refunds`,
+  coupons: `${ADMIN_BASE_PATH}/coupons`,
+  reviews: `${ADMIN_BASE_PATH}/reviews`,
+  questions: `${ADMIN_BASE_PATH}/questions`,
+  notices: `${ADMIN_BASE_PATH}/notices`,
+  banners: `${ADMIN_BASE_PATH}/banners`,
+  settings: `${ADMIN_BASE_PATH}/settings`,
   login: `${ADMIN_BASE_PATH}/login`,
   account: `${ADMIN_BASE_PATH}/account`,
 } as const;
 
 /** Match decoded prefix segments while preserving the original encoded suffix. */
-export function getPathSuffix(pathname: string, basePath: string): string | null {
+export function getPathSuffix(
+  pathname: string,
+  basePath: string,
+): string | null {
   const segments = pathname.split("/");
   const prefix = basePath.split("/");
 
   try {
-    if (!prefix.every((segment, index) => decodeURIComponent(segments[index] ?? "") === segment)) {
+    if (
+      !prefix.every(
+        (segment, index) =>
+          decodeURIComponent(segments[index] ?? "") === segment,
+      )
+    ) {
       return null;
     }
   } catch {
