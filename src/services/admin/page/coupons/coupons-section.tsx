@@ -67,18 +67,28 @@ export function CouponsSection(props: {
       ),
     },
     {
-      accessorKey: "courseTitle",
+      id: "target",
       header: "대상",
-      cell: ({ row }) => (
-        <p
-          className="max-w-56 truncate text-body-sm"
-          title={row.original.courseTitle ?? undefined}
-        >
-          {row.original.courseTitle ?? (
-            <span className="text-muted-foreground">전체 강의</span>
-          )}
-        </p>
-      ),
+      cell: ({ row }) => {
+        const target = row.original.productTitle ?? row.original.courseTitle;
+        return (
+          <p
+            className="max-w-56 truncate text-body-sm"
+            title={target ?? undefined}
+          >
+            {target ? (
+              <>
+                <span className="mr-1 text-caption text-muted-foreground">
+                  {row.original.productTitle ? "상품" : "강의"}
+                </span>
+                {target}
+              </>
+            ) : (
+              <span className="text-muted-foreground">전체</span>
+            )}
+          </p>
+        );
+      },
     },
     {
       id: "period",

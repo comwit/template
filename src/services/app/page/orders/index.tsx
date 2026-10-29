@@ -36,9 +36,9 @@ export default function Orders() {
             <li key={order.id}>
               <Link href={`/account/orders/${order.id}`} className="block">
                 <p className="text-body-sm text-muted-foreground">
-                  {order.displayNumber} · {order.createdLabel}
+                  {order.displayNumber} · {order.itemTypeLabel} · {order.createdLabel}
                 </p>
-                <p className="text-title-md">{order.courseTitle}</p>
+                <p className="text-title-md">{order.itemTitle}</p>
                 <p className="text-body">
                   {order.totalLabel} · {order.statusLabel} · {order.paymentLabel}
                 </p>

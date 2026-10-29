@@ -2,6 +2,7 @@ import type { AdminStudentsAPI } from "@/services/admin/api/students";
 import type { EnrollmentView, ProgressDetailView } from "@/lib/course";
 import { findItem, list, mockApi } from "../runtime";
 import { dateLabel, nowLabel, statusLabel } from "../labels";
+import { openPurchase } from "../grants";
 export const adminStudents = {
   findAll: mockApi<AdminStudentsAPI["findAll"]>((db, filter, page) =>
     list(db.students, filter, page),
@@ -81,5 +82,40 @@ export const adminStudents = {
       });
     }
     return rows;
+  }),
+  /** filter.courseId 는 상품 id 로 쓴다(API 계약). */
+  purchases: mockApi<AdminStudentsAPI["purchases"]>((db, filter, page) =>
+    list(
+      filter.courseId
+        ? db.purchases.filter((item) => item.productId === filter.courseId)
+        : db.purchases,
+      filter,
+      page,
+    ),
+  ),
+  grantPurchase: mockApi<AdminStudentsAPI["grantPurchase"]>((db, input) => {
+    const product = findItem(db.products, input.productId);
+    const student = db.students.find((item) => item.email === input.email);
+    if (!student) throw new Error("가입한 수강생의 이메일이 아닙니다.");
+    const duplicate = db.purchases.find(
+      (item) =>
+        item.productId === product.id &&
+        item.userId === student.id &&
+        item.status === "active",
+    );
+    if (duplicate) throw new Error("이미 구매한 상품입니다.");
+    return openPurchase(db, product.id, {
+      userId: student.id,
+      userEmail: student.email,
+      userName: student.name,
+      source: "manual",
+      orderId: null,
+    }).id;
+  }),
+  revokePurchase: mockApi<AdminStudentsAPI["revokePurchase"]>((db, input) => {
+    Object.assign(findItem(db.purchases, input.purchaseId), {
+      status: "revoked",
+      statusLabel: statusLabel("revoked"),
+    });
   }),
 } satisfies AdminStudentsAPI;

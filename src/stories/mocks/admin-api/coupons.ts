@@ -44,6 +44,9 @@ export const adminCoupons = {
       courseId: input.courseId,
       courseTitle:
         db.courses.find((c) => c.id === input.courseId)?.title ?? null,
+      productId: input.productId,
+      productTitle:
+        db.products.find((p) => p.id === input.productId)?.title ?? null,
       startsLabel: dateLabel(input.startsAt),
       endsLabel: dateLabel(input.endsAt),
       startsAt: input.startsAt,

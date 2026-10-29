@@ -2,7 +2,7 @@ import "server-only";
 import { atomic, type AddStatement } from "./atomic";
 import { and, count, desc, eq, isNull, like, or, sql } from "drizzle-orm";
 import { getDb } from "@/server/db";
-import { couponRedemptions, coupons, courses } from "@/server/db/schema";
+import { couponRedemptions, coupons, courses, products } from "@/server/db/schema";
 import { couponDiscount, type CouponInput, type ListFilter } from "@/lib/course";
 import {
   audit,
@@ -20,6 +20,7 @@ import type { PageRequest } from "./types";
 
 export type CouponRow = typeof coupons.$inferSelect & {
   courseTitle: string | null;
+  productTitle: string | null;
 };
 
 export async function findAll(filter: ListFilter, pageable: PageRequest) {
@@ -45,16 +46,17 @@ export async function findAll(filter: ListFilter, pageable: PageRequest) {
       : undefined,
   );
   const rows = await db
-    .select({ coupon: coupons, courseTitle: courses.title })
+    .select({ coupon: coupons, courseTitle: courses.title, productTitle: products.title })
     .from(coupons)
     .leftJoin(courses, eq(courses.id, coupons.courseId))
+    .leftJoin(products, eq(products.id, coupons.productId))
     .where(where)
     .orderBy(desc(coupons.createdAt), desc(coupons.id))
     .limit(pageable.limit)
     .offset(offset(pageable));
   const [total] = await db.select({ value: count() }).from(coupons).where(where);
   return paginate(
-    rows.map((r) => ({ ...r.coupon, courseTitle: r.courseTitle })),
+    rows.map((r) => ({ ...r.coupon, courseTitle: r.courseTitle, productTitle: r.productTitle })),
     total.value,
     pageable,
   );
@@ -76,6 +78,13 @@ export async function save(input: CouponInput, actorId: string) {
         .where(and(eq(courses.id, input.courseId), isNull(courses.deletedAt)));
       ensure(course, "유효한 강의를 선택해주세요.");
     }
+    if (input.productId) {
+      const [product] = await tx
+        .select({ id: products.id })
+        .from(products)
+        .where(and(eq(products.id, input.productId), isNull(products.deletedAt)));
+      ensure(product, "유효한 상품을 선택해주세요.");
+    }
     const data = {
       code: input.code,
       name: input.name,
@@ -84,6 +93,7 @@ export async function save(input: CouponInput, actorId: string) {
       minAmount: input.minAmount,
       maxDiscount: input.maxDiscount,
       courseId: input.courseId,
+      productId: input.productId,
       startsAt: toDate(input.startsAt),
       endsAt: toDate(input.endsAt),
       usageLimit: input.usageLimit,
@@ -129,7 +139,7 @@ export async function evaluate(
   tx: Executor,
   code: string,
   userId: string,
-  courseId: string,
+  item: { itemType: "course" | "product"; itemId: string },
   amount: number,
   now = new Date(),
 ) {
@@ -140,7 +150,16 @@ export async function evaluate(
   ensure(coupon?.active, "사용할 수 없는 쿠폰입니다.", "COUPON_INVALID");
   ensure(!coupon.startsAt || coupon.startsAt <= now, "아직 사용 기간이 아닌 쿠폰입니다.", "COUPON_INVALID");
   ensure(!coupon.endsAt || coupon.endsAt > now, "사용 기간이 지난 쿠폰입니다.", "COUPON_INVALID");
-  ensure(!coupon.courseId || coupon.courseId === courseId, "이 강의에는 쓸 수 없는 쿠폰입니다.", "COUPON_INVALID");
+  ensure(
+    !coupon.courseId || (item.itemType === "course" && coupon.courseId === item.itemId),
+    "이 강의에는 쓸 수 없는 쿠폰입니다.",
+    "COUPON_INVALID",
+  );
+  ensure(
+    !coupon.productId || (item.itemType === "product" && coupon.productId === item.itemId),
+    "이 상품에는 쓸 수 없는 쿠폰입니다.",
+    "COUPON_INVALID",
+  );
   ensure(amount >= coupon.minAmount, `${coupon.minAmount.toLocaleString("ko-KR")}원 이상 결제할 때 쓸 수 있는 쿠폰입니다.`, "COUPON_INVALID");
   ensure(
     coupon.usageLimit === null || coupon.usedCount < coupon.usageLimit,

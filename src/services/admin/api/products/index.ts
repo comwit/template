@@ -1,0 +1,11 @@
+import { resolveActions } from "@/lib/utils";
+export * from "./types";
+import { findAll } from "./actions/find-all";
+import { find } from "./actions/find";
+import { createDraft } from "./actions/create-draft";
+import { save } from "./actions/save";
+import { archive } from "./actions/archive";
+import { prepareFile } from "./actions/prepare-file";
+import { completeFile } from "./actions/complete-file";
+import { removeFile } from "./actions/remove-file";
+export const adminProducts = resolveActions({ findAll, find, createDraft, save, archive, prepareFile, completeFile, removeFile });

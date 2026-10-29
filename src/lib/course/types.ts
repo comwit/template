@@ -139,8 +139,13 @@ export type OrderSummary = {
   displayNumber: string;
   customerId: string;
   customerEmail: string;
-  courseId: string;
-  courseTitle: string;
+  /** 결제 대상 — 강의 또는 디지털 상품 */
+  itemType: "course" | "product";
+  itemTypeLabel: string;
+  itemId: string;
+  itemTitle: string;
+  courseId: string | null;
+  productId: string | null;
   status: "pending" | "confirmed" | "cancelled" | "expired" | "refunded";
   statusLabel: string;
   paymentStatus: string;
@@ -178,7 +183,7 @@ export type RefundRequestView = {
   orderId: string;
   displayNumber: string;
   customerEmail: string;
-  courseTitle: string;
+  itemTitle: string;
   amount: number;
   amountLabel: string;
   reason: string;
@@ -205,6 +210,7 @@ export type OrderView = OrderSummary & {
   /** 수강생이 환불을 신청할 수 있는 상태인지 */
   canRequestRefund: boolean;
   enrollmentId: string | null;
+  purchaseId: string | null;
   history: { id: string; action: string; createdLabel: string }[];
 };
 export type CouponView = {
@@ -220,6 +226,8 @@ export type CouponView = {
   maxDiscount: number | null;
   courseId: string | null;
   courseTitle: string | null;
+  productId: string | null;
+  productTitle: string | null;
   startsLabel: string | null;
   endsLabel: string | null;
   startsAt: string | null;
@@ -235,8 +243,11 @@ export type CouponView = {
 };
 /** 결제 전 금액 미리보기 */
 export type QuoteView = {
-  courseId: string;
-  courseTitle: string;
+  itemType: "course" | "product";
+  itemId: string;
+  itemTitle: string;
+  /** 무료 신청: 결제 없이 연락처(contact)를 받아 바로 개설한다 */
+  requiresContact: boolean;
   listPrice: number;
   listPriceLabel: string;
   discount: number;
@@ -256,7 +267,10 @@ export type CheckoutView = {
   amount: number;
   /** 무료 강의: 주문이 이미 확정됐고 수강이 등록됐다. 결제창을 열지 않는다. */
   free: boolean;
-  courseId: string;
+  itemType: "course" | "product";
+  itemId: string;
+  /** 무료·결제 완료 후 이동할 곳: 강의는 /learn/[id], 상품은 /account/products */
+  continueUrl: string;
   clientKey: string;
   customerKey: string;
   customerEmail: string;
@@ -371,10 +385,10 @@ export type UploadTicket = {
   expiresAt: string;
   publicUrl: string | null;
 };
-export type UploadFolder = "courses" | "instructors" | "banners" | "content";
+export type UploadFolder = "courses" | "products" | "instructors" | "banners" | "content";
 export type PaymentRowView = PaymentView & {
   customerEmail: string;
-  courseTitle: string;
+  itemTitle: string;
 };
 export type ProgressDetailView = LessonProgressView & {
   lessonTitle: string;
@@ -388,3 +402,100 @@ export type ProgressResult = {
   completedLessons: number;
   certificateId: string | null;
 };
+
+// ── 디지털 상품 ──────────────────────────────────────────────────
+export type ProductFileView = {
+  id: string;
+  name: string;
+  contentType: string;
+  size: number;
+  sizeLabel: string;
+  position: number;
+  status: "pending" | "ready" | "deleted";
+};
+export type ProductSummary = {
+  id: string;
+  title: string;
+  slug: string;
+  summary: string;
+  thumbnail: ImageAsset | null;
+  categoryId: string | null;
+  categoryName: string | null;
+  kind: "file" | "bundle";
+  kindLabel: string;
+  status: "draft" | "published" | "archived";
+  statusLabel: string;
+  price: number;
+  discountPrice: number | null;
+  salePrice: number;
+  priceLabel: string;
+  originalPriceLabel: string | null;
+  discountRate: number;
+  discountEndsLabel: string | null;
+  discountEndsAt: string | null;
+  isFree: boolean;
+  downloadLimit: number | null;
+  fileCount: number;
+  courseCount: number;
+  purchaseCount: number;
+  createdLabel: string;
+  publishedLabel: string | null;
+};
+export type ProductView = ProductSummary & {
+  description: string;
+  files: ProductFileView[];
+  /** 묶음에 포함된 강의 */
+  courses: { id: string; title: string; slug: string; thumbnail: ImageAsset | null; lessonCount: number }[];
+  /** 로그인 사용자가 이미 구매했으면 채워진다 */
+  purchase: { id: string; downloadCount: number } | null;
+};
+export type PurchaseView = {
+  id: string;
+  productId: string;
+  productTitle: string;
+  productSlug: string;
+  thumbnail: ImageAsset | null;
+  kind: "file" | "bundle";
+  kindLabel: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  orderId: string | null;
+  source: "order" | "free" | "manual";
+  sourceLabel: string;
+  status: "active" | "revoked";
+  statusLabel: string;
+  downloadCount: number;
+  downloadLimit: number | null;
+  downloadsLabel: string;
+  files: ProductFileView[];
+  /** 묶음 강의 → /learn 링크용 */
+  courses: { id: string; title: string }[];
+  purchasedLabel: string;
+  lastDownloadedLabel: string | null;
+};
+/** 짧게 사는 다운로드 주소 */
+export type DownloadLinkView = {
+  url: string;
+  method: "GET" | "HEAD" | "PUT" | "DELETE";
+  headers: Record<string, string>;
+  expiresAt: string;
+  fileName: string;
+  remaining: number | null;
+};
+export type LeadView = {
+  id: string;
+  userId: string | null;
+  name: string;
+  email: string;
+  phone: string;
+  source: "free_course" | "free_product";
+  sourceLabel: string;
+  itemTitle: string;
+  courseId: string | null;
+  productId: string | null;
+  consent: boolean;
+  note: string;
+  createdLabel: string;
+};
+export type FileUploadTicket = Omit<UploadTicket, "id"> & { fileId: string };

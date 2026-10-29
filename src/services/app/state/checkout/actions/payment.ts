@@ -6,7 +6,12 @@ import type {
 } from "@tosspayments/tosspayments-sdk";
 import { checkout as api } from "@/services/app/api/checkout";
 import { mutate, newRequestKey } from "@/lib/course-state";
-import type { CheckoutView, ConfirmInput } from "@/lib/course";
+import type {
+  CheckoutView,
+  ConfirmInput,
+  ItemType,
+  LeadContact,
+} from "@/lib/course";
 import type { CheckoutActions } from "../types";
 import { checkout } from "../model";
 
@@ -40,7 +45,11 @@ export const paymentActions = action<CheckoutActions>(({ state }) => {
       void destroyWidgets();
     }
     // 준비된 주문을 돌려준다. 실패하면 null 이고 이전 주문도 비워서 pay() 가 옛 주문을 결제하지 않는다.
-    async prepare(input: { courseId: string }): Promise<CheckoutView | null> {
+    async prepare(input: {
+      itemType: ItemType;
+      itemId: string;
+      contact: LeadContact | null;
+    }): Promise<CheckoutView | null> {
       let prepared: CheckoutView | null = null;
       await mutate(this.model, async () => {
         this.model.checkout = null;
@@ -48,9 +57,11 @@ export const paymentActions = action<CheckoutActions>(({ state }) => {
         this.model.mounted = false;
         await destroyWidgets();
         prepared = await api.prepare({
-          courseId: input.courseId,
+          itemType: input.itemType,
+          itemId: input.itemId,
           couponCode: this.model.couponCode,
           requestKey: newRequestKey(),
+          contact: input.contact,
         });
         this.model.checkout = prepared;
       });

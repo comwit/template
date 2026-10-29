@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { Button } from "@/lib/components/ui/button";
 import { Input } from "@/lib/components/ui/input";
 import { TextField } from "@/lib/components/ui/text-field";
@@ -20,11 +21,12 @@ import {
   SelectItem,
 } from "@/lib/components/ui/select";
 import { courseText } from "@/lib/ui-text";
-import type { CouponInput, CourseSummary } from "@/lib/course";
+import type { CouponInput, CourseSummary, ProductSummary } from "@/lib/course";
 export type CouponEditorProps = {
   open: boolean;
   draft: CouponInput;
   courses: CourseSummary[];
+  products: ProductSummary[];
   busy: boolean;
   error: string | null;
   onChange(draft: CouponInput): void;
@@ -38,11 +40,21 @@ export function CouponEditor(props: CouponEditorProps) {
   const d = props.draft;
   const patch = (next: Partial<CouponInput>) =>
     props.onChange({ ...d, ...next });
+  // 범위를 골랐지만 아직 대상을 안 고른 상태를 기억한다 (id 가 없으면 '전체'로 보이는 것을 막는다).
+  const [pendingScope, setPendingScope] = useState<"course" | "product" | null>(null);
+  const scope = d.productId
+    ? "product"
+    : d.courseId
+      ? "course"
+      : (pendingScope ?? "all");
   return (
     <Dialog
       open={props.open}
       onOpenChange={(open) => {
-        if (!open) props.onClose();
+        if (!open) {
+          setPendingScope(null);
+          props.onClose();
+        }
       }}
     >
       <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
@@ -133,26 +145,64 @@ export function CouponEditor(props: CouponEditorProps) {
                 }
               />
             </TextField>
-            <TextField label="적용 강의" className="sm:col-span-2">
+            <TextField label="적용 범위">
               <Select
-                value={d.courseId ?? "all"}
-                onValueChange={(value) =>
-                  patch({ courseId: value === "all" ? null : value })
-                }
+                value={scope}
+                onValueChange={(value) => {
+                  // 강의·상품 중 하나만 한정할 수 있다. 범위를 바꾸면 양쪽 id 를 비우고 대상은 다시 고른다.
+                  setPendingScope(value === "all" ? null : (value as "course" | "product"));
+                  patch({ courseId: null, productId: null });
+                }}
               >
-                <SelectTrigger className="w-full" aria-label="적용 강의">
+                <SelectTrigger className="w-full" aria-label="적용 범위">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">전체 강의</SelectItem>
-                  {props.courses.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.title}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="all">전체</SelectItem>
+                  <SelectItem value="course">강의 한정</SelectItem>
+                  <SelectItem value="product">상품 한정</SelectItem>
                 </SelectContent>
               </Select>
             </TextField>
+            {scope === "course" ? (
+              <TextField label="적용 강의" required>
+                <Select
+                  value={d.courseId ?? undefined}
+                  onValueChange={(value) => patch({ courseId: value, productId: null })}
+                >
+                  <SelectTrigger className="w-full" aria-label="적용 강의">
+                    <SelectValue placeholder="강의 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {props.courses.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </TextField>
+            ) : scope === "product" ? (
+              <TextField label="적용 상품" required>
+                <Select
+                  value={d.productId ?? undefined}
+                  onValueChange={(value) => patch({ courseId: null, productId: value })}
+                >
+                  <SelectTrigger className="w-full" aria-label="적용 상품">
+                    <SelectValue placeholder="상품 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {props.products.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </TextField>
+            ) : (
+              <div className="hidden sm:block" aria-hidden="true" />
+            )}
             <TextField label="시작">
               <Input
                 type="datetime-local"

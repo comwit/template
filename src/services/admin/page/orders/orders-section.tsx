@@ -46,14 +46,14 @@ export function OrdersSection(props: {
       ),
     },
     {
-      accessorKey: "courseTitle",
+      accessorKey: "itemTitle",
       header: "강의",
       cell: ({ row }) => (
         <p
           className="max-w-64 truncate text-body-sm"
-          title={row.original.courseTitle}
+          title={row.original.itemTitle}
         >
-          {row.original.courseTitle}
+          {row.original.itemTitle}
         </p>
       ),
     },

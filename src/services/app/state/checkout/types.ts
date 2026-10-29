@@ -2,6 +2,8 @@ import type { Query } from "@comwit/state";
 import type {
   CheckoutView,
   ConfirmInput,
+  ItemType,
+  LeadContact,
   OrderView,
   QuoteInput,
   QuoteView,
@@ -20,8 +22,15 @@ export type CheckoutState = {
 };
 export type CheckoutActions = {
   setCoupon(code: string): void;
-  /** 준비된 주문. 실패(오류는 state.error)했거나 다른 저장이 진행 중이면 null. free 면 이미 수강 등록됐다. */
-  prepare(input: { courseId: string }): Promise<CheckoutView | null>;
+  /**
+   * 준비된 주문. 실패(오류는 state.error)했거나 다른 저장이 진행 중이면 null.
+   * free 면 이미 수강·구매가 등록됐다(`continueUrl` 로 이동). 무료 신청(quote.requiresContact)은 `contact` 가 필수다.
+   */
+  prepare(input: {
+    itemType: ItemType;
+    itemId: string;
+    contact: LeadContact | null;
+  }): Promise<CheckoutView | null>;
   /** prepare 뒤 `#payment-method`·`#agreement` 컨테이너에 토스 결제위젯을 그린다. */
   mount(): Promise<void>;
   pay(): Promise<void>;

@@ -34,6 +34,12 @@ const labels: Record<string, string> = {
   fixed: "정액",
   inactive: "중지",
   exhausted: "소진",
+  course: "강의",
+  product: "상품",
+  file: "파일",
+  bundle: "강의 묶음",
+  free_course: "무료 강의",
+  free_product: "무료 자료",
 };
 export const statusLabel = (status: string) => labels[status] ?? status;
 export const nowLabel = () => kstCompactDateTime(STORY_NOW);

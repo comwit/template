@@ -30,6 +30,7 @@ import {
 } from "./support";
 import * as coupons from "./coupons";
 import { enroll, revokeByOrder } from "./enrollments";
+import * as purchaseRepository from "./purchases";
 import { uuid } from "./id";
 import type { PageRequest } from "./types";
 
@@ -139,16 +140,24 @@ export async function applyProvider(paymentId: string, remote: TossPayment) {
         "ORDER_REVIEW",
       );
       await coupons.settle(tx, add, order.id, "used");
-      const enrollmentId = await enroll(tx, add, {
-        courseId: order.courseId,
-        userId: order.customerId,
-        source: "order",
-        orderId: order.id,
-      });
+      const openedId =
+        order.itemType === "product" && order.productId
+          ? await purchaseRepository.open(tx, add, {
+              productId: order.productId,
+              userId: order.customerId,
+              source: "order",
+              orderId: order.id,
+            })
+          : await enroll(tx, add, {
+              courseId: order.courseId!,
+              userId: order.customerId,
+              source: "order",
+              orderId: order.id,
+            });
       add(
         audit(tx, "payment", "payment.approved", order.id, {
           amount: payment.amount,
-          enrollmentId,
+          openedId,
         }),
       );
     }
@@ -181,6 +190,7 @@ export async function applyProvider(paymentId: string, remote: TossPayment) {
     );
     if (fullyCancelled && refunded > payment.refundedAmount) {
       await revokeByOrder(tx, add, order.id, "결제 취소");
+      await purchaseRepository.revokeByOrder(tx, add, order.id, "결제 취소");
       add(
         audit(tx, "payment", "payment.balance_synced", order.id, {
           refundedAmount: refunded,
@@ -420,6 +430,7 @@ export async function retryRefund(refundId: string) {
         remote.totalAmount - remote.balanceAmount,
       );
       await revokeByOrder(tx, add, refund.orderId, "환불");
+      await purchaseRepository.revokeByOrder(tx, add, refund.orderId, "환불");
       add(
         tx
           .update(refunds)
@@ -561,7 +572,7 @@ export async function findRefundRequests(filter: ListFilter, pageable: PageReque
       ? or(
           like(orders.number, `%${filter.search}%`),
           like(orders.customerEmail, `%${filter.search}%`),
-          like(orders.courseTitle, `%${filter.search}%`),
+          like(orders.itemTitle, `%${filter.search}%`),
         )
       : undefined,
   );
@@ -643,7 +654,7 @@ export async function findAll(filter: ListFilter, pageable: PageRequest) {
       : undefined,
   );
   const rows = await db
-    .select({ payment: payments, customerEmail: orders.customerEmail, courseTitle: orders.courseTitle })
+    .select({ payment: payments, customerEmail: orders.customerEmail, itemTitle: orders.itemTitle })
     .from(payments)
     .innerJoin(orders, eq(orders.id, payments.orderId))
     .where(where)

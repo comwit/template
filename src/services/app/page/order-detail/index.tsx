@@ -47,9 +47,10 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
   return (
     <main className="mx-auto w-full max-w-5xl px-6 py-16">
       <p className="text-body-sm text-muted-foreground">
-        {siteText.pages["order-detail"]} · {order.displayNumber}
+        {siteText.pages["order-detail"]} · {order.displayNumber} ·{" "}
+        {order.itemTypeLabel}
       </p>
-      <h1 className="mt-2 text-display-sm text-balance">{order.courseTitle}</h1>
+      <h1 className="mt-2 text-display-sm text-balance">{order.itemTitle}</h1>
       <dl className="mt-6 grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-body">
         <dt className="text-muted-foreground">상태</dt>
         <dd>{order.statusLabel} · {order.paymentLabel}</dd>
@@ -124,15 +125,22 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
       ) : null}
 
       <section className="mt-8 flex flex-col gap-3">
-        {order.enrollmentId ? (
+        {order.enrollmentId && order.courseId ? (
           <Button asChild variant="outline" className="w-fit">
             <Link href={`/learn/${order.courseId}`}>{siteText.pages["learn"]}</Link>
+          </Button>
+        ) : null}
+        {order.purchaseId ? (
+          <Button asChild variant="outline" className="w-fit">
+            <Link href="/account/products">{siteText.pages["my-products"]}</Link>
           </Button>
         ) : null}
         {order.status === "pending" ? (
           <div className="flex gap-2">
             <Button asChild className="w-fit">
-              <Link href={`/checkout/${order.courseId}`}>결제 계속하기</Link>
+              <Link href={`/checkout/${order.itemType}/${order.itemId}`}>
+                결제 계속하기
+              </Link>
             </Button>
             <Button
               type="button"

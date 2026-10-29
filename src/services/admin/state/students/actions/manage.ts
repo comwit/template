@@ -2,7 +2,12 @@ import { action } from "@comwit/state";
 import { adminStudents } from "@/services/admin/api/students";
 import { mutate } from "@/lib/course-state";
 import { toast } from "@/lib/components/ui/toast";
-import type { ListFilter, EnrollmentFilter, GrantInput } from "@/lib/course";
+import type {
+  ListFilter,
+  EnrollmentFilter,
+  GrantInput,
+  GrantPurchaseInput,
+} from "@/lib/course";
 import type { DomainActions } from "../types";
 import { domain } from "../model";
 export const manageActions = action<DomainActions>(({ state }) => {
@@ -29,6 +34,7 @@ export const manageActions = action<DomainActions>(({ state }) => {
       await Promise.all([
         this.model.students.refetch(),
         this.model.enrollments.refetch(),
+        this.model.purchases.refetch(),
       ]);
     }
     async grant(input: GrantInput) {
@@ -64,6 +70,48 @@ export const manageActions = action<DomainActions>(({ state }) => {
           await this.refresh();
         },
         "수강 권한을 회수했습니다.",
+      );
+      return ok;
+    }
+    setPurchaseFilter(filter: Partial<EnrollmentFilter>) {
+      this.model.purchaseFilter = { ...this.model.purchaseFilter, ...filter };
+      this.model.purchasePage = 1;
+    }
+    setPurchasePage(page: number) {
+      this.model.purchasePage = page;
+    }
+    async grantPurchase(input: GrantPurchaseInput) {
+      let ok = false;
+      await mutate(
+        this.model,
+        async () => {
+          await adminStudents.grantPurchase({
+            productId: input.productId,
+            email: input.email.trim(),
+          });
+          ok = true;
+          await this.refresh();
+        },
+        "상품 구매 권한을 부여했습니다.",
+      );
+      return ok;
+    }
+    async revokePurchase(purchaseId: string, reason: string) {
+      const trimmed = reason.trim();
+      if (trimmed.length < 2) {
+        this.model.error = "회수 사유를 2자 이상 입력해주세요.";
+        toast.error(this.model.error);
+        return false;
+      }
+      let ok = false;
+      await mutate(
+        this.model,
+        async () => {
+          await adminStudents.revokePurchase({ purchaseId, reason: trimmed });
+          ok = true;
+          await this.refresh();
+        },
+        "상품 구매 권한을 회수했습니다.",
       );
       return ok;
     }

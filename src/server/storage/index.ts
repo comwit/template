@@ -68,6 +68,13 @@ export async function createPresignedUploadUrl(
   };
 }
 
+/** 객체 존재·크기 확인용 presigned HEAD. 큰 파일 업로드 완료 검증에 쓴다(본문을 내려받지 않는다). */
+export async function createPresignedHeadUrl(
+  key: string,
+): Promise<PresignedObjectRequest> {
+  return requestPresignedObject({ operation: "head_object", key });
+}
+
 export async function createPresignedDownloadUrl(
   key: string,
 ): Promise<PresignedObjectRequest> {
