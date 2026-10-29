@@ -3,12 +3,12 @@
 import { cn } from '@/lib/utils'
 
 /**
- * Lightweight inline SVG charts for admin dashboards.
- * Sparklines, multiline, donut, and bar charts without dependencies such as recharts.
- * Accept CSS color strings directly, e.g. 'var(--accent)' or '#10b981'.
+ * 어드민 대시보드용 경량 인라인 SVG 차트.
+ * recharts 등 외부 의존성 없이 스파크라인·멀티라인·도넛·막대만 담당한다.
+ * 색은 CSS 색 문자열(예: 'var(--accent)', '#10b981')로 직접 받는다.
  */
 
-/** Mini sparkline, e.g. below a StatCard. Color comes from text-* classes via currentColor. */
+/** 미니 스파크라인 — StatCard 하단 등. 색은 className의 text-* (currentColor). */
 export function AdminSparkline({
   data,
   height = 32,
@@ -53,7 +53,7 @@ export function AdminSparkline({
 
 export type AdminLineSeries = { label: string; color: string; data: number[] }
 
-/** Multiple line series sharing an x-axis. */
+/** 멀티시리즈 라인 차트 — 같은 x축 위 여러 계열. */
 export function AdminLineChart({
   series,
   height = 168,
@@ -113,7 +113,7 @@ export function AdminLineChart({
 
 export type AdminDonutSegment = { label: string; value: number; color: string }
 
-/** Donut chart, e.g. status distribution. */
+/** 도넛 차트 — 상태 분포 등. */
 export function AdminDonut({
   segments,
   size = 132,
@@ -172,7 +172,7 @@ export function AdminDonut({
 
 export type AdminBarItem = { label: string; value: number; color?: string }
 
-/** Horizontal bar list, e.g. reason distribution. */
+/** 가로 막대 리스트 — 사유 분포 등. */
 export function AdminBarList({
   items,
   className,

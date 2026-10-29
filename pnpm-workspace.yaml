@@ -9,7 +9,6 @@ allowBuilds:
   sharp: true
   unrs-resolver: true
 minimumReleaseAgeExclude:
-  - '@brrrd/adapter'
   - '@next/env@16.4.3'
   - '@next/swc-darwin-arm64@16.4.3'
   - '@next/swc-darwin-x64@16.4.3'
@@ -26,8 +25,6 @@ minimumReleaseAgeExclude:
   - '@comwit/ui'
   - '@comwit/ui-templates'
   - 'comwit-ui'
-  - '@ssgoi/core@7.5.0'
-  - '@ssgoi/react@7.5.0'
-# Keep the Next router fix local to this project when using a shared pnpm store.
-enableGlobalVirtualStore: false
-virtualStoreDir: node_modules/.pnpm
+patchedDependencies:
+  '@brrrd/adapter@0.1.11': patches/@brrrd__adapter@0.1.11.patch
+  '@storybook/nextjs-vite@10.6.2': patches/@storybook__nextjs-vite@10.6.2.patch

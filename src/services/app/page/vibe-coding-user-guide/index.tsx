@@ -1,12 +1,12 @@
 "use client"
 
 /**
- * Placeholder home before the first request.
- * Its only purpose is to show what users can ask to build.
- * A real request replaces src/app/(app)/page.tsx with the actual home.
+ * 첫 요청 전에 보이는 플레이스홀더 홈.
+ * "무엇을 말하면 무엇이 만들어지는가"를 알려주는 것이 유일한 목적이다.
+ * 실제 요청이 들어오면 `src/app/(app)/page.tsx` 가 진짜 홈으로 교체된다.
  */
 
-/** List only skills actually installed in .claude/skills/; never promise unavailable features. */
+/** `.claude/skills/` 에 실제로 설치된 스킬만 싣는다. 없는 기능을 약속하지 말 것. */
 const CAPABILITIES: { title: string; say: string; desc: string }[] = [
   {
     title: "데이터 저장",
@@ -63,7 +63,7 @@ export default function VibeCodingUserGuide() {
         ))}
       </dl>
 
-      {/* Keep element-selection guidance because react-grab is mounted in the root layout. */}
+      {/* 요소 지목(react-grab)은 루트 레이아웃에 실제로 마운트된 기능이라 안내를 남긴다. */}
       <footer className="flex flex-col gap-2 border-t border-border pt-5">
         <p className="text-body-sm text-soft-foreground">
           고칠 부분을 정확히 짚으려면, 미리보기에서 그 영역을 클릭한 뒤 아래를

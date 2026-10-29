@@ -1,0 +1,12 @@
+import { resolveActions } from "@/lib/utils";
+export * from "./types";
+import { findAll } from "./actions/find-all";
+import { find } from "./actions/find";
+import { save } from "./actions/save";
+import { archive } from "./actions/archive";
+import { categories } from "./actions/categories";
+import { saveCategory } from "./actions/save-category";
+import { instructors } from "./actions/instructors";
+import { saveInstructor } from "./actions/save-instructor";
+import { removeInstructor } from "./actions/remove-instructor";
+export const adminCourses = resolveActions({ findAll, find, save, archive, categories, saveCategory, instructors, saveInstructor, removeInstructor });

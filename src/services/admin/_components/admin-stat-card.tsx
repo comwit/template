@@ -1,7 +1,7 @@
 'use client'
 
-import type { IconComponent } from '@comwit/ui/icons'
-import { ArrowDownRightIcon, ArrowUpRightIcon } from '@comwit/ui/icons'
+import type { LucideIcon } from 'lucide-react'
+import { ArrowDownRight, ArrowUpRight } from 'lucide-react'
 import { ForesightLink as Link } from '@/lib/components/foresight-link'
 import { Skeleton } from '@/lib/components/ui/skeleton'
 import { cn } from '@/lib/utils'
@@ -10,25 +10,25 @@ import { AdminSparkline } from './admin-charts'
 type AdminStatCardProps = {
   label: string
   value: number | string
-  icon?: IconComponent
+  icon?: LucideIcon
   loading?: boolean
-  /** Emphasize risk, such as pending reports, with the danger tone. */
+  /** 위험 강조(미처리 신고 등) — danger 톤 */
   emphasis?: boolean
-  /** Supporting description below the value. */
+  /** 값 아래 보조 설명 */
   hint?: string
-  /** Change from the comparison period: positive rises (emerald), negative falls (muted). */
+  /** 기간 대비 증감 — 양수=상승(emerald), 음수=하락(muted) */
   delta?: number
-  /** Label beside delta, e.g. "vs. yesterday". */
+  /** delta 옆 라벨 (예: '어제 대비') */
   deltaLabel?: string
-  /** Mini sparkline data. */
+  /** 미니 스파크라인 데이터 */
   spark?: number[]
-  /** Make the entire card a link. */
+  /** 카드 전체를 링크로 */
   href?: string
 }
 
 /**
- * Admin KPI card: label, large value, optional icon, delta chip, and sparkline.
- * Shared from dashboard StatCard for member, report, and coffee-chat summaries.
+ * 어드민 KPI 카드 — 라벨 + 큰 수치 + (아이콘·증감칩·스파크라인).
+ * dashboard 로컬 StatCard를 _components로 승격해 회원/신고/커피챗 요약행과 공유.
  */
 export function AdminStatCard({
   label,
@@ -93,9 +93,9 @@ export function AdminStatCard({
               )}
             >
               {delta > 0 ? (
-                <ArrowUpRightIcon className="h-3 w-3" />
+                <ArrowUpRight className="h-3 w-3" />
               ) : delta < 0 ? (
-                <ArrowDownRightIcon className="h-3 w-3" />
+                <ArrowDownRight className="h-3 w-3" />
               ) : null}
               {delta > 0 ? '+' : ''}
               {delta.toLocaleString('ko-KR')}
@@ -128,7 +128,7 @@ export function AdminStatCard({
   return body
 }
 
-/** Inline section-header stat chip combining a label and value. */
+/** 섹션 헤더 인라인 통계칩 — '라벨 값' 한 덩어리. */
 export function AdminStatChip({
   label,
   value,

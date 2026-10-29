@@ -32,6 +32,7 @@ export const uiText = {
   chip: { remove: '삭제' },
   dataTable: {
     empty: '아직 표시할 항목이 없어요.',
+    error: '불러오지 못했습니다.',
     refreshing: '업데이트 중',
     previous: '이전 페이지',
     next: '다음 페이지',
@@ -73,3 +74,59 @@ export const uiText = {
     ok: '확인',
   },
 }
+
+/** 강의 플랫폼 공통 라벨. 파생 프로젝트에서 문구를 바꾼다. */
+export const courseText = {
+  free: "무료",
+  noPrice: "미등록",
+  courses: "강의",
+  students: "수강생",
+  orders: "주문",
+  payments: "결제와 환불",
+  refunds: "환불 신청",
+  coupons: "쿠폰",
+  reviews: "수강평",
+  questions: "Q&A",
+  notices: "공지",
+  banners: "배너",
+  settings: "연결 설정",
+  search: "검색",
+  refresh: "새로고침",
+  all: "전체",
+  save: "저장",
+  cancel: "취소",
+  close: "닫기",
+  edit: "수정",
+  details: "상세 보기",
+  addCourse: "강의 등록",
+  loading: "불러오는 중입니다",
+  retry: "다시 시도",
+  empty: "표시할 항목이 없습니다.",
+} as const;
+
+export const adminText = {
+  reference: "원문 보기",
+  courseAddress: "강의 주소",
+  noRefund: "—",
+} as const;
+
+/** 제작용 슬롯 표시. 브랜드 화면 문구는 각 브랜드에서 자유롭게 정한다. */
+export const siteText = {
+  pages: {
+    home: "홈",
+    courses: "강의 목록",
+    "course-detail": "강의 상세",
+    checkout: "수강 신청",
+    "checkout-result": "결제 결과",
+    learn: "강의실",
+    login: "로그인",
+    signup: "회원가입",
+    account: "마이페이지",
+    "my-courses": "내 강의실",
+    orders: "결제 내역",
+    "order-detail": "결제 상세",
+    certificate: "수료증",
+    notices: "공지사항",
+    "notice-detail": "공지",
+  },
+} as const;
