@@ -1,6 +1,10 @@
 import 'server-only'
 
-/** Mock users. TODO: Remove after integrating real authentication. */
+/**
+ * Mock Users
+ *
+ * TODO: 실제 인증 연동 후 삭제 필요
+ */
 
 import type { User } from '@/services/app/state/user'
 

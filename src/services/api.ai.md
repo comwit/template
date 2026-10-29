@@ -50,9 +50,9 @@ api/{domain}/
 
 ## Storybook API boundary
 
-- Page stories call this layer's public API object through real state. Put matching export, argument, and response contracts in `.storybook/mocks/api/{service}-{domain}.ts`.
+- Page stories call this layer's public API object through real state. Put matching export, argument, and response contracts in `src/stories/mocks/{service}-api/{domain}.ts`.
 - The Storybook resolver fails when an API mock is missing or a real server implementation is imported. Mocks must never runtime-import actual APIs, actions, or repositories; use `import type` for contracts.
-- Reproduce loading, empty, and error states with API responses. Reset mocks at the start of every story. Follow [`.storybook/stories/.ai.md`](../../.storybook/stories/.ai.md) for authoring and validation.
+- Reproduce loading, empty, and error states with API responses. Reset mocks at the start of every story with `src/stories/mocks/runtime.ts`. Follow [`.storybook/stories/.ai.md`](../../.storybook/stories/.ai.md) for authoring and validation.
 
 ## types.ts
 

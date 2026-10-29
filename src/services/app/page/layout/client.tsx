@@ -9,7 +9,7 @@ import { useUser, type User } from '@/services/app/state/user'
  * - Hydrate server-resolved basic user data before the first state read.
  * - Render app UI such as the header and navigation.
  *
- * TODO: Add app UI such as header, sidebar, and footer.
+ * Learner UI lives in the child page and shell components.
  */
 export function AppLayoutClient({ children, initialUser }: {
   children: React.ReactNode

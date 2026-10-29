@@ -1,6 +1,16 @@
-import type { User } from '@/services/app/state/user'
+export type User = {
+  id: string;
+  email: string;
+  name: string;
+  username?: string | null;
+  displayUsername?: string | null;
+  image?: string | null;
+  emailVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 export interface UserAPI {
-  /** Get the current logged-in user. */
-  getMe: () => Promise<User | null>
+  /** 현재 로그인한 사용자 정보 조회 */
+  getMe: () => Promise<User | null>;
 }

@@ -20,6 +20,23 @@ export function kstDateTime(date: Date): string {
   return `${kstDate(date)} ${time}`
 }
 
+/** Compact exact KST minute for operational tables; keep the year across years. */
+export function kstCompactDateTime(date: Date): string {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const values = Object.fromEntries(
+    parts.map(({ type, value }) => [type, value]),
+  );
+  return `${values.year}.${values.month}.${values.day} ${values.hour}:${values.minute}`;
+}
+
 const MINUTE = 60 * 1000
 const HOUR = 60 * MINUTE
 const DAY = 24 * HOUR
