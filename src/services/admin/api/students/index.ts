@@ -5,4 +5,7 @@ import { enrollments } from "./actions/enrollments";
 import { grant } from "./actions/grant";
 import { revoke } from "./actions/revoke";
 import { progress } from "./actions/progress";
-export const adminStudents = resolveActions({ findAll, enrollments, grant, revoke, progress });
+import { purchases } from "./actions/purchases";
+import { grantPurchase } from "./actions/grant-purchase";
+import { revokePurchase } from "./actions/revoke-purchase";
+export const adminStudents = resolveActions({ findAll, enrollments, grant, revoke, progress, purchases, grantPurchase, revokePurchase });

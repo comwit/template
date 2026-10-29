@@ -7,10 +7,13 @@ import type {
   DashboardView,
   EnrollmentView,
   InstructorView,
+  LeadView,
   NoticeView,
   OrderView,
   PaymentRowView,
   PlayerView,
+  ProductView,
+  PurchaseView,
   QuestionView,
   RefundRequestView,
   ReviewView,
@@ -20,6 +23,7 @@ import type {
 import type { User } from "@/services/app/api/user";
 import {
   banner,
+  bundle,
   category,
   certificate,
   coupon,
@@ -27,10 +31,13 @@ import {
   dashboard,
   enrollment,
   instructor,
+  lead,
   notice,
   order,
   payment,
   player,
+  product,
+  purchase,
   question,
   refundRequest,
   review,
@@ -47,6 +54,10 @@ export type MockData = {
   /** 로그인 수강생의 강의실(한 강의 기준). 진도 저장이 여기에 반영된다. */
   player: PlayerView;
   certificates: CertificateView[];
+  /** 디지털 상품(관리자 상세 기준). 공개 목록은 published 만 거른다. */
+  products: ProductView[];
+  purchases: PurchaseView[];
+  leads: LeadView[];
   orders: OrderView[];
   payments: PaymentRowView[];
   refundRequests: RefundRequestView[];
@@ -78,12 +89,15 @@ export function createMockData(): MockData {
     enrollments: [enrollment],
     player,
     certificates: [certificate],
+    products: [product, bundle],
+    purchases: [purchase],
+    leads: [lead],
     orders: [order],
     payments: [
       {
         ...payment,
         customerEmail: order.customerEmail,
-        courseTitle: order.courseTitle,
+        itemTitle: order.itemTitle,
       },
     ],
     refundRequests: [refundRequest],

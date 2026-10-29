@@ -260,7 +260,7 @@ export function DashboardSection({
               >
                 <div className="min-w-0">
                   <p className="truncate text-body-sm font-semibold">
-                    {o.courseTitle}
+                    {o.itemTitle}
                   </p>
                   <p className="truncate text-caption text-muted-foreground">
                     <span className="font-mono" title={o.number}>

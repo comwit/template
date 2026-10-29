@@ -11,7 +11,7 @@ async function _prepare(contentType: string, folder: Types.UploadFolder): Promis
     return operationsRepository.prepareUpload(
       actor.id,
       z.enum(["image/webp", "image/jpeg", "image/png"]).parse(contentType),
-      z.enum(["courses", "instructors", "banners", "content"]).parse(folder),
+      z.enum(["courses", "products", "instructors", "banners", "content"]).parse(folder),
     );
   });
 }

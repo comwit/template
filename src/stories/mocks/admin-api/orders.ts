@@ -37,12 +37,18 @@ export function applyRefund(db: MockData, orderId: string, reason: string) {
     payment.refundableAmount = 0;
     payment.status = "cancelled";
     payment.statusLabel = statusLabel("refunded");
-    const { customerEmail: _email, courseTitle: _title, ...view } = payment;
+    const { customerEmail: _email, itemTitle: _title, ...view } = payment;
     order.payment = structuredClone(view);
   }
   const enrollment = db.enrollments.find((item) => item.orderId === order.id);
   if (enrollment)
     Object.assign(enrollment, {
+      status: "revoked",
+      statusLabel: statusLabel("revoked"),
+    });
+  const purchase = db.purchases.find((item) => item.orderId === order.id);
+  if (purchase)
+    Object.assign(purchase, {
       status: "revoked",
       statusLabel: statusLabel("revoked"),
     });

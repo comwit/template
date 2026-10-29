@@ -224,7 +224,7 @@ export function settings() {
   };
 }
 
-export type UploadFolder = "courses" | "instructors" | "banners" | "content";
+export type UploadFolder = "courses" | "products" | "instructors" | "banners" | "content";
 export async function prepareUpload(
   ownerId: string,
   contentType: string,

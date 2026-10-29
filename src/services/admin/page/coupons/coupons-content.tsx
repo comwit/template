@@ -9,6 +9,7 @@ export function CouponsContent() {
       pageable: { page: s.page, limit: 20 },
     }),
     courses: s.courses.load(),
+    products: s.products.load(),
     filter: s.filter,
     draft: s.draft,
     editorOpen: s.editorOpen,
@@ -33,6 +34,7 @@ export function CouponsContent() {
         open={coupons.editorOpen}
         draft={coupons.draft}
         courses={coupons.courses.data}
+        products={coupons.products.data}
         busy={coupons.busy}
         error={coupons.error}
         onChange={coupons.actions.setDraft}

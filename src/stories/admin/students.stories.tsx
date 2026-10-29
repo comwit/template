@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import StudentsPage from "@/services/admin/page/students";
 import { adminRoutes } from "@/lib/admin-routes";
 import { adminPageDecorators, adminPageParameters } from "./preview";
-import { enrollmentRows, studentRows } from "./fixtures";
+import { enrollmentRows, purchaseRows, studentRows } from "./fixtures";
 
 const meta = {
   id: "admin-students",
@@ -18,7 +18,11 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   name: "목록",
-  parameters: { apiMock: { data: { students: studentRows, enrollments: enrollmentRows } } },
+  parameters: {
+    apiMock: {
+      data: { students: studentRows, enrollments: enrollmentRows, purchases: purchaseRows },
+    },
+  },
 };
 export const Empty: Story = {
   name: "빈 화면",
