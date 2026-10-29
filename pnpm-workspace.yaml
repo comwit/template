@@ -32,3 +32,5 @@ minimumReleaseAgeExclude:
   - '@comwit/ui-templates'
   - 'comwit-ui'
   - '@comwit/state@2.5.1'
+patchedDependencies:
+  '@brrrd/adapter@0.1.11': patches/@brrrd__adapter@0.1.11.patch
