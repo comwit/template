@@ -93,4 +93,4 @@ Re-run after fixing the issue.
 The helper removes only this skill directory and its Claude stub; it never deletes
 pages, stories, public assets, other skills or service configuration. Completion
 progress remains in the ignored state file. Do not run this procedure as part of
-template maintenance, CI or creation of the distributable skill itself.
+template maintenance or creation of the distributable skill itself.
