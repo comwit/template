@@ -11,6 +11,7 @@ import ProductDetail, {
 
 type Params = Promise<{ id: string }>;
 
+// 정식 라우트. 직접 진입·새로고침·공유 링크·봇만 여기로 온다 — 앱 안 소프트 내비는 `(.)products/[id]` 인터셉트가 잡는다.
 // 강의 상세와 같은 구조: 404·metadata 는 RSC 에서 한 번, 화면은 ProductDetail 의 `.suspend(id)` 가 SSR.
 const findProduct = cache(async (id: string) => {
   if (!entityId.safeParse(id).success) return null;

@@ -3,12 +3,12 @@ import { catalog as api } from "@/services/app/api/catalog";
 import {
   emptyPage,
   type CourseSummary,
-  type CourseView,
+  type CourseDetail,
   type CategoryView,
   type ReviewView,
   type QuestionView,
   type ProductSummary,
-  type ProductView,
+  type ProductDetail,
 } from "@/lib/course";
 import type { Pageable } from "@/server/repository/types";
 import type {
@@ -29,7 +29,7 @@ export const domain = model<DomainState>({
   page: 1,
   isSaving: false,
   error: null,
-  detail: query<CourseView | null, string>({
+  detail: query<CourseDetail | null, string>({
     initialData: null,
     queryFn: (id) => api.find(id),
   }),
@@ -59,7 +59,7 @@ export const domain = model<DomainState>({
   }),
   productFilter: { search: "", category: "", kind: "", sort: "latest" },
   productPage: 1,
-  product: query<ProductView | null, string>({
+  product: query<ProductDetail | null, string>({
     initialData: null,
     queryFn: (id) => api.product(id),
   }),

@@ -4,11 +4,14 @@ import Link from "next/link";
 import { useEnrollments } from "@/services/app/state/enrollments";
 import { siteText, courseText } from "@/lib/ui-text";
 
+export { CertificateSkeleton } from "./skeleton";
+
 // 빈 깡통. 파생 프로젝트에서 섹션 파일로 나눠 채운다(page.ai.md).
-// 읽는 상태: useEnrollments certificate(.load(certificateId)). 로그인 필요(본인 수료증만).
+// 읽는 상태: useEnrollments certificate(.suspend(certificateId)). 로그인 필요(본인 수료증만) —
+// 첫 응답 전에는 라우트의 CertificateSkeleton, 캐시 없이 받은 거부는 (app)/account/error.tsx.
 export default function Certificate({ certificateId }: { certificateId: string }) {
   const enrollments = useEnrollments((state) => ({
-    certificate: state.certificate.load(certificateId),
+    certificate: state.certificate.suspend(certificateId),
   }));
   const query = enrollments.certificate;
   const certificate = query.data;
@@ -24,8 +27,8 @@ export default function Certificate({ certificateId }: { certificateId: string }
             {siteText.pages["login"]}
           </Link>
         </p>
-      ) : query.isLoading || !certificate ? (
-        <p className="mt-8 text-body text-muted-foreground">{courseText.loading}</p>
+      ) : !certificate ? (
+        <p className="mt-8 text-body text-muted-foreground">{courseText.empty}</p>
       ) : (
         <dl className="mt-8 grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-body">
           <dt className="text-muted-foreground">수료번호</dt>

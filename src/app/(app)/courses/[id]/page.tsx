@@ -11,6 +11,7 @@ import CourseDetail, {
 
 type Params = Promise<{ id: string }>;
 
+// 정식 라우트. 직접 진입·새로고침·공유 링크·봇만 여기로 온다 — 앱 안 소프트 내비는 `(.)courses/[id]` 인터셉트가 잡는다.
 // 404 판단·metadata 용 RSC 조회는 한 요청에 한 번(React cache). 화면 데이터는 CourseDetail 의 `.suspend(id)` 가
 // 같은 요청에서 SSR 한다. 잘못된 id·없는·비공개 강의(NOT_FOUND)만 null, 다른 오류는 그대로 던진다.
 const findCourse = cache(async (id: string) => {

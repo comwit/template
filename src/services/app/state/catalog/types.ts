@@ -3,13 +3,13 @@ import type { PageRequest, Pageable } from "@/server/repository/types";
 import type {
   CourseFilter,
   CourseSummary,
-  CourseView,
+  CourseDetail,
   CategoryView,
   ReviewView,
   QuestionView,
   ProductFilter,
   ProductSummary,
-  ProductView,
+  ProductDetail,
 } from "@/lib/course";
 export type * from "@/lib/course";
 export type ListArgs = { filter: CourseFilter; pageable: PageRequest };
@@ -26,7 +26,7 @@ export type DomainState = {
   page: number;
   isSaving: boolean;
   error: string | null;
-  detail: Query<CourseView | null, string>;
+  detail: Query<CourseDetail | null, string>;
   categories: Query<CategoryView[]>;
   reviews: Query<Pageable<ReviewView>, ReviewArgs>;
   questions: Query<Pageable<QuestionView>, QuestionArgs>;
@@ -35,7 +35,7 @@ export type DomainState = {
   products: Query<Pageable<ProductSummary>, ProductListArgs>;
   productFilter: ProductFilter;
   productPage: number;
-  product: Query<ProductView | null, string>;
+  product: Query<ProductDetail | null, string>;
 };
 export type DomainActions = {
   setFilter(filter: Partial<CourseFilter>): void;

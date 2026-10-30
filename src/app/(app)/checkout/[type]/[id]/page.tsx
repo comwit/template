@@ -1,14 +1,14 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { itemTypeSchema } from "@/lib/course";
-import Checkout from "@/services/app/page/checkout";
+import Checkout, { CheckoutSkeleton } from "@/services/app/page/checkout";
 
 type Params = Promise<{ type: string; id: string }>;
 
 // `/checkout/course/[id]` 또는 `/checkout/product/[id]`. params 는 Suspense 아래에서 읽는다.
 export default function Page({ params }: { params: Params }) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<CheckoutSkeleton />}>
       <CheckoutRoute params={params} />
     </Suspense>
   );
