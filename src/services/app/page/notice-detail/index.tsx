@@ -4,11 +4,14 @@ import Link from "next/link";
 import { useContent } from "@/services/app/state/content";
 import { siteText, courseText } from "@/lib/ui-text";
 
+export { NoticeDetailSkeleton } from "./skeleton";
+
 // 빈 깡통. 파생 프로젝트에서 섹션 파일로 나눠 채운다(page.ai.md).
-// 읽는 상태: useContent notice(.load(noticeId)).
+// 읽는 상태: useContent notice(.suspend(noticeId)). 공개 화면이라 같은 요청에서 SSR(SEO), 첫 응답 전에는
+// 라우트의 NoticeDetailSkeleton, 캐시 없이 받은 오류(없는 공지)는 notices/[id]/error.tsx.
 export default function NoticeDetail({ noticeId }: { noticeId: string }) {
   const content = useContent((state) => ({
-    notice: state.notice.load(noticeId),
+    notice: state.notice.suspend(noticeId),
   }));
   const query = content.notice;
   const notice = query.data;
@@ -19,8 +22,8 @@ export default function NoticeDetail({ noticeId }: { noticeId: string }) {
       </p>
       {query.isError ? (
         <p className="mt-8 text-body text-destructive">{query.error}</p>
-      ) : query.isLoading || !notice ? (
-        <p className="mt-8 text-body text-muted-foreground">{courseText.loading}</p>
+      ) : !notice ? (
+        <p className="mt-8 text-body text-muted-foreground">{courseText.empty}</p>
       ) : (
         <>
           <h1 className="mt-2 text-display-sm text-balance">{notice.title}</h1>
