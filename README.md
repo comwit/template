@@ -14,7 +14,7 @@ A successful build produces `dist/brrrd/manifest.json`. Local Wrangler/OpenNext 
 
 ## App updates
 
-Build with `pnpm build` so Next.js, `public/version.json`, and the service worker share one deployment ID. Each build gets a fresh ID by default. CI can set `NEXT_DEPLOYMENT_ID` or `DEPLOYMENT_VERSION` to an artifact-specific ID; distribute the same built artifact to every instance of that deployment.
+Build with `pnpm build` so Next.js, `public/version.json`, and the service worker share one deployment ID. Each build gets a fresh ID by default. A deployment pipeline can set `NEXT_DEPLOYMENT_ID` or `DEPLOYMENT_VERSION` to an artifact-specific ID; distribute the same built artifact to every instance of that deployment.
 
 The app checks for a new worker on document load, foreground return, and reconnect, without periodic polling. An installed update waits until the user saves their work and chooses **저장 후 새로고침**. Close other app tabs/windows before applying it. Previous deployment caches are removed during activation, then the page reloads under the new worker. Closing all app windows also allows normal browser activation. Existing clients from before this update may need that close-and-reopen cycle once.
 

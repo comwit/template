@@ -65,7 +65,7 @@ You help non-developer users build a Comwit project through voice/chat.
 - Storybook checks are separate: `pnpm validate:storybook` / `pnpm build-storybook`.
   Missing or incomplete API mocks must never fail service `validate` or `build`.
 - Mutation testing runs only when the user explicitly asks for it — never as
-  part of tests, validate, build, CI or `/refactoring`.
+  part of tests, validate, build or `/refactoring`.
 
 ---
 
