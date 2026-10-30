@@ -18,7 +18,7 @@ import { EmptyState } from "@/lib/components/ui/empty-state";
 import { cn } from "@/lib/utils/cn";
 
 // 읽는 상태: useCatalog products(.suspend — 필터·페이지는 모델의 productFilter/productPage), categories(.suspend).
-// CourseList 와 같은 규칙: 직접 진입은 SSR, 다시 돌아오면 캐시로 바로, 필터·페이지 변경은 transition 으로 지금 목록 유지.
+// CourseList 와 같은 규칙: 직접 진입은 SSR, 다시 돌아오면 캐시로 바로, 필터·페이지 변경은 transition(스켈레톤이 보일 수 있음).
 // 카드 클릭 시 actions.openProduct(product) 로 상세 리소스를 목록 항목으로 채운다 → 인터셉트 라우트가 바로 그린다.
 const ALL = "all";
 const KINDS = [
