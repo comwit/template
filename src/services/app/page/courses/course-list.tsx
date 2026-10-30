@@ -14,13 +14,12 @@ import {
 } from "@/lib/components/ui/select";
 import { Pager } from "@/lib/components/ui/pager";
 import { EmptyState } from "@/lib/components/ui/empty-state";
-import { cn } from "@/lib/utils/cn";
 
 // 읽는 상태: useCatalog list(.suspend — 필터·페이지는 모델의 filter/page), categories(.suspend).
 // 둘 다 `.suspend()` 라 직접 진입·봇은 같은 요청에서 SSR 된 목록을 받는다(SEO). 다른 화면에 갔다가 돌아오면
 // 같은 인자의 캐시가 있어 기다리지 않고 바로 그리고, 커밋 뒤 백그라운드로 다시 받는다.
 // 필터·페이지는 모델에 있어 다른 화면에 갔다 와도 그대로다(같은 인자 캐시로 바로 그림). 바꾸면 keepPreviousData 로
-// 지금 목록을 유지하고 isFetching 동안 흐리게 보인다(state.ai.md).
+// 지금 목록을 그대로 둔다(state.ai.md).
 // 카드 클릭 시 actions.open(course) 로 상세 리소스를 목록 항목으로 채운다 → 인터셉트 라우트가 바로 그린다.
 const ALL = "all";
 const SORTS = [
@@ -98,7 +97,7 @@ export function CourseList() {
       ) : (
         <ul
           aria-busy={list.isFetching}
-          className={cn("mt-8 flex flex-col gap-4", list.isFetching && "opacity-60")}
+          className="mt-8 flex flex-col gap-4"
         >
           {list.data.items.map((course) => (
             <li key={course.id}>

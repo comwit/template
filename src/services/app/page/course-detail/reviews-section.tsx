@@ -5,7 +5,6 @@ import { useCatalog } from "@/services/app/state/catalog";
 import { courseText } from "@/lib/ui-text";
 import { Pager } from "@/lib/components/ui/pager";
 import { Skeleton } from "@/lib/components/ui/skeleton";
-import { cn } from "@/lib/utils/cn";
 
 // 수강평은 상세 본문과 다른 query 라 자기 Suspense 경계 안에서 `.suspend()` 한다 — 본문(detail)을 막지 않는다.
 // 직접 진입은 같은 요청에서 SSR, 카드로 들어오면 본문이 먼저 그려지고 이 섹션만 뼈대 뒤 클라에서 받는다.
@@ -43,7 +42,7 @@ function ReviewList({ courseId }: { courseId: string }) {
       ) : (
         <ul
           aria-busy={reviews.isFetching}
-          className={cn("mt-2 flex flex-col gap-3", reviews.isFetching && "opacity-60")}
+          className="mt-2 flex flex-col gap-3"
         >
           {reviews.data.items.map((review) => (
             <li key={review.id}>
