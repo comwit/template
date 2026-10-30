@@ -20,18 +20,11 @@ minimumReleaseAgeExclude:
   - '@next/swc-win32-arm64-msvc@16.4.3'
   - '@next/swc-win32-x64-msvc@16.4.3'
   - 'next@16.4.3'
-  - '@comwit/state@2.4.0'
   - '@comwit/state'
   - '@ssgoi/core@7.2.0'
   - '@ssgoi/react@7.2.0'
-  - '@comwit/ui@0.3.0'
-  - 'comwit-ui@0.5.0'
-  - '@comwit/ui@0.4.0'
-  - 'comwit-ui@0.6.0'
   - '@comwit/ui'
   - '@comwit/ui-templates'
   - 'comwit-ui'
-  - '@comwit/state@2.5.1'
-  - '@comwit/state@2.5.2'
 patchedDependencies:
   '@brrrd/adapter@0.1.11': patches/@brrrd__adapter@0.1.11.patch
