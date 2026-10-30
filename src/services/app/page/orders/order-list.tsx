@@ -1,6 +1,5 @@
 "use client";
 
-import { useTransition } from "react";
 import Link from "next/link";
 import { useOrders } from "@/services/app/state/orders";
 import { siteText, courseText } from "@/lib/ui-text";
@@ -11,7 +10,6 @@ import { cn } from "@/lib/utils/cn";
 // 읽는 상태: useOrders list(.suspend({ page })). 로그인 필요 — 거부되면 (app)/account/error.tsx. 돌아오면 캐시로 바로.
 
 export function OrderList() {
-  const [pending, startTransition] = useTransition();
   const orders = useOrders((state) => ({
     list: state.list.suspend({ page: state.page }),
     actions: state.actions,
@@ -30,8 +28,8 @@ export function OrderList() {
         <EmptyState className="mt-8" title={courseText.empty} />
       ) : (
         <ul
-          aria-busy={pending}
-          className={cn("mt-8 flex flex-col gap-4", pending && "opacity-60")}>
+          aria-busy={list.isFetching}
+          className={cn("mt-8 flex flex-col gap-4", list.isFetching && "opacity-60")}>
           {list.data.items.map((order) => (
             <li key={order.id}>
               <Link href={`/account/orders/${order.id}`} className="block">
@@ -50,7 +48,7 @@ export function OrderList() {
       <Pager
         page={list.data.page}
         totalPages={list.data.totalPages}
-        onChange={(page) => startTransition(() => orders.actions.setPage(page))}
+        onChange={(page) => orders.actions.setPage(page)}
       />
     </>
   );
