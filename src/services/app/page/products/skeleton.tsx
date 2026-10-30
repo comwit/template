@@ -2,7 +2,7 @@
 
 import { Skeleton } from "@/lib/components/ui/skeleton";
 
-/** 상품 목록 Suspense 구멍의 fallback. ProductList 와 같은 자리·크기(필터 줄 + 카드 줄). 순수 UI. */
+/** 상품 목록 Suspense 경계의 fallback. ProductList 와 같은 자리·크기(필터 줄 + 카드 줄). 순수 UI. */
 export function ProductListSkeleton() {
   return (
     <div aria-busy="true">
