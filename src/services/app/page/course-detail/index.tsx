@@ -8,6 +8,11 @@ import { Button } from "@/lib/components/ui/button";
 import { CourseNotFound } from "./not-found";
 import { CurriculumSection } from "./curriculum-section";
 import { ReviewsSection } from "./reviews-section";
+import {
+  CourseActionBones,
+  CourseSectionBones,
+  CurriculumBones,
+} from "./skeleton";
 
 export { CourseDetailSkeleton } from "./skeleton";
 export { CourseNotFound } from "./not-found";
@@ -16,10 +21,11 @@ export { CourseNotFound } from "./not-found";
 // 읽는 상태: useCatalog detail(.suspend(courseId)). 수강평은 reviews-section 이 별도 query 로 지연 로드한다.
 //
 // 진입 셋이 같은 `.suspend(id)` 한 줄을 탄다.
-//   - 직접 진입·새로고침·공유·봇: 정식 라우트 `courses/[id]` 가 404 판단·metadata 뒤 같은 요청에서 SSR(SEO).
-//   - 카드 소프트 내비: `(.)courses/[id]` 인터셉트 라우트. 카드의 `actions.open(course)` 이 채운 캐시를 그대로 그린다
-//     (스켈레톤 없음, 커밋 뒤 백그라운드 재조회로 커리큘럼·수강 여부 갱신).
-//   - 캐시 없는 소프트 내비: 클라에서 기다리는 동안 스켈레톤.
+//   - 직접 진입·새로고침·공유·봇: 정식 라우트 `courses/[id]` 가 404 판단·metadata 뒤 같은 요청에서 SSR(SEO). 전체 필드가 온다.
+//   - 카드 소프트 내비: `(.)courses/[id]` 인터셉트 라우트. 카드의 `actions.open(course)` 이 넣은 목록 항목으로
+//     제목·가격·요약을 바로 그리고(스켈레톤 없음), 상세 전용 필드(소개·강사·커리큘럼·수강 여부)는 `undefined` 인 동안
+//     그 자리만 뼈대로 둔다. 커밋 뒤 같은 detail 리소스의 백그라운드 재조회가 채운다.
+//   - 캐시 없는 소프트 내비(학습 화면 → 강의 등): 라우트의 CourseDetailSkeleton 뒤 클라에서 받는다.
 export default function CourseDetail({ courseId }: { courseId: string }) {
   const catalog = useCatalog((state) => ({
     detail: state.detail.suspend(courseId),
@@ -80,7 +86,9 @@ export default function CourseDetail({ courseId }: { courseId: string }) {
       ) : null}
 
       <div className="mt-6">
-        {course.enrollment ? (
+        {course.enrollment === undefined ? (
+          <CourseActionBones />
+        ) : course.enrollment ? (
           <Button asChild>
             <Link href={`/learn/${course.id}`}>
               이어서 수강하기 ({course.enrollment.progressPercent}%)
@@ -95,7 +103,12 @@ export default function CourseDetail({ courseId }: { courseId: string }) {
         )}
       </div>
 
-      {course.instructor ? (
+      {course.instructor === undefined ? (
+        <section className="mt-10">
+          <h2 className="text-title-lg">강사</h2>
+          <CourseSectionBones lines={2} />
+        </section>
+      ) : course.instructor ? (
         <section className="mt-10">
           <h2 className="text-title-lg">강사</h2>
           <p className="mt-2 text-body">
@@ -114,7 +127,12 @@ export default function CourseDetail({ courseId }: { courseId: string }) {
         </section>
       ) : null}
 
-      {course.description ? (
+      {course.description === undefined ? (
+        <section className="mt-10">
+          <h2 className="text-title-lg">강의 소개</h2>
+          <CourseSectionBones />
+        </section>
+      ) : course.description ? (
         <section className="mt-10">
           <h2 className="text-title-lg">강의 소개</h2>
           <div
@@ -124,7 +142,11 @@ export default function CourseDetail({ courseId }: { courseId: string }) {
         </section>
       ) : null}
 
-      <CurriculumSection sections={course.sections} />
+      {course.sections === undefined ? (
+        <CurriculumBones />
+      ) : (
+        <CurriculumSection sections={course.sections} />
+      )}
       <ReviewsSection courseId={course.id} />
     </main>
   );

@@ -80,6 +80,13 @@ export type CourseView = CourseSummary & {
   /** 로그인 사용자가 수강 중이면 채워진다 */
   enrollment: { id: string; progressPercent: number; lastLessonId: string | null } | null;
 };
+/**
+ * 강의 상세 리소스(catalog `detail` query). 카드가 목록 항목(CourseSummary)으로 먼저 채우고,
+ * 상세 전용 필드는 상세 응답이 올 때까지 `undefined` 다. 화면은 `undefined` 인 필드만 스켈레톤으로 그린다
+ * (빈 값 `""`·`[]`·`null` 은 "불러왔는데 없음"이라 섞지 않는다).
+ */
+export type CourseDetail = CourseSummary &
+  Partial<Omit<CourseView, keyof CourseSummary>>;
 export type EnrollmentView = {
   id: string;
   courseId: string;
@@ -449,6 +456,9 @@ export type ProductView = ProductSummary & {
   /** 로그인 사용자가 이미 구매했으면 채워진다 */
   purchase: { id: string; downloadCount: number } | null;
 };
+/** 상품 상세 리소스(catalog `product` query). CourseDetail 과 같은 규칙: 상세 전용 필드는 응답 전까지 `undefined`. */
+export type ProductDetail = ProductSummary &
+  Partial<Omit<ProductView, keyof ProductSummary>>;
 export type PurchaseView = {
   id: string;
   productId: string;
