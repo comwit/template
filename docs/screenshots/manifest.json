@@ -1,0 +1,42 @@
+[
+  {
+    "file": "admin-dashboard.jpg",
+    "title": "Dashboard",
+    "titleKo": "대시보드",
+    "story": "admin-dashboard--default",
+    "source": "src/stories/admin/dashboard.stories.tsx",
+    "captureDate": "2026-10-30",
+    "data": "Existing Storybook fixtures only; no live services",
+    "sha256": "a86babcf4cfe06627dab65915435e359c4cef098d473ed3d1907815b0d382a75"
+  },
+  {
+    "file": "admin-courses.jpg",
+    "title": "Courses",
+    "titleKo": "강의",
+    "story": "admin-courses--default",
+    "source": "src/stories/admin/courses.stories.tsx",
+    "captureDate": "2026-10-30",
+    "data": "Existing Storybook fixtures only; no live services",
+    "sha256": "5924adea454f8d412d991f993805adba2a0f67e39fa852ba15221dd78b59e4e1"
+  },
+  {
+    "file": "admin-course-editor.jpg",
+    "title": "Course editor and curriculum",
+    "titleKo": "강의 편집과 커리큘럼",
+    "story": "admin-course-editor--default",
+    "source": "src/stories/admin/course-editor.stories.tsx",
+    "captureDate": "2026-10-30",
+    "data": "Existing Storybook fixtures only; no live services",
+    "sha256": "6f147887ffef8a1d0bc77ddc562ca98428d6ff49854258d2e81e26b2affdbf15"
+  },
+  {
+    "file": "admin-orders.jpg",
+    "title": "Orders",
+    "titleKo": "주문",
+    "story": "admin-orders--default",
+    "source": "src/stories/admin/orders.stories.tsx",
+    "captureDate": "2026-10-30",
+    "data": "Existing Storybook fixtures only; no live services",
+    "sha256": "740a32709079b08c51a8225d068f73d600d0a6c6d11c948d468f26eb7d33771e"
+  }
+]
