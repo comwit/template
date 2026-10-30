@@ -1,155 +1,237 @@
-# State Layer — template rules
+# State layer — usage guide
 
-How this template writes `@comwit/state`. Library options and every API:
-https://library.comwit.io/state/llms.txt
+How this template uses `@comwit/state`. `StateProvider` is already set up, so screens read server
+data with `.suspend()`. Full API: https://library.comwit.io/state/llms.txt
 
-## Location
+## Domain structure
 
 ```text
-services/{service}/state/{domain}/
-  types.ts → model.ts → actions/{load,crud,interact}.ts → index.ts
+src/services/{service}/state/{domain}/
+  types.ts
+  model.ts
+  actions/
+    load.ts
+    crud.ts
+    interact.ts
+  index.ts
 ```
 
-- Write in that order, `types.ts` first.
-- Keep a domain's list, detail, stats and filters in one model.
-- Dependency flow: `page → state → api → repository`.
+Write in that order. Keep related list, detail, stats, filters, and local UI state in one domain.
+Actions own commands, side effects, cross-domain access, and optimistic rollback. UI event handlers
+should normally call one action.
 
 ## Types and model
 
-- Type remote data as `Query<T, Arg>`; plain fields are client state.
-- Use `keepPreviousData` only on paginated queries.
-
 ```ts
+import type { Query } from '@comwit/state'
+
 export type ProductState = {
   products: Query<Pageable<Product>, { page: number }>
   detail: Query<Product | null, string>
-  …
+  selectedIds: string[]
 }
 
-products: query({ initialData: emptyPage(), queryFn: ({ page }) => api.product.findAll({ page, limit: 20 }), placeholderData: keepPreviousData }),
+export type ProductActions = {
+  open(item: Product): void
+  like(id: string): Promise<void>
+  remove(id: string): Promise<void>
+  search(keyword: string): void
+}
 ```
-
-## Read queries
-
-- Read screen data in the selector with `.suspend(arg)`.
-- Use `.load(arg)` only for client-only reads with their own inline loading UI.
-- Select a query without a method only when an action owns loading.
-- Always pass a selector, and select actions whole as `actions: s.actions`.
-
-```tsx
-const product = useProduct((s) => ({ detail: s.detail.suspend(id), actions: s.actions }))
-// ✗ useEffect(() => actions.load(), []) · ✗ s.actions.like
-```
-
-## Screens: `.suspend()` inside `<Suspense>`
-
-- Put the reading Client Component inside a `<Suspense>` whose fallback is a skeleton shaped like it.
-- Keep titles and fixed copy outside the boundary; only data-driven parts suspend.
-- Do not add Server Component loaders, route adapters or extra folders — `StateProvider` streams SSR results.
-- Handle a failed first load in `error.tsx`; decide 404 with `notFound()` in the Server Component.
-
-```tsx
-<Products>                                  {/* client shell: <h1>, copy */}
-  <Suspense fallback={<ProductListSkeleton />}>
-    <ProductList />                         {/* s.products.suspend(…) */}
-  </Suspense>
-</Products>
-// ✗ fallback={null} — only the service-root auth boundary
-```
-
-Pages under the service layout SSR this on direct visits, and in-app revisits paint from cache.
-
-## Pagination and filters
-
-- Change the query arg inside a transition and dim the list with `isPending`.
-- Keep the arg in `useState` to hold the old list; keep it in the model to keep it across navigation.
-
-```tsx
-const [isPending, startTransition] = useTransition()
-… s.products.suspend({ page }) …
-onPageChange={(next) => startTransition(() => setPage(next))}
-```
-
-## Detail seed
-
-- Before card navigation, put the list item into the one ID-keyed detail resource with an action.
-- Type the resource as the list item plus optional detail-only fields; leave missing fields `undefined`.
-- When the same detail is already active, merge so loaded fields survive.
-- Load reviews and related items in a child component with its own `<Suspense>`.
 
 ```ts
-type Product = ProductSummary & Partial<ProductDetailOnly>
+import { keepPreviousData, model, query } from '@comwit/state'
 
-open(item: ProductSummary) {
-  const current = this.model.detail.data
-  this.model.detail.set(current?.id === item.id ? { ...current, ...item } : item, { arg: item.id })
-}
-// ✗ "" / [] / null for unloaded fields · ✗ a seed prop or a second query
+export const product = model<ProductState>({
+  products: query<Pageable<Product>, { page: number }>({
+    initialData: emptyPage<Product>(),
+    queryFn: ({ page }) => api.product.findAll({ page, limit: 20 }),
+    placeholderData: keepPreviousData,
+  }),
+  detail: query<Product | null, string>({
+    initialData: null,
+    queryFn: (id) => api.product.findById(id),
+  }),
+  selectedIds: [],
+})
 ```
+
+- `Query<T, Arg>`: remote query state. `Query.Infinite<T, Arg>`: cursor/infinite query.
+- Plain values: client-owned reactive state.
+- `keepPreviousData` only on paginated queries.
+
+## Read queries: suspend or load
+
+```tsx
+// Screens: rendered on the server, painted from cache on return.
+const detail = useProduct((s) => s.detail.suspend(id))
+
+// Client-only: renders isLoading first, requests after commit.
+const quote = useCheckout((s) => s.quote.load({ code }))
+
+// Passive. Never starts a request.
+const cached = useProduct((s) => s.products)
+```
+
+### Screens with `.suspend()`
+
+```tsx
+// page.tsx
+<Suspense fallback={<ProductListSkeleton />}>
+  <ProductList />
+</Suspense>
+
+// product-list.tsx
+'use client'
+
+function ProductList() {
+  const [page, setPage] = useState(1)
+  const [isPending, startTransition] = useTransition()
+  const product = useProduct((s) => ({ products: s.products.suspend({ page }), actions: s.actions }))
+  return <Grid items={product.products.data.items} dimmed={isPending} onPage={(next) => startTransition(() => setPage(next))} />
+}
+```
+
+- The fallback is a skeleton shaped like the content. Titles and fixed copy stay outside the boundary.
+- A failed first load goes to `error.tsx`; decide 404 with `notFound()` in the Server Component.
+- Do not start an initial load from `useEffect`.
+
+### Detail seed
+
+```ts
+// A card fills the detail before navigating.
+open(item: Product) {
+  this.model.detail.set(item, { arg: item.id })
+}
+```
+
+```tsx
+const detail = useProduct((s) => s.detail.suspend(id)) // one resource, one .suspend
+```
+
+Type a lighter list item as `ProductSummary & Partial<ProductDetailOnly>` and leave unloaded fields
+`undefined`. Load reviews and related items in a child component with its own `<Suspense>`.
 
 ## Actions
 
-- Put every side effect in an action; a UI handler calls one action.
-- Read other domains with `state(model)` inside the action, not as arguments.
-- Do optimistic CRUD with rollback, then refetch every related query.
-- Return a result (or `null` for a handled failure) when the caller sequences actions.
+Decorate actions instead of copying guards, toasts, and concurrency checks into each method:
 
 ```ts
-async delete(id: string) {
-  if (!(await popup.confirm({ title: '…', description: '…', destructive: true }))) return
-  const before = [...this.model.products.data.items]
-  this.model.products.data.items = before.filter((p) => p.id !== id)
-  try { await api.product.delete(id); await this.model.products.refetch() }
-  catch (error) { this.model.products.data.items = before; throw error }
-}
+import { action, Authorized, Debounce, OnError, Queue } from '@comwit/state'
+import { toast } from '@/lib/components/ui/toast'
+import { popup } from '@/lib/popup'
+import type { AppContext } from '@/lib/state'
+import { RequireLogin } from '../../user/decorators'
+import { user } from '../../user/model'
+
+const toastError = (error: unknown) => toast.error(error instanceof Error ? error.message : '문제가 생겼어요')
+
+export const productActions = action<ProductActions, AppContext>(({ state }) => {
+  class ProductActions {
+    private model = state(product)
+
+    open(item: Product) {
+      this.model.detail.set(item, { arg: item.id })
+    }
+
+    @RequireLogin
+    @OnError(toastError)
+    async like(id: string) {
+      const item = this.model.products.data.items.find((p) => p.id === id)
+      if (item) item.isLiked = true
+      try {
+        await api.product.like(id)
+      } catch (error) {
+        if (item) item.isLiked = false
+        throw error
+      }
+    }
+
+    @Authorized({
+      when: () => !!state(user).me.data?.emailVerified,
+      onDeny: () => popup.alert({ description: '이메일 인증 후 이용할 수 있어요' }),
+    })
+    @Queue('drop')
+    @OnError(toastError)
+    async remove(id: string) {
+      if (!(await popup.confirm({ title: '삭제할까요?', description: '되돌릴 수 없어요', destructive: true }))) return
+      await api.product.remove(id)
+      await this.model.products.refetch()
+    }
+
+    @Debounce(300)
+    search(keyword: string) { … }
+  }
+  return new ProductActions()
+})
 ```
 
-- Imperative query methods: `.query(arg?)` · `.refetch()` · `.set(data, { arg })` · `.nextFetch()`.
-- `toast` from `@/lib/components/ui/toast`; `popup.confirm` / `popup.alert` from `@/lib/popup`.
-- Pass model values to APIs as they are; `snapshot()` only for stable keys or rollback copies.
+- `.query(arg?)`, `.refetch()`, `.set(data, { arg })`, `.nextFetch()`.
+- Built-ins: `@OnError`, `@OnSuccess`, `@Authorized`, `@Debounce`, `@Throttle`, `@Retry`, `@Queue`,
+  `@Log`, `@Validate`. Decorators run outer to inner.
+- Read other domains with `state(model)` inside the action, not as arguments.
 
-## Decorators with `intercept`
-
-- Repeat a cross-cutting guard as a decorator, not as copied `if` blocks.
-- Use the built-ins first: `@OnError`, `@OnSuccess`, `@Debounce`, `@Throttle`, `@Authorized`.
-- Build your own with lazy `intercept<AppContext>(({ state, context }) => …)` to read models and the router.
+### Custom decorators with `intercept`
 
 ```ts
 // state/user/decorators.ts
+import { intercept } from '@comwit/state'
+import { popup } from '@/lib/popup'
+import type { AppContext } from '@/lib/state'
+import { user } from './model'
+
 export const RequireLogin = intercept<AppContext>(({ state, context }) => ({
   intercept: async (execute, args) => {
     if (state(user).me.data) return execute(...args)
-    if (await popup.confirm({ title: '로그인이 필요해요', description: '…' })) context.router.push('/login')
+    if (await popup.confirm({ title: '로그인이 필요해요', description: '로그인 페이지로 이동할까요?' })) context.router.push('/login')
   },
 }))
-
-// actions/interact.ts
-@RequireLogin
-async like(id: string) { … }
 ```
+
+Put `@RequireLogin` on a method, or on the class to guard every method.
+
+## State updates
+
+Call actions from event handlers. Do not call a mutating action or assign model state during render.
 
 ## Auth
 
-- Hydrate the session once in the service-root client adapter: `useUser.hydrate({ me: { data: initialUser } })`.
-- Read `s.me.data` elsewhere; load member/profile tables per user with their own query.
-
 ```tsx
-const member = useMember((s) => ({ profile: user.me ? s.profile.load(user.me.id) : s.profile }))
-// ✗ hydrate(null) — anonymous is { me: { data: null } } · ✗ joining profile tables into getMe
+useUser.hydrate({ me: { data: initialUser } }) // service-root client adapter only; anonymous = { data: null }
 ```
 
-Layout wiring: `page.ai.md` → Layout.
+Elsewhere read `s.me.data`. Load profile or member tables with their own query once `me` is known.
+
+## Create and use a domain hook
+
+```ts
+export const useProduct = create<ProductState, ProductActions>(product, { actions: [productActions] })
+```
+
+```tsx
+const product = useProduct((s) => ({ detail: s.detail.suspend(id), actions: s.actions }))
+return <button onClick={() => product.actions.like(id)}>Like</button>
+```
+
+Always pass a selector and select `actions` whole. Do not pick single action methods.
+
+## Other features
+
+- Derived state: `computed()` or model `derive` getters.
+- Validation: model `rules`; read `$validation`.
+- Persistence: `persist({ key, defaultValue, storage? })`.
+- URL state: `searchParam({ key, type?, defaultValue? })`.
+- History: `history: true`; use `$history.undo()` / `redo()`.
 
 ## Delivery checklist
 
-- Screen data is read with `.suspend()` in the component that shows it, inside `<Suspense>`.
-- Every data boundary has a shaped skeleton; titles and copy sit outside it.
-- `.load()` appears only for client-only reads.
-- Cards seed the detail with one action; missing detail fields are `undefined`.
-- Selectors are narrow and select `actions` whole.
+- Screen data uses `.suspend()` inside `<Suspense>` with a shaped skeleton; `.load()` only for
+  client-only reads.
+- Cards seed the detail with one action; unloaded fields are `undefined`.
+- Guards, error toasts, and concurrency are decorators (`@RequireLogin`, `@Authorized`, `@OnError`,
+  `@Queue`), not repeated `if` blocks.
+- CRUD rolls back failed optimistic writes and refetches related queries.
 - No action or model assignment runs during render.
-- CRUD keeps list, detail and stats consistent and rolls back failed optimistic writes.
-- Repeated guards are decorators (`@Authorized`, `intercept`).
 
 ## Full references
 
