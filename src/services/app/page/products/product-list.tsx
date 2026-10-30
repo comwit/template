@@ -14,7 +14,6 @@ import {
 } from "@/lib/components/ui/select";
 import { Pager } from "@/lib/components/ui/pager";
 import { EmptyState } from "@/lib/components/ui/empty-state";
-import { cn } from "@/lib/utils/cn";
 
 // 읽는 상태: useCatalog products(.suspend — 필터·페이지는 모델의 productFilter/productPage), categories(.suspend).
 // CourseList 와 같은 규칙: 직접 진입은 SSR, 다시 돌아오면 캐시로 바로, 필터·페이지 변경은 keepPreviousData 로 지금 목록 유지.
@@ -128,7 +127,7 @@ export function ProductList() {
       ) : (
         <ul
           aria-busy={list.isFetching}
-          className={cn("mt-8 flex flex-col gap-4", list.isFetching && "opacity-60")}>
+          className="mt-8 flex flex-col gap-4">
           {list.data.items.map((product) => (
             <li key={product.id}>
               <Link
