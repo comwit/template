@@ -8,7 +8,7 @@ import { Pager } from "@/lib/components/ui/pager";
 import { EmptyState } from "@/lib/components/ui/empty-state";
 import { cn } from "@/lib/utils/cn";
 
-// 읽는 상태: useContent notices(.suspend({ page })). 공개 목록이라 SSR(SEO), 돌아오면 캐시로 바로, 페이지 변경은 transition.
+// 읽는 상태: useContent notices(.suspend({ page })). 공개 목록이라 SSR(SEO), 돌아오면 캐시로 바로, 페이지 변경은 transition(스켈레톤이 보일 수 있음).
 
 export function NoticeList() {
   const [pending, startTransition] = useTransition();
