@@ -3,67 +3,57 @@
 How this template uses `@comwit/state`. `StateProvider` is already set up, so screens read server
 data with `.suspend()`. Full API: https://library.comwit.io/state/llms.txt
 
-## Domain structure
+## Make a domain
 
 ```text
 src/services/{service}/state/{domain}/
-  types.ts
-  model.ts
-  actions/
-    load.ts
-    crud.ts
-    interact.ts
-  index.ts
-```
-
-Write in that order. Keep related list, detail, stats, filters, and local UI state in one domain.
-Actions own commands, side effects, cross-domain access, and optimistic rollback. UI event handlers
-should normally call one action.
-
-## Types and model
-
-```ts
-import type { Query } from '@comwit/state'
-
-export type ProductState = {
-  products: Query<Pageable<Product>, { page: number }>
-  detail: Query<Product | null, string>
-  page: number
-  selectedIds: string[]
-}
-
-export type ProductActions = {
-  setPage(page: number): void
-  open(item: Product): void
-  like(id: string): Promise<void>
-  remove(id: string): Promise<void>
-  search(keyword: string): void
-}
+  types.ts        → State + Actions types (write first)
+  model.ts        → model() with queries and plain fields
+  actions/*.ts    → action() classes
+  index.ts        → create() hook
 ```
 
 ```ts
-import { keepPreviousData, model, query } from '@comwit/state'
+// types.ts
+export type ProductState = { products: Query<Pageable<Product>, { page: number }>; page: number }
+export type ProductActions = { setPage(page: number): void }
+```
 
+```ts
+// model.ts
 export const product = model<ProductState>({
-  products: query<Pageable<Product>, { page: number }>({
-    initialData: emptyPage<Product>(),
-    queryFn: ({ page }) => api.product.findAll({ page, limit: 20 }),
-    placeholderData: keepPreviousData,
-  }),
-  detail: query<Product | null, string>({
-    initialData: null,
-    queryFn: (id) => api.product.findById(id),
-  }),
+  products: query<Pageable<Product>, { page: number }>({ initialData: emptyPage<Product>(), queryFn: ({ page }) => api.product.findAll({ page, limit: 20 }) }),
   page: 1,
-  selectedIds: [],
 })
 ```
 
-- `Query<T, Arg>`: remote query state. `Query.Infinite<T, Arg>`: cursor/infinite query.
-- Plain values: client-owned reactive state.
-- `keepPreviousData` only on paginated queries.
+```ts
+// actions/load.ts
+export const loadActions = action<Pick<ProductActions, 'setPage'>>(({ state }) => {
+  class LoadActions {
+    private model = state(product)
+    setPage(page: number) { this.model.page = page }
+  }
+  return new LoadActions()
+})
+```
 
-## Read queries: suspend or load
+```ts
+// index.ts
+export * from './types'
+export const useProduct = create<ProductState, ProductActions>(product, { actions: [loadActions, …] })
+```
+
+```tsx
+// screen
+const product = useProduct((s) => ({ products: s.products.suspend({ page: s.page }), actions: s.actions }))
+```
+
+- Keep related list, detail, stats, filters, and local UI state in one domain.
+- Always pass a selector and select `actions` whole. Do not pick single action methods.
+- UI event handlers call one action; actions own side effects and cross-domain access.
+
+## Read queries
 
 ```tsx
 // Screens: rendered on the server, painted from cache on return.
@@ -76,6 +66,10 @@ const quote = useCheckout((s) => s.quote.load({ code }))
 const cached = useProduct((s) => s.products)
 ```
 
+- `Query<T, Arg>`: remote query state. `Query.Infinite<T, Arg>`: cursor/infinite query.
+- Plain values: client-owned reactive state.
+- Do not start an initial load from `useEffect`.
+
 ### Screens with `.suspend()`
 
 ```tsx
@@ -83,30 +77,39 @@ const cached = useProduct((s) => s.products)
 <Suspense fallback={<ProductListSkeleton />}>
   <ProductList />
 </Suspense>
+```
 
-// product-list.tsx
-'use client'
+The fallback is a skeleton shaped like the content.
 
+### Pagination with `keepPreviousData`
+
+```ts
+products: query<Pageable<Product>, { page: number }>({
+  …
+  placeholderData: keepPreviousData,
+}),
+```
+
+```tsx
 function ProductList() {
   const product = useProduct((s) => ({ products: s.products.suspend({ page: s.page }), actions: s.actions }))
-  return <Grid items={product.products.data.items} onPage={product.actions.setPage} />
+  return (
+    <Grid items={product.products.data.items} aria-busy={product.products.isFetching} … >
+      <Pagination currentPage={product.products.data.page} onPageChange={product.actions.setPage} />
+    </Grid>
+  )
 }
 ```
 
-```ts
-// actions — a new arg loads its own cache entry
-setPage(page: number) {
-  this.model.page = page
-}
-```
+A new page keeps the current list on screen with `isFetching: true` instead of showing the skeleton.
 
-- The fallback is a skeleton shaped like the content.
-- Do not start an initial load from `useEffect`.
-
-### Detail seed
+## Detail seed
 
 ```ts
-// A card fills the detail before navigating.
+// model.ts
+detail: query<Product | null, string>({ initialData: null, queryFn: (id) => api.product.findById(id) }),
+
+// actions — a card fills the detail before navigating
 open(item: Product) {
   this.model.detail.set(item, { arg: item.id })
 }
@@ -119,7 +122,7 @@ const detail = useProduct((s) => s.detail.suspend(id)) // one resource, one .sus
 Type a lighter list item as `ProductSummary & Partial<ProductDetailOnly>` and leave unloaded fields
 `undefined`. Load reviews and related items in a child component with its own `<Suspense>`.
 
-## Actions
+## Actions and decorators
 
 Decorate actions instead of copying guards, toasts, and concurrency checks into each method:
 
@@ -136,14 +139,6 @@ const toastError = (error: unknown) => toast.error(error instanceof Error ? erro
 export const productActions = action<ProductActions, AppContext>(({ state }) => {
   class ProductActions {
     private model = state(product)
-
-    setPage(page: number) {
-      this.model.page = page
-    }
-
-    open(item: Product) {
-      this.model.detail.set(item, { arg: item.id })
-    }
 
     @RequireLogin
     @OnError(toastError)
@@ -182,7 +177,7 @@ export const productActions = action<ProductActions, AppContext>(({ state }) => 
   `@Log`, `@Validate`. Decorators run outer to inner.
 - Read other domains with `state(model)` inside the action, not as arguments.
 
-### Custom decorators with `intercept`
+## Custom decorators with `intercept`
 
 ```ts
 // state/user/decorators.ts
@@ -213,19 +208,6 @@ useUser.hydrate({ me: { data: initialUser } }) // service-root client adapter on
 
 Elsewhere read `s.me.data`. Load profile or member tables with their own query once `me` is known.
 
-## Create and use a domain hook
-
-```ts
-export const useProduct = create<ProductState, ProductActions>(product, { actions: [productActions] })
-```
-
-```tsx
-const product = useProduct((s) => ({ detail: s.detail.suspend(id), actions: s.actions }))
-return <button onClick={() => product.actions.like(id)}>Like</button>
-```
-
-Always pass a selector and select `actions` whole. Do not pick single action methods.
-
 ## Other features
 
 - Derived state: `computed()` or model `derive` getters.
@@ -238,6 +220,7 @@ Always pass a selector and select `actions` whole. Do not pick single action met
 
 - Screen data uses `.suspend()` inside `<Suspense>` with a shaped skeleton; `.load()` only for
   client-only reads.
+- Paginated queries use `keepPreviousData`; the page lives in the model and changes through an action.
 - Cards seed the detail with one action; unloaded fields are `undefined`.
 - Guards, error toasts, and concurrency are decorators (`@RequireLogin`, `@Authorized`, `@OnError`,
   `@Queue`), not repeated `if` blocks.

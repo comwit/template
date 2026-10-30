@@ -170,37 +170,34 @@ return product.products.data.items.map((p) => <Card key={p.id} product={p} />)
 ```
 
 `isFetching` is `true` while a background request (refetch after a cached
-paint) is in flight. It keeps the existing data on screen — never swap the
-content for a skeleton because of it. For pagination and filters use a
-transition and dim the list with `isPending`. An arg in React state lets the
-transition hold the old list; an arg in the model survives navigation instead
-but may show the skeleton on change (`state.ai.md` → Server rendering):
+paint, or a new page) is in flight. It keeps the existing data on screen —
+never swap the content for a skeleton because of it. For pagination and
+filters keep the arg in the model, change it with an action, and give the
+query `placeholderData: keepPreviousData` (`state.ai.md` → Pagination):
 
 ```tsx
 function ProductList() {
-  const [page, setPage] = useState(1);
-  const [isPending, startTransition] = useTransition();
   const product = useProduct((state) => ({
-    products: state.products.suspend({ page }),
+    products: state.products.suspend({ page: state.page }),
     actions: state.actions,
   }));
 
   return (
     <>
-      <ul aria-busy={isPending} className={cn(isPending && "opacity-60")}>
+      <ul aria-busy={product.products.isFetching} className={cn(product.products.isFetching && "opacity-60")}>
         {product.products.data.items.map((p) => <Card key={p.id} product={p} />)}
       </ul>
       <Pagination
         currentPage={product.products.data.page}
         totalPages={product.products.data.totalPages}
-        onPageChange={(next) => startTransition(() => setPage(next))}
+        onPageChange={product.actions.setPage}
       />
     </>
   )
 }
 ```
 
-> `.suspend()` first load → Suspense fallback · revisit with cache → paints at once, `isFetching` in the background · arg change in React state + transition → keeps the old data
+> `.suspend()` first load → Suspense fallback · revisit with cache → paints at once, `isFetching` in the background · arg change with `keepPreviousData` → keeps the old data, `isFetching` until the new page arrives
 
 ## Lists — static shell, list in its own boundary
 
