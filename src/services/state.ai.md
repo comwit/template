@@ -28,10 +28,12 @@ import type { Query } from '@comwit/state'
 export type ProductState = {
   products: Query<Pageable<Product>, { page: number }>
   detail: Query<Product | null, string>
+  page: number
   selectedIds: string[]
 }
 
 export type ProductActions = {
+  setPage(page: number): void
   open(item: Product): void
   like(id: string): Promise<void>
   remove(id: string): Promise<void>
@@ -52,6 +54,7 @@ export const product = model<ProductState>({
     initialData: null,
     queryFn: (id) => api.product.findById(id),
   }),
+  page: 1,
   selectedIds: [],
 })
 ```
@@ -85,15 +88,19 @@ const cached = useProduct((s) => s.products)
 'use client'
 
 function ProductList() {
-  const [page, setPage] = useState(1)
-  const [isPending, startTransition] = useTransition()
-  const product = useProduct((s) => ({ products: s.products.suspend({ page }), actions: s.actions }))
-  return <Grid items={product.products.data.items} dimmed={isPending} onPage={(next) => startTransition(() => setPage(next))} />
+  const product = useProduct((s) => ({ products: s.products.suspend({ page: s.page }), actions: s.actions }))
+  return <Grid items={product.products.data.items} onPage={product.actions.setPage} />
 }
 ```
 
-- The fallback is a skeleton shaped like the content. Titles and fixed copy stay outside the boundary.
-- A failed first load goes to `error.tsx`; decide 404 with `notFound()` in the Server Component.
+```ts
+// actions — a new arg loads its own cache entry
+setPage(page: number) {
+  this.model.page = page
+}
+```
+
+- The fallback is a skeleton shaped like the content.
 - Do not start an initial load from `useEffect`.
 
 ### Detail seed
@@ -129,6 +136,10 @@ const toastError = (error: unknown) => toast.error(error instanceof Error ? erro
 export const productActions = action<ProductActions, AppContext>(({ state }) => {
   class ProductActions {
     private model = state(product)
+
+    setPage(page: number) {
+      this.model.page = page
+    }
 
     open(item: Product) {
       this.model.detail.set(item, { arg: item.id })
