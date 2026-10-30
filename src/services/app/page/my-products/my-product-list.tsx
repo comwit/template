@@ -6,7 +6,6 @@ import { siteText, courseText } from "@/lib/ui-text";
 import { Pager } from "@/lib/components/ui/pager";
 import { EmptyState } from "@/lib/components/ui/empty-state";
 import { Button } from "@/lib/components/ui/button";
-import { cn } from "@/lib/utils/cn";
 
 // 읽는 상태: usePurchases list(.suspend({ page })), isSaving. 로그인 필요 — 거부되면 (app)/account/error.tsx.
 // 파일마다 "다운로드" → actions.downloadLink(fileId) 가 짧게 사는 주소를 받아 새 탭으로 연다(호출마다 횟수 차감).
@@ -40,7 +39,7 @@ export function MyProductList() {
       ) : (
         <ul
           aria-busy={list.isFetching}
-          className={cn("mt-8 flex flex-col gap-6", list.isFetching && "opacity-60")}>
+          className="mt-8 flex flex-col gap-6">
           {list.data.items.map((purchase) => (
             <li key={purchase.id}>
               <p className="text-title-md">{purchase.productTitle}</p>

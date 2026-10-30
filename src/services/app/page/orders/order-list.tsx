@@ -5,7 +5,6 @@ import { useOrders } from "@/services/app/state/orders";
 import { siteText, courseText } from "@/lib/ui-text";
 import { Pager } from "@/lib/components/ui/pager";
 import { EmptyState } from "@/lib/components/ui/empty-state";
-import { cn } from "@/lib/utils/cn";
 
 // 읽는 상태: useOrders list(.suspend({ page })). 로그인 필요 — 거부되면 (app)/account/error.tsx. 돌아오면 캐시로 바로.
 
@@ -29,7 +28,7 @@ export function OrderList() {
       ) : (
         <ul
           aria-busy={list.isFetching}
-          className={cn("mt-8 flex flex-col gap-4", list.isFetching && "opacity-60")}>
+          className="mt-8 flex flex-col gap-4">
           {list.data.items.map((order) => (
             <li key={order.id}>
               <Link href={`/account/orders/${order.id}`} className="block">
