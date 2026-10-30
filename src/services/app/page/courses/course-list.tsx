@@ -20,7 +20,8 @@ import { cn } from "@/lib/utils/cn";
 // 읽는 상태: useCatalog list(.suspend — 필터·페이지는 모델의 filter/page), categories(.suspend).
 // 둘 다 `.suspend()` 라 직접 진입·봇은 같은 요청에서 SSR 된 목록을 받는다(SEO). 다른 화면에 갔다가 돌아오면
 // 같은 인자의 캐시가 있어 기다리지 않고 바로 그리고, 커밋 뒤 백그라운드로 다시 받는다.
-// 필터·페이지 변경은 transition 안에서 바꿔 새 목록이 올 때까지 지금 목록을 흐리게 유지한다(스켈레톤으로 돌아가지 않음).
+// 필터·페이지는 모델에 있어 다른 화면에 갔다 와도 그대로다(같은 인자 캐시로 바로 그림). 변경은 transition 안에서 하지만
+// 모델 값은 useSyncExternalStore 로 읽혀 동기 렌더되므로 새 목록이 올 때까지 스켈레톤이 보일 수 있다(state.ai.md).
 // 카드 클릭 시 actions.open(course) 로 상세 리소스를 목록 항목으로 채운다 → 인터셉트 라우트가 바로 그린다.
 const ALL = "all";
 const SORTS = [
