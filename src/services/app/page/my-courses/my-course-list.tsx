@@ -6,7 +6,6 @@ import { siteText, courseText } from "@/lib/ui-text";
 import { Pager } from "@/lib/components/ui/pager";
 import { EmptyState } from "@/lib/components/ui/empty-state";
 import { Button } from "@/lib/components/ui/button";
-import { cn } from "@/lib/utils/cn";
 
 // 읽는 상태: useEnrollments list(.suspend({ page })). 로그인 필요 — 세션이 없으면 API 가 거부하고 .suspend() 가 던져
 // (app)/account/error.tsx 가 로그인 안내를 그린다. 돌아오면 캐시로 바로, 페이지 변경은 keepPreviousData 로 지금 목록 유지.
@@ -39,7 +38,7 @@ export function MyCourseList() {
       ) : (
         <ul
           aria-busy={list.isFetching}
-          className={cn("mt-8 flex flex-col gap-4", list.isFetching && "opacity-60")}>
+          className="mt-8 flex flex-col gap-4">
           {list.data.items.map((enrollment) => (
             <li key={enrollment.id}>
               <p className="text-title-md">{enrollment.courseTitle}</p>
