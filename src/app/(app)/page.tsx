@@ -1,25 +1,19 @@
 import { Suspense } from "react";
-import { connection } from "next/server";
 import Home, {
   NewArrivals,
   NewArrivalsSkeleton,
 } from "@/services/app/page/home";
 
-// 셸(제목·섹션 제목)은 정적, 새 상품 섹션만 connection() 아래에서 `.suspend()` SSR(SEO).
-// fallback 은 같은 격자의 카드 뼈대라 섹션이 들어와도 화면이 밀리지 않는다.
+// 셸(제목·섹션 제목)은 정적, 새 상품 섹션은 자기 Suspense(카드 격자 뼈대) 안에서 `.suspend()` 한다.
+// 직접 진입은 서비스 레이아웃 아래라 요청 시점에 SSR 되고(SEO), 앱 안에서 돌아오면 캐시로 바로 그린다(page.ai.md → Lists).
 export default function Page() {
   return (
     <Home
       newArrivals={
         <Suspense fallback={<NewArrivalsSkeleton />}>
-          <NewArrivalsRoute />
+          <NewArrivals />
         </Suspense>
       }
     />
   );
-}
-
-async function NewArrivalsRoute() {
-  await connection();
-  return <NewArrivals />;
 }
