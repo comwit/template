@@ -222,16 +222,7 @@ export default function Page() {
 }
 ```
 
-- **No `await connection()` around the list.** Pages under the service layout
-  already render at request time on a direct visit, because the layout awaits
-  the session below its `<Suspense>`; the list's `.suspend()` runs there and
-  the HTML contains the list (SEO). Without a request-time API in the page
-  itself, the page's RSC payload is static and comes with the prefetched shell,
-  so returning by link paints from the query cache with no server round trip.
-  A `connection()` (or any request-time API) in the page makes every link
-  navigation fetch the page's RSC again and show the skeleton meanwhile.
-- A page outside a request-time layout boundary would freeze the skeleton at
-  build time; add `await connection()` only there.
+- Pages under the service layout SSR the list on direct visits (SEO), and in-app revisits paint from the query cache.
 - The shell renders `children` where the list goes; it reads no query.
 - The skeleton mirrors the list's own blocks (filter row, card rows) with the same classes for spacing, and reads no state.
 - List cards call the detail action before navigating (`onClick={() => actions.open(item)}`) so the detail opens from that seed.
