@@ -3,7 +3,7 @@
 import { Skeleton } from "@/lib/components/ui/skeleton";
 
 /**
- * 목록 Suspense 구멍의 fallback. CourseList 와 같은 자리·크기(필터 줄 + 카드 줄)로 그려
+ * 목록 Suspense 경계의 fallback. CourseList 와 같은 자리·크기(필터 줄 + 카드 줄)로 그려
  * 목록이 들어와도 화면이 밀리지 않게 한다. state·캐시를 읽지 않는 순수 UI(page.ai.md).
  * 제목 등 데이터가 없는 부분은 셸(Courses)에 있으므로 여기서 다시 그리지 않는다.
  */
