@@ -10,7 +10,7 @@ import { Button } from "@/lib/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 
 // 읽는 상태: useEnrollments list(.suspend({ page })). 로그인 필요 — 세션이 없으면 API 가 거부하고 .suspend() 가 던져
-// (app)/account/error.tsx 가 로그인 안내를 그린다. 돌아오면 캐시로 바로, 페이지 변경은 transition.
+// (app)/account/error.tsx 가 로그인 안내를 그린다. 돌아오면 캐시로 바로, 페이지 변경은 transition(스켈레톤이 보일 수 있음).
 
 export function MyCourseList() {
   const [pending, startTransition] = useTransition();
