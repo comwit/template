@@ -9,9 +9,12 @@
 //   - webp 로 인코딩, 미지원 브라우저는 jpeg 폴백
 // 일반적인 폰 사진(≤12~16MP) 기준 안전하다. 사용법은 storage 업로드 코드 주석 참고.
 
+import type { CSSProperties } from "react";
+
 /**
  * DB image 칼럼에 저장하는 표준 형태. 여러 장은 ImageAsset[] 로.
- * `thumb` 는 같은 비율의 480px 썸네일 URL(선택). 목록·카드는 `image.thumb ?? image.url`, 상세·갤러리는 `url` 을 쓴다.
+ * `thumb` 는 같은 비율의 480px 썸네일 URL(선택). 목록·카드는 `image.thumb ?? image.url`, 상세·갤러리는 `url` 에
+ * `style={thumbBackground(image)}` 를 함께 넘긴다 — 본 이미지가 올 때까지 목록에서 이미 받은 thumb 가 보인다.
  * width/height 는 본 이미지 기준이고 비율이 같으므로 썸네일 <img> 에도 그대로 넘긴다.
  */
 export type ImageAsset = {
@@ -20,6 +23,19 @@ export type ImageAsset = {
   height: number;
   thumb?: string;
 };
+
+/**
+ * 상세처럼 큰 자리 `<img src={image.url}>` 의 style. 카드에서 이미 받은 `thumb` 를 배경으로 깔아,
+ * 카드 → 상세 이동(시드) 때 본 이미지가 내려오기 전에도 썸네일이 바로 보인다.
+ */
+export function thumbBackground(image: ImageAsset): CSSProperties | undefined {
+  if (!image.thumb) return undefined;
+  return {
+    backgroundImage: `url("${image.thumb}")`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+  };
+}
 
 /** 본 이미지 긴 변(px). 서버 시드(scripts/seed/images.ts)와 같은 값. */
 export const IMAGE_EDGE = 1600;
