@@ -1,6 +1,5 @@
 "use client";
 
-import { useTransition } from "react";
 import Link from "next/link";
 import { useCatalog } from "@/services/app/state/catalog";
 import type { ProductFilter } from "@/lib/course";
@@ -18,7 +17,7 @@ import { EmptyState } from "@/lib/components/ui/empty-state";
 import { cn } from "@/lib/utils/cn";
 
 // 읽는 상태: useCatalog products(.suspend — 필터·페이지는 모델의 productFilter/productPage), categories(.suspend).
-// CourseList 와 같은 규칙: 직접 진입은 SSR, 다시 돌아오면 캐시로 바로, 필터·페이지 변경은 transition(스켈레톤이 보일 수 있음).
+// CourseList 와 같은 규칙: 직접 진입은 SSR, 다시 돌아오면 캐시로 바로, 필터·페이지 변경은 keepPreviousData 로 지금 목록 유지.
 // 카드 클릭 시 actions.openProduct(product) 로 상세 리소스를 목록 항목으로 채운다 → 인터셉트 라우트가 바로 그린다.
 const ALL = "all";
 const KINDS = [
@@ -33,7 +32,6 @@ const SORTS = [
 ] as const;
 
 export function ProductList() {
-  const [pending, startTransition] = useTransition();
   const catalog = useCatalog((state) => ({
     list: state.products.suspend({
       filter: state.productFilter,
@@ -45,7 +43,7 @@ export function ProductList() {
   }));
   const list = catalog.list;
   const change = (filter: Partial<ProductFilter>) =>
-    startTransition(() => catalog.actions.setProductFilter(filter));
+    catalog.actions.setProductFilter(filter);
 
   return (
     <>
@@ -129,8 +127,8 @@ export function ProductList() {
         <EmptyState className="mt-8" title={courseText.empty} />
       ) : (
         <ul
-          aria-busy={pending}
-          className={cn("mt-8 flex flex-col gap-4", pending && "opacity-60")}>
+          aria-busy={list.isFetching}
+          className={cn("mt-8 flex flex-col gap-4", list.isFetching && "opacity-60")}>
           {list.data.items.map((product) => (
             <li key={product.id}>
               <Link
@@ -173,7 +171,7 @@ export function ProductList() {
       <Pager
         page={list.data.page}
         totalPages={list.data.totalPages}
-        onChange={(page) => startTransition(() => catalog.actions.setProductPage(page))}
+        onChange={(page) => catalog.actions.setProductPage(page)}
       />
     </>
   );
