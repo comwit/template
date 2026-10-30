@@ -1,19 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState, useTransition } from "react";
 import { useCatalog } from "@/services/app/state/catalog";
 import { courseText } from "@/lib/ui-text";
 import { Pager } from "@/lib/components/ui/pager";
+import { Skeleton } from "@/lib/components/ui/skeleton";
+import { cn } from "@/lib/utils/cn";
 
-// 읽는 상태: useCatalog reviews(.load({ courseId, page })). 상세 본문을 막지 않도록 별도 query 로 지연 로드한다.
+// 수강평은 상세 본문과 다른 query 라 자기 Suspense 경계 안에서 `.suspend()` 한다 — 본문(detail)을 막지 않는다.
+// 직접 진입은 같은 요청에서 SSR, 카드로 들어오면 본문이 먼저 그려지고 이 섹션만 뼈대 뒤 클라에서 받는다.
 export function ReviewsSection({ courseId }: { courseId: string }) {
+  return (
+    <section className="mt-10">
+      <Suspense fallback={<ReviewsBones />}>
+        <ReviewList courseId={courseId} />
+      </Suspense>
+    </section>
+  );
+}
+
+// 읽는 상태: useCatalog reviews(.suspend({ courseId, page })). 페이지 변경은 transition 으로 지금 목록 유지.
+function ReviewList({ courseId }: { courseId: string }) {
   const [page, setPage] = useState(1);
+  const [pending, startTransition] = useTransition();
   const catalog = useCatalog((state) => ({
-    reviews: state.reviews.load({ courseId, page }),
+    reviews: state.reviews.suspend({ courseId, page }),
   }));
   const reviews = catalog.reviews;
   return (
-    <section className="mt-10">
+    <>
       <h2 className="text-title-lg">
         {courseText.reviews}
         <span className="ml-2 text-body-sm text-muted-foreground">
@@ -21,19 +36,16 @@ export function ReviewsSection({ courseId }: { courseId: string }) {
         </span>
       </h2>
       {reviews.isError ? (
-        <p className="mt-2 text-body-sm text-destructive">
-          {reviews.error}
-        </p>
-      ) : reviews.isLoading ? (
-        <p className="mt-2 text-body-sm text-muted-foreground">
-          {courseText.loading}
-        </p>
+        <p className="mt-2 text-body-sm text-destructive">{reviews.error}</p>
       ) : reviews.data.items.length === 0 ? (
         <p className="mt-2 text-body-sm text-muted-foreground">
           {courseText.empty}
         </p>
       ) : (
-        <ul className="mt-2 flex flex-col gap-3">
+        <ul
+          aria-busy={pending}
+          className={cn("mt-2 flex flex-col gap-3", pending && "opacity-60")}
+        >
           {reviews.data.items.map((review) => (
             <li key={review.id}>
               <p className="text-body-sm text-muted-foreground">
@@ -53,8 +65,24 @@ export function ReviewsSection({ courseId }: { courseId: string }) {
       <Pager
         page={reviews.data.page}
         totalPages={reviews.data.totalPages}
-        onChange={setPage}
+        onChange={(next) => startTransition(() => setPage(next))}
       />
-    </section>
+    </>
+  );
+}
+
+function ReviewsBones() {
+  return (
+    <div aria-busy="true">
+      <h2 className="text-title-lg">{courseText.reviews}</h2>
+      <div className="mt-2 space-y-3">
+        {Array.from({ length: 3 }, (_, index) => (
+          <div key={index} className="space-y-1">
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-4 w-full" />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

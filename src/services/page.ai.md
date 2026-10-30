@@ -229,6 +229,10 @@ export default function Page() {
 - List cards call the detail action before navigating (`onClick={() => actions.open(item)}`) so the detail opens from that seed.
 - Lists do not get an intercepting route — they load on entry anyway. Only details are intercepted.
 
+Course reference: `src/app/(app)/courses/page.tsx` + `page/courses/` (`Courses` shell,
+`CourseList`, `CourseListSkeleton`); products, notices and the account lists follow
+the same split.
+
 ## Detail Pages — one view, one resource, three entries
 
 Public detail pages need SSR for SEO **and** must open instantly from a card.
@@ -273,9 +277,15 @@ export default function PostDetail({ postId }: { postId: string }) {
 - The view sets `document.title` itself because the intercepting route has no metadata. Re-apply it when `<head>` changes (a `MutationObserver` on `document.head`), since Next may insert the layout title after the effect runs.
 - Do not wrap `Link` in a custom component for this; the `onClick` → single action is the normal handler rule.
 
+Course reference: `courses/[id]` + `(.)courses/[id]` with `page/course-detail/`, and
+`products/[id]` + `(.)products/[id]` with `page/product-detail/`. The resources are
+`CourseDetail` / `ProductDetail` in `@/lib/course` (list item + optional detail-only
+fields); `actions.open(course)` / `actions.openProduct(product)` seed them. Reviews
+are a separate `reviews` query in their own section.
+
 ### Pages behind login
 
 Account pages (orders, purchases) also read with `.suspend()` inside their own
 `<Suspense>`; the service layout renders them with the session on the server. A first-load rejection (signed out) throws to the segment's
-`error.tsx`, which offers the login link. Use `.load()` only for client-driven
+`error.tsx`, which offers the login link (`src/app/(app)/account/error.tsx`). Use `.load()` only for client-driven
 reads such as a quote that changes with user input.
