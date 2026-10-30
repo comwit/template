@@ -15,7 +15,8 @@ export { ProductNotFound } from "./not-found";
 //   - 카드 소프트 내비: `(.)products/[id]` 인터셉트 라우트. 카드의 `actions.open(product)` 이 채운 캐시를 그대로 그린다
 //     (스켈레톤 없음, 커밋 뒤 백그라운드 재조회로 재고 갱신).
 //   - 캐시 없는 소프트 내비(장바구니 → 상품): 클라에서 기다리는 동안 스켈레톤.
-// 상세에만 있는 데이터(관련 상품·리뷰 등)는 별도 query 의 `.load()` 로 지연 로드한다.
+// 상세에만 있는 데이터(관련 상품·리뷰 등)는 별도 query 를 자식 컴포넌트의 자기 Suspense 경계 안에서 `.suspend()` 한다
+// (섹션 뼈대 fallback) — 상세 본문 선택자에는 detail 만 `.suspend()` 한다.
 export default function ProductDetail({ productId }: { productId: string }) {
   const catalog = useCatalog((state) => ({
     detail: state.detail.suspend(productId),
