@@ -229,6 +229,10 @@ export default function Page() {
 - The skeleton mirrors the list's own blocks (filter row, card rows) with the same classes for spacing, and reads no state.
 - List cards are plain `<Link>`s to the canonical detail URL; the detail query's `seed` derives its first paint from this list (`state.ai.md` → Detail seed). No `onClick` action.
 
+Course reference: `src/app/(app)/courses/page.tsx` + `page/courses/` (`Courses` shell,
+`CourseList`, `CourseListSkeleton`); products, notices and the account lists follow
+the same split.
+
 ## Detail Pages — one route, one view, one resource
 
 Public detail pages need SSR for SEO **and** must open instantly from a card.
@@ -278,8 +282,18 @@ export default function PostDetail({ postId }: { postId: string }) {
 - Not-found is `data === null` from the query (`queryFn` resolves `null`), rendered by the view. A failed upgrade keeps the seeded content with `isError`; without data, the segment's `error.tsx` covers a failed first load.
 - The route's Suspense fallback is the detail skeleton, never `null`.
 
+Course reference: `courses/[id]` with `page/course-detail/` and `products/[id]` with
+`page/product-detail/`. The catalog model's `detail` and `product` queries declare `seed`
+from its `list` and `products` queries (`CourseSummary` / `ProductSummary` → `CourseView` /
+`ProductView`); the views branch on `isPartial`. Reviews are a separate `reviews` query
+in their own section.
+
 ### Pages behind login
 
 Account pages (orders, purchases) do not need SEO, so they may read with `.load()` and show their
 skeleton while `isLoading`; handle a signed-out result with the login link. Client-driven reads such
 as a quote that changes with user input also use `.load()`.
+
+Course reference: the account lists read with `.suspend()` inside their own `<Suspense>`; the
+service layout renders them with the session on the server, and a signed-out first load throws to
+`src/app/(app)/account/error.tsx`, which offers the login link.
