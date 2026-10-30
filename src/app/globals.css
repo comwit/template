@@ -12,3 +12,16 @@
 
    Put global element rules (button, h1, etc.) in @layer base. Unlayered rules
    override Tailwind utilities and silently alter press states, focus rings, and fonts. */
+
+@layer base {
+  /* Always reserve the page scrollbar's space so layouts keep the same width whether or
+     not the page scrolls. Dialog scroll locks (react-remove-scroll) add a margin equal to
+     the scrollbar width; the gutter already holds that space, so cancel the margin.
+     A layered !important beats the library's unlayered !important. */
+  html {
+    scrollbar-gutter: stable;
+  }
+  html body[data-scroll-locked] {
+    margin-right: 0 !important;
+  }
+}
