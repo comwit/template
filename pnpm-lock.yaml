@@ -15,8 +15,8 @@ importers:
         specifier: 0.1.11
         version: 0.1.11(patch_hash=19e35b4a2919c724343ab060b996a96ff121a47752e3bdb8ae9d94027b23a6eb)(next@16.4.3(@babel/core@8.0.1)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
       '@comwit/state':
-        specifier: 2.5.1
-        version: 2.5.1(react@19.2.4)
+        specifier: 2.5.2
+        version: 2.5.2(react@19.2.4)
       '@comwit/ui':
         specifier: 0.6.0
         version: 0.6.0(@floating-ui/dom@1.7.6)(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/extensions@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6))(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -384,8 +384,8 @@ packages:
     peerDependencies:
       next: ^16.2
 
-  '@comwit/state@2.5.1':
-    resolution: {integrity: sha512-puh3saTVMNcPygcN5TkLkMPkTNcKP8SU3MDN3XXrZoerXrc5CDISl+DVuW/9/e7Ua8rT7nxPihQ60gyA6J5V9A==}
+  '@comwit/state@2.5.2':
+    resolution: {integrity: sha512-Dlw8YUvO6qFqUWQcvkjz+Zlxgp2HtfyprM8FGCh2DhwtV40ghWYkK6bpbQ08CsY7LvUxuy8kXU/DiHFO2NjTrA==}
     engines: {node: '>=18'}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
@@ -4610,7 +4610,7 @@ snapshots:
       esbuild: 0.25.12
       next: 16.4.3(@babel/core@8.0.1)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
 
-  '@comwit/state@2.5.1(react@19.2.4)':
+  '@comwit/state@2.5.2(react@19.2.4)':
     dependencies:
       es-toolkit: 1.46.1
       react: 19.2.4
