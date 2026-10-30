@@ -1,6 +1,5 @@
 "use client";
 
-import { useTransition } from "react";
 import Link from "next/link";
 import { useContent } from "@/services/app/state/content";
 import { courseText } from "@/lib/ui-text";
@@ -8,10 +7,9 @@ import { Pager } from "@/lib/components/ui/pager";
 import { EmptyState } from "@/lib/components/ui/empty-state";
 import { cn } from "@/lib/utils/cn";
 
-// 읽는 상태: useContent notices(.suspend({ page })). 공개 목록이라 SSR(SEO), 돌아오면 캐시로 바로, 페이지 변경은 transition(스켈레톤이 보일 수 있음).
+// 읽는 상태: useContent notices(.suspend({ page })). 공개 목록이라 SSR(SEO), 돌아오면 캐시로 바로, 페이지 변경은 keepPreviousData 로 지금 목록 유지.
 
 export function NoticeList() {
-  const [pending, startTransition] = useTransition();
   const content = useContent((state) => ({
     notices: state.notices.suspend({ page: state.page }),
     actions: state.actions,
@@ -25,8 +23,8 @@ export function NoticeList() {
         <EmptyState className="mt-8" title={courseText.empty} />
       ) : (
         <ul
-          aria-busy={pending}
-          className={cn("mt-8 flex flex-col gap-3", pending && "opacity-60")}>
+          aria-busy={list.isFetching}
+          className={cn("mt-8 flex flex-col gap-3", list.isFetching && "opacity-60")}>
           {list.data.items.map((notice) => (
             <li key={notice.id}>
               <Link href={`/notices/${notice.id}`} className="block">
@@ -45,7 +43,7 @@ export function NoticeList() {
       <Pager
         page={list.data.page}
         totalPages={list.data.totalPages}
-        onChange={(page) => startTransition(() => content.actions.setPage(page))}
+        onChange={(page) => content.actions.setPage(page)}
       />
     </>
   );

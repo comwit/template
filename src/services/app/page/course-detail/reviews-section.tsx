@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useTransition } from "react";
+import { Suspense, useState } from "react";
 import { useCatalog } from "@/services/app/state/catalog";
 import { courseText } from "@/lib/ui-text";
 import { Pager } from "@/lib/components/ui/pager";
@@ -19,10 +19,9 @@ export function ReviewsSection({ courseId }: { courseId: string }) {
   );
 }
 
-// 읽는 상태: useCatalog reviews(.suspend({ courseId, page })). 페이지 변경은 transition 으로 지금 목록 유지.
+// 읽는 상태: useCatalog reviews(.suspend({ courseId, page })). 페이지는 이 상세 화면 안의 상태이고, 바꾸면 keepPreviousData 로 지금 목록을 유지한다.
 function ReviewList({ courseId }: { courseId: string }) {
   const [page, setPage] = useState(1);
-  const [pending, startTransition] = useTransition();
   const catalog = useCatalog((state) => ({
     reviews: state.reviews.suspend({ courseId, page }),
   }));
@@ -43,8 +42,8 @@ function ReviewList({ courseId }: { courseId: string }) {
         </p>
       ) : (
         <ul
-          aria-busy={pending}
-          className={cn("mt-2 flex flex-col gap-3", pending && "opacity-60")}
+          aria-busy={reviews.isFetching}
+          className={cn("mt-2 flex flex-col gap-3", reviews.isFetching && "opacity-60")}
         >
           {reviews.data.items.map((review) => (
             <li key={review.id}>
@@ -65,7 +64,7 @@ function ReviewList({ courseId }: { courseId: string }) {
       <Pager
         page={reviews.data.page}
         totalPages={reviews.data.totalPages}
-        onChange={(next) => startTransition(() => setPage(next))}
+        onChange={(next) => setPage(next)}
       />
     </>
   );

@@ -1,6 +1,5 @@
 "use client";
 
-import { useTransition } from "react";
 import Link from "next/link";
 import { useEnrollments } from "@/services/app/state/enrollments";
 import { siteText, courseText } from "@/lib/ui-text";
@@ -10,10 +9,9 @@ import { Button } from "@/lib/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 
 // 읽는 상태: useEnrollments list(.suspend({ page })). 로그인 필요 — 세션이 없으면 API 가 거부하고 .suspend() 가 던져
-// (app)/account/error.tsx 가 로그인 안내를 그린다. 돌아오면 캐시로 바로, 페이지 변경은 transition(스켈레톤이 보일 수 있음).
+// (app)/account/error.tsx 가 로그인 안내를 그린다. 돌아오면 캐시로 바로, 페이지 변경은 keepPreviousData 로 지금 목록 유지.
 
 export function MyCourseList() {
-  const [pending, startTransition] = useTransition();
   const enrollments = useEnrollments((state) => ({
     list: state.list.suspend({ page: state.page }),
     actions: state.actions,
@@ -40,8 +38,8 @@ export function MyCourseList() {
         />
       ) : (
         <ul
-          aria-busy={pending}
-          className={cn("mt-8 flex flex-col gap-4", pending && "opacity-60")}>
+          aria-busy={list.isFetching}
+          className={cn("mt-8 flex flex-col gap-4", list.isFetching && "opacity-60")}>
           {list.data.items.map((enrollment) => (
             <li key={enrollment.id}>
               <p className="text-title-md">{enrollment.courseTitle}</p>
@@ -73,7 +71,7 @@ export function MyCourseList() {
       <Pager
         page={list.data.page}
         totalPages={list.data.totalPages}
-        onChange={(page) => startTransition(() => enrollments.actions.setPage(page))}
+        onChange={(page) => enrollments.actions.setPage(page)}
       />
     </>
   );
