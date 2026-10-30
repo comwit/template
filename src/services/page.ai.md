@@ -170,8 +170,8 @@ return product.products.data.items.map((p) => <Card key={p.id} product={p} />)
 ```
 
 `isFetching` is `true` while a background request (refetch after a cached
-paint, or a new page) is in flight. It keeps the existing data on screen —
-never swap the content for a skeleton because of it. For pagination and
+paint, or a new page) is in flight. The existing data stays on screen as it
+is — no skeleton and no dimming. For pagination and
 filters keep the arg in the model, change it with an action, and give the
 query `placeholderData: keepPreviousData` (`state.ai.md` → Pagination):
 
@@ -184,7 +184,7 @@ function ProductList() {
 
   return (
     <>
-      <ul aria-busy={product.products.isFetching} className={cn(product.products.isFetching && "opacity-60")}>
+      <ul aria-busy={product.products.isFetching}>
         {product.products.data.items.map((p) => <Card key={p.id} product={p} />)}
       </ul>
       <Pagination

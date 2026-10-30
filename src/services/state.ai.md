@@ -101,7 +101,7 @@ function ProductList() {
 }
 ```
 
-A new page keeps the current list on screen with `isFetching: true` instead of showing the skeleton.
+A new page keeps the current list on screen unchanged (`isFetching: true`) instead of showing the skeleton. Do not dim it.
 
 ## Detail seed
 
