@@ -229,6 +229,10 @@ export default function Page() {
 - The skeleton mirrors the list's own blocks (filter row, card rows) with the same classes for spacing, and reads no state.
 - List cards are plain `<Link>`s to the canonical detail URL; the detail query's `seed` derives its first paint from this list (`state.ai.md` → Detail seed). No `onClick` action.
 
+Shop reference: `src/app/(app)/products/page.tsx` + `page/products/` (`Products` shell,
+`ProductList`, `ProductListSkeleton`) and the home's new-arrivals section
+(`src/app/(app)/page.tsx` + `page/home/`). Cards are `services/app/_components/product-card.tsx`.
+
 ## Detail Pages — one route, one view, one resource
 
 Public detail pages need SSR for SEO **and** must open instantly from a card.
@@ -277,6 +281,11 @@ export default function PostDetail({ postId }: { postId: string }) {
 - Only `detail` may `.suspend()` in the view's own selector. Any other `.suspend()` there blocks the whole page whenever its cache is empty. Read it in a child component behind its own `<Suspense>` with a bone fallback so the body paints first.
 - Not-found is `data === null` from the query (`queryFn` resolves `null`), rendered by the view. A failed upgrade keeps the seeded content with `isError`; without data, the segment's `error.tsx` covers a failed first load.
 - The route's Suspense fallback is the detail skeleton, never `null`.
+
+Shop reference: `src/app/(app)/products/[id]/page.tsx` + `page/product-detail/`; the catalog
+`detail` query declares `seed` from `list` in `state/catalog/model.ts`. The list item is the whole
+`ProductView` (`findAll` and `find` share `presentProduct`), so a seeded detail paints complete and
+the upgrade only refreshes stock.
 
 ### Pages behind login
 
