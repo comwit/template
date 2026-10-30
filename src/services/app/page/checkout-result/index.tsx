@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useOrders } from "@/services/app/state/orders";
 import { siteText, courseText } from "@/lib/ui-text";
+import { Skeleton } from "@/lib/components/ui/skeleton";
 
 // 빈 깡통. 파생 프로젝트에서 섹션 파일로 나눠 채운다(page.ai.md).
 // 토스 successUrl/failUrl 핸들러가 `?payment=success|review|failed&order=<id>` 로 보낸다(server/course/handlers.ts).
@@ -20,7 +21,7 @@ export default function CheckoutResult() {
       <h1 className="text-display-sm text-balance">
         {siteText.pages["checkout-result"]}
       </h1>
-      <Suspense fallback={null}>
+      <Suspense fallback={<ResultBones />}>
         <ResultBody />
       </Suspense>
     </main>
@@ -48,9 +49,7 @@ function ResultBody() {
             {orders.detail.error}
           </p>
         ) : orders.detail.isLoading || !order ? (
-          <p className="mt-4 text-body-sm text-muted-foreground">
-            {courseText.loading}
-          </p>
+          <ResultBones />
         ) : (
           <section className="mt-4">
             <p className="text-body-sm text-muted-foreground">
@@ -87,5 +86,16 @@ function ResultBody() {
         </Link>
       </p>
     </>
+  );
+}
+
+/** 결과 본문 뼈대 — 쿼리스트링을 읽는 동안과 주문을 처음 받는 동안 같은 자리를 잡는다. */
+function ResultBones() {
+  return (
+    <div aria-busy="true" className="mt-4 space-y-2">
+      <Skeleton className="h-5 w-1/2" />
+      <Skeleton className="h-5 w-1/3" />
+      <Skeleton className="mt-4 h-9 w-36" />
+    </div>
   );
 }

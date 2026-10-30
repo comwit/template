@@ -1,18 +1,22 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { useCatalog } from "@/services/app/state/catalog";
 import { siteText } from "@/lib/ui-text";
 import { Button } from "@/lib/components/ui/button";
 import { ProductNotFound } from "./not-found";
+import { ProductActionBones, ProductSectionBones } from "./skeleton";
 
 export { ProductDetailSkeleton } from "./skeleton";
 export { ProductNotFound } from "./not-found";
 
 // 빈 깡통. 파생 프로젝트에서 섹션 파일로 나눠 채운다(page.ai.md).
-// 읽는 상태: useCatalog product(.suspend(productId)).
+// 읽는 상태: useCatalog product(.suspend(productId)). 강의 상세(course-detail)와 같은 세 진입:
 //   - 직접 진입·새로고침·공유·봇: 정식 라우트 `products/[id]` 가 404 판단·metadata 뒤 같은 요청에서 SSR(SEO).
-//   - 카드 소프트 내비: 카드의 `actions.openProduct(product)` 이 채운 캐시를 그대로 그리고 커밋 뒤 재조회가 파일·구매 여부를 채운다.
+//   - 카드 소프트 내비: `(.)products/[id]` 인터셉트 라우트. 카드의 `actions.openProduct(product)` 이 넣은 목록 항목으로
+//     제목·가격·요약을 바로 그리고, 상세 전용 필드(소개·파일·포함 강의·구매 여부)는 `undefined` 인 동안 그 자리만 뼈대.
+//   - 캐시 없는 소프트 내비(묶음 강의 → 상품 등): 라우트의 ProductDetailSkeleton 뒤 클라에서 받는다.
 // 파일은 이름·크기만 보여 준다. 다운로드는 구매 뒤 `/account/products` 에서 한다.
 export default function ProductDetail({ productId }: { productId: string }) {
   const catalog = useCatalog((state) => ({
@@ -20,6 +24,27 @@ export default function ProductDetail({ productId }: { productId: string }) {
     actions: state.actions,
   }));
   const product = catalog.product.data;
+
+  // 인터셉트 라우트에는 metadata 가 없어 탭 제목이 레이아웃 기본값으로 남는다. 정식 라우트의
+  // generateMetadata 가 이미 상품명을 넣은 경우(직접 진입)는 건드리지 않는다.
+  useEffect(() => {
+    if (!product) return;
+    const apply = () => {
+      if (
+        location.pathname.endsWith(product.id) &&
+        !document.title.includes(product.title)
+      )
+        document.title = product.title;
+    };
+    apply();
+    const observer = new MutationObserver(apply);
+    observer.observe(document.head, {
+      subtree: true,
+      childList: true,
+      characterData: true,
+    });
+    return () => observer.disconnect();
+  }, [product]);
 
   // 목록 캐시에 남은 비공개 상품은 재조회가 NOT_FOUND 를 돌려주므로 데이터보다 오류를 먼저 본다.
   if (catalog.product.isError || !product) return <ProductNotFound />;
@@ -57,7 +82,9 @@ export default function ProductDetail({ productId }: { productId: string }) {
       ) : null}
 
       <div className="mt-6">
-        {product.purchase ? (
+        {product.purchase === undefined ? (
+          <ProductActionBones />
+        ) : product.purchase ? (
           <Button asChild>
             <Link href="/account/products">{siteText.pages["my-products"]}</Link>
           </Button>
@@ -70,7 +97,12 @@ export default function ProductDetail({ productId }: { productId: string }) {
         )}
       </div>
 
-      {product.description ? (
+      {product.description === undefined ? (
+        <section className="mt-10">
+          <h2 className="text-title-lg">상품 소개</h2>
+          <ProductSectionBones />
+        </section>
+      ) : product.description ? (
         <section className="mt-10">
           <h2 className="text-title-lg">상품 소개</h2>
           <div
@@ -80,7 +112,7 @@ export default function ProductDetail({ productId }: { productId: string }) {
         </section>
       ) : null}
 
-      {product.files.length > 0 ? (
+      {product.files && product.files.length > 0 ? (
         <section className="mt-10">
           <h2 className="text-title-lg">포함 파일</h2>
           <ul className="mt-2 flex flex-col gap-1 text-body">
@@ -96,7 +128,7 @@ export default function ProductDetail({ productId }: { productId: string }) {
         </section>
       ) : null}
 
-      {product.courses.length > 0 ? (
+      {product.courses && product.courses.length > 0 ? (
         <section className="mt-10">
           <h2 className="text-title-lg">포함 강의</h2>
           <ul className="mt-2 flex flex-col gap-1 text-body">

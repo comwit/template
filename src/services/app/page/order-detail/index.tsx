@@ -8,12 +8,15 @@ import { Button } from "@/lib/components/ui/button";
 import { Textarea } from "@/lib/components/ui/textarea";
 import { TextField } from "@/lib/components/ui/text-field";
 
+export { OrderDetailSkeleton } from "./skeleton";
+
 // 빈 깡통. 파생 프로젝트에서 섹션 파일로 나눠 채운다(page.ai.md).
-// 읽는 상태: useOrders detail(.load(orderId)), isSaving. 액션: cancel(미결제 취소), requestRefund(환불 신청).
+// 읽는 상태: useOrders detail(.suspend(orderId)), isSaving. 첫 응답 전에는 라우트의 OrderDetailSkeleton,
+// 캐시 없이 받은 거부(비로그인 등)는 (app)/account/error.tsx 가 그린다. 액션: cancel(미결제 취소), requestRefund(환불 신청).
 export default function OrderDetail({ orderId }: { orderId: string }) {
   const [reason, setReason] = useState("");
   const orders = useOrders((state) => ({
-    detail: state.detail.load(orderId),
+    detail: state.detail.suspend(orderId),
     isSaving: state.isSaving,
     actions: state.actions,
   }));
@@ -34,13 +37,13 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
         </p>
       </main>
     );
-  if (detail.isLoading || !order)
+  if (!order)
     return (
       <main className="mx-auto w-full max-w-5xl px-6 py-16">
         <h1 className="text-display-sm text-balance">
           {siteText.pages["order-detail"]}
         </h1>
-        <p className="mt-8 text-body text-muted-foreground">{courseText.loading}</p>
+        <p className="mt-8 text-body text-muted-foreground">{courseText.empty}</p>
       </main>
     );
 

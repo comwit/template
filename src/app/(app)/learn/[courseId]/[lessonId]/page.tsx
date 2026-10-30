@@ -1,12 +1,12 @@
 import { Suspense } from "react";
-import Learn from "@/services/app/page/learn";
+import Learn, { LearnSkeleton } from "@/services/app/page/learn";
 
 type Params = Promise<{ courseId: string; lessonId: string }>;
 
 // 강의실. lessonId 가 없는 `/learn/[courseId]` 는 이어보기(마지막 레슨)로 시작한다.
 export default function Page({ params }: { params: Params }) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<LearnSkeleton />}>
       <LearnRoute params={params} />
     </Suspense>
   );
