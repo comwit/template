@@ -85,7 +85,6 @@
     ".claude/skills/video-offload/SKILL.md": "e6384f7d7826582d1c7d4e866f529c5ab581df23719b7a02ef33eec70d92acf3",
     ".codex/config.toml": "7e7f976e19be869af9a6f917dc00e1510fe1e355a3d63a3b3e772b086096d432",
     ".env.example": "d16f23bbf8b3962796807cb3ff0b621a51a800144b8c18f7a78000679e170f38",
-    ".gitea/workflows/deploy.yml": "0729f550b816ee42d3a83b40cbbc7c9491b1fd6be45684fffc2eec72f4722042",
     ".github/workflows/ci.yml": "ab7d9cb344a93eaedef26ea0deb9620daf099b6a98ba04245dc8a59b228d4ca6",
     ".gitignore": "874d4f0a317052a052f637a3338a97618d9d423f78786e94a892085a6b97a688",
     ".mcp.json": "7ec9fb6582d0f088d9f35ed6a3146673e60dfd619a9f34abdfc967352c89d335",
