@@ -43,7 +43,7 @@ page/layout/
 - Select actions as the complete collection: `actions: state.actions`. Never use `useDomain((state) => state.actions.method)` or alias individual action methods inside the selector; partial selection of the actions proxy can cause a Runtime TypeError.
 - layout/index.tsx is a server component, layout/client.tsx is a client component
 - Resolve basic auth on the server below the null Suspense boundary; do not bootstrap it from `useEffect` or an initial selector `.load()`.
-- Domain-data Suspense boundaries use a simple skeleton fallback. The service-root auth boundary uses `null`.
+- Domain-data Suspense boundaries use a skeleton shaped like the content it replaces (same blocks, sizes and gaps), never `null`. Only the service-root auth boundary uses `null`.
 - **No client-side data processing** → do all processing in the API:
   - No aggregation like `.filter().length`, `.reduce()` → group/sum in the API
   - No status filtering like `.filter(o => o.status === 'x')` → where conditions in the API
@@ -130,15 +130,15 @@ import type { DomainType } from "@/services/{service}/state/{domain}";
 - One domain hook call per file
 - No destructuring - use namespace style
 - Access via `domain.field` and `domain.actions.method()`
-- When the view owns an initial query, call `.load(arg?)` explicitly inside the selector. Do not trigger the initial load with `useEffect`.
-- Select a query field without `.load()` only when SSR initialization or a state action intentionally owns loading.
+- When the view owns an initial query, start it inside the selector: `.suspend(arg)` for screens (server-rendered, cached on return), `.load(arg)` only for client-only reads (`state.ai.md` → Query loading). Do not trigger the initial load with `useEffect`.
+- Select a query field without `.suspend()`/`.load()` only when a state action intentionally owns loading.
 
 ### Example
 
 ```tsx
 // Good: One call, namespace style
 const product = useProduct((state) => ({
-  products: state.products.load({ page }),
+  products: state.products.suspend({ page: state.page }),
   actions: state.actions,
 }));
 
@@ -152,110 +152,135 @@ const { products, actions } = useProduct();
 
 ### Using query data
 
-In addition to `data`, query fields also provide loading/error states.
+`.suspend()` returns only once the query has data, so the view renders data
+directly. The `<Suspense>` fallback covers the first load and an `error.tsx`
+covers a failed first load.
 
 ```tsx
 const product = useProduct((state) => ({
-  products: state.products.load({ page }),
+  products: state.products.suspend({ page: state.page }),
   actions: state.actions,
 }));
 
-// isError — error occurred
+// isError — a background refetch failed; the cached data is still there
 if (product.products.isError) return <Error error={product.products.error} />
-
-// isLoading — initial load (no cache)
-if (product.products.isLoading) return <Skeleton />
 
 // data — actual data
 return product.products.data.items.map((p) => <Card key={p.id} product={p} />)
 ```
 
-### isFetching — background re-fetch
-
-`isFetching` is `true` while a background request such as refetch or page transition is in flight.
-Unlike `isLoading`, it operates while keeping the existing data in place.
+`isFetching` is `true` while a background request (refetch after a cached
+paint) is in flight. It keeps the existing data on screen — never swap the
+content for a skeleton because of it. For pagination and filters use a
+transition and dim the list with `isPending`. An arg in React state lets the
+transition hold the old list; an arg in the model survives navigation instead
+but may show the skeleton on change (`state.ai.md` → Server rendering):
 
 ```tsx
-function ProductsPage({ page }: { page: number }) {
+function ProductList() {
+  const [page, setPage] = useState(1);
+  const [isPending, startTransition] = useTransition();
   const product = useProduct((state) => ({
-    products: state.products.load({ page }),
+    products: state.products.suspend({ page }),
     actions: state.actions,
   }));
 
-  if (product.products.isError) return <Error error={product.products.error} />
-  if (product.products.isLoading) return <Skeleton />
-
   return (
-    <div>
-      {product.products.isFetching && <Spinner className="fixed top-4 right-4" />}
-      {product.products.data.items.map((p) => <Card key={p.id} product={p} />)}
+    <>
+      <ul aria-busy={isPending} className={cn(isPending && "opacity-60")}>
+        {product.products.data.items.map((p) => <Card key={p.id} product={p} />)}
+      </ul>
       <Pagination
         currentPage={product.products.data.page}
         totalPages={product.products.data.totalPages}
-        onPageChange={(nextPage) => product.actions.openPage(nextPage)}
+        onPageChange={(next) => startTransition(() => setPage(next))}
       />
-    </div>
+    </>
   )
 }
 ```
 
-> `isLoading` = first load (no data) · `isFetching` = background re-fetch (data present)
+> `.suspend()` first load → Suspense fallback · revisit with cache → paints at once, `isFetching` in the background · arg change in React state + transition → keeps the old data
 
-### Server Suspense
+## Lists — static shell, data hole
 
-Await server data inside a Suspense loader with a simple skeleton fallback.
-Hydrate the resolved data in a client route adapter before normal hook reads.
-The service-root auth boundary keeps `fallback={null}`.
+A list screen keeps its title and fixed copy in the static shell and renders
+only the data-driven part (filters fed by data, items, pager) through
+`.suspend()` in a request-time hole. Direct visits and bots get the list in the
+SSR HTML (SEO); the fallback is a skeleton of the list only, so the title and
+copy never move.
 
 ```tsx
-// app/product/[id]/page.tsx — Server Component
-export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+// app/(app)/products/page.tsx — Server Component
+export default function Page() {
   return (
-    <Suspense fallback={<ProductSkeleton />}>
-      <ProductLoader params={params} />
-    </Suspense>
+    <Products>                                  {/* client shell: <main> + <h1> + copy */}
+      <Suspense fallback={<ProductListSkeleton />}>
+        <ProductListRoute />
+      </Suspense>
+    </Products>
   )
 }
 
-async function ProductLoader({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const initial = await api.product.findById(id)
-  return <ProductDetailRoute id={id} initialProduct={initial} />
+async function ProductListRoute() {
+  await connection()                            // request-time hole for .suspend()
+  return <ProductList />                        // client: list.suspend(...) + cards + pager
 }
 ```
 
-## SSR Detail Pages
+- The shell renders `children` where the list goes; it reads no query.
+- The skeleton mirrors the list's own blocks (filter row, card rows) with the same classes for spacing, and reads no state.
+- List cards call the detail action before navigating (`onClick={() => actions.open(item)}`) so the detail opens from that seed.
+- Lists do not get an intercepting route — they load on entry anyway. Only details are intercepted.
 
-### SEO Critical (SSR query hydration)
+## Detail Pages — one view, one resource, three entries
 
-```tsx
-"use client";
-export default function PostDetailRoute({ id, initialData }) {
-  usePost.hydrate({ detail: { arg: id, data: initialData } })
-  return <PostDetail />
-}
+Public detail pages need SSR for SEO **and** must open instantly from a card.
+One Client Component with one `.suspend(id)` covers both; the route layer
+decides how it is reached.
 
-function PostDetail() {
-  const post = usePost((state) => ({ detail: state.detail.data }))
-  return <PostView post={post.detail} />
-}
-```
-
-### Non-SEO (client selector loading)
+| Entry | Route | What `.suspend(id)` sees | Result |
+|---|---|---|---|
+| Direct visit, refresh, shared link, bots | `posts/[id]/page.tsx` (RSC: `cache()`d lookup → `notFound()`, `generateMetadata`) | nothing | SSR in the same request |
+| Soft nav from a card | `(.)posts/[id]/page.tsx` (intercepting route, pure client, `useParams`) | the list item put there by `actions.open(post)` | renders at once; detail-only fields fill in from the background refetch |
+| Soft nav without a card | intercepting route | nothing | skeleton, then client fetch |
 
 ```tsx
+// page/post-detail/index.tsx — the only view
 "use client";
-export default function PostDetail({ id }) {
+export default function PostDetail({ postId }: { postId: string }) {
   const post = usePost((state) => ({
-    detail: state.detail.load({ id }),
+    detail: state.detail.suspend(postId),
     actions: state.actions,
   }));
-
-  if (post.detail.isError) return <Error error={post.detail.error} />
-  if (post.detail.isLoading) return <PostDetailSkeleton />
-
-  /**
-   * (omitted)
-   */
+  if (post.detail.isError || !post.detail.data) return <PostNotFound />;
+  const data = post.detail.data;
+  return (
+    <main>
+      <h1>{data.title}</h1>                     {/* list fields: always there */}
+      {data.body === undefined ? <PostBodyBones /> : <PostBody body={data.body} />}
+      <Suspense fallback={<CommentsBones />}>
+        <PostComments postId={data.id} />       {/* separate query, own boundary */}
+      </Suspense>
+    </main>
+  );
 }
+
+// any post card
+<Link href={`/posts/${post.id}`} onClick={() => postState.actions.open(post)}>
 ```
+
+- The resource type is the list item plus optional detail-only fields (`state.ai.md` → Partial resources). `undefined` = not loaded yet → bones in that spot; `""`/`[]`/`null` = loaded and empty.
+- Only `detail` may `.suspend()` in the view's own selector. Any other `.suspend()` there blocks the whole page whenever its cache is empty. Read it in a child component behind its own `<Suspense>` with a bone fallback so the body paints first. A story that opens the detail from a list with the API blocked must still show the seeded fields.
+- Keep the intercepting route a pure client page: no server read, no `await`, no metadata. That is what puts the whole page into the default `<Link>` App Shell prefetch. Metadata, JSON-LD and the 404 decision belong to the formal route only.
+- Both routes use the detail skeleton as the Suspense fallback, never `null`. The intercepting route also has an `error.tsx` → not-found view for ids that have no cache and do not exist.
+- The view sets `document.title` itself because the intercepting route has no metadata. Re-apply it when `<head>` changes (a `MutationObserver` on `document.head`), since Next may insert the layout title after the effect runs.
+- Do not wrap `Link` in a custom component for this; the `onClick` → single action is the normal handler rule.
+
+### Pages behind login
+
+Account pages (orders, purchases) also read with `.suspend()` below a request-time
+hole (`await params`/`connection()`), so they render with the session on the
+server. A first-load rejection (signed out) throws to the segment's
+`error.tsx`, which offers the login link. Use `.load()` only for client-driven
+reads such as a quote that changes with user input.

@@ -43,14 +43,14 @@ state/product/
   - Actions should take as few arguments as possible and manage things via internal state (so callers don't need to know much)
 - Re-export api types or define them additionally
 - Dependency flow: `page → state → api → repository`
-- Store SSR-owned resources in a `Query` when they need a client cache. A Server Component resolves the data, then a small client route adapter seeds that query with `.hydrate()` before the first normal domain-hook read.
-- Use `Query` for client `.load()`, refetching, argument-keyed caching, SSR hydration, loading/error state, infinite loading, or realtime behavior.
+- Server-render domain data with selector `.suspend(arg)` in the Client Component that shows it (see **Server rendering — selector `.suspend()`**). Do not add a Server Component loader, route adapter or extra folders for it; `StateProvider` already streams the SSR result to the client.
+- Use `Query` for `.suspend()`/`.load()`, refetching, argument-keyed caching, loading/error state, infinite loading, or realtime behavior.
 - Use a selector for every domain hook call. Calling a domain hook without a selector observes the whole model.
 - Always select the complete action collection as `actions: state.actions`. Never select one method with `state.actions.init` or alias individual action methods inside a selector. Actions are proxy-backed, and partial selection can trigger a Proxy invariant Runtime TypeError.
-- When a view owns the initial query, start it explicitly with `state.queryField.load(arg)` inside the selector. Do not call an initial-load action from `useEffect`.
+- When a view owns the initial query, start it in the selector: `state.queryField.suspend(arg)` for screens (lists, details), `state.queryField.load(arg)` only for client-only reads (see **Query loading**). Do not call an initial-load action from `useEffect`.
 - Basic app/admin auth is server-owned: await `getMe()` in the service layout below `<Suspense fallback={null}>`, then hydrate the user query in the client adapter before consumers render. Never bootstrap basic auth from `useEffect` or selector `.load()`.
-- Select a query field without `.load()` only when SSR hydration or an action intentionally owns loading.
-- Domain-data Suspense fallbacks are simple skeletons. Query reads belong in the resolved/client-loaded view. The service-root auth boundary uses `fallback={null}`.
+- Select a query field without `.suspend()`/`.load()` only when an action intentionally owns loading.
+- Domain-data Suspense fallbacks are skeletons shaped like the content they replace, never `null`. Only the service-root auth boundary uses `fallback={null}`.
 
 ## types.ts
 
@@ -107,7 +107,7 @@ export const product = model<ProductState>({
     initialData: { totalCount: 0, pendingCount: 0, activeCount: 0 },
     queryFn: () => api.product.getStats(),
   }),
-  // SSR-owned detail — seed through useProduct.hydrate() in a route adapter
+  // detail — the view reads .suspend(id); a card fills it first with actions.open(item)
   detail: query<Product | null, string>({
     initialData: null,
     queryFn: (slug) => api.product.findById(slug),
@@ -130,7 +130,7 @@ export const feed = model<FeedState>({
 })
 ```
 
-Selector method (UI only): `.load(arg?)`
+Selector methods (UI only): `.suspend(arg?)` · `.load(arg?)`
 
 Action methods: `.query(arg?, options?)` · `.refetch()` · `.nextFetch()` · `.previousFetch()`
 Query data: `data` · `isLoading` · `isSlowLoading` · `isFetching` · `isSuccess` · `isError` · `error` · `hasMore` · `cursor`
@@ -147,28 +147,46 @@ async loadMore() {
 - All side effects go in Actions — UI handlers only call a single action
 - Confirmation: use `popup.confirm()` (`@/lib/popup`)
 
-### SSR hydration — route adapter
+### Server rendering — selector `.suspend()`
 
-- Await server data in a Server Component and pass the resolved seed only to a small Client Component route adapter.
-- Call the domain hook's `.hydrate()` unconditionally in a small adapter; normal domain-hook reads belong in children. Keep the adapter free of subscriptions to that model, including action selectors and account-change effects. A model mutation must not rerender the adapter and replay its old server seed (especially after sign-out).
-- Do not use `useEffect`, actions, public proxy mutation, or `silent()` during render.
-- `.hydrate()` accepts `null` / `undefined` as a no-op, never calls `queryFn`, and ignores equivalent repeated seeds. It initializes a successful query entry and keeps abandoned transitions from replacing the visible route.
+- `.suspend(arg)` starts or reuses the query Promise for the serialized arg during render and throws while pending; the nearest `<Suspense>` shows its fallback.
+- `StateProvider` (`src/lib/state/provider.tsx`) passes `useServerInsertedHTML`, so a result resolved during SSR streams to the browser as inert JSON and hydration reuses it without calling `queryFn` again (no double API call).
+- `queryFn` calls the service API facade as usual. During Client Component SSR the facade runs the Server Function in the same request scope instead of a relative fetch (`src/lib/server-action/ssr-bridge.ts`, registered by the root layout). In build prerender and dev validation renders that Promise never settles, so the boundary stays on its fallback and renders at request time.
+- Therefore the Server Component above a `.suspend()` view must sit in a request-time dynamic hole: `await params`, `await searchParams` or `await connection()`. Keep static copy (titles, intro text) outside that hole so it stays in the static shell (`page.ai.md` → Lists).
+- Use it only inside an explicit `<Suspense>` below `StateProvider`. Results must be JSON-serializable; realtime and streaming resources are not supported.
+- A first request that fails (no cached data) throws to the nearest Error Boundary (`error.tsx`). With cached data, a background failure keeps the data and sets `isError`. When a 404 decision is needed, make it first in the RSC with a cached lookup and `notFound()`.
+- A cache entry that already has data (filled by an action's `resource.set(data, { arg })`, or by an earlier `.suspend`/`.load` of the same arg) returns synchronously from `.suspend(arg)` and refetches in the background after commit (`staleTime: 0`). Returning to a screen therefore paints from cache without a skeleton, and intercepting routes open instantly from a card's seed (`page.ai.md` → Detail Pages).
+- For arg changes (pagination, filters) wrap the change in `startTransition`/`useTransition` and show progress with `isPending`. Where the arg lives is a trade-off: in React state (`useState`) the transition holds the old list while the next one loads, but the arg resets when the screen unmounts; in the model (`state.page`, `state.filter`) the arg survives navigation, so returning paints the same page from cache, but model fields are read through `useSyncExternalStore`, which React re-renders synchronously, so a change can show the boundary's skeleton until the new page arrives.
+- Do not split a view into a seeded `.load` branch and an SSR `.suspend` branch. One view, one `.suspend(arg)`.
 
 ```tsx
-// product-detail-route.tsx — Client Component
-'use client'
+const detail = useProduct((state) => state.detail.suspend(id))
 
-function ProductDetailRoute({ slug, initialProduct }: Props) {
-  useProduct.hydrate({ detail: { arg: slug, data: initialProduct } })
-  return <ProductDetail />
-}
-
-function ProductDetail() {
-  const detail = useProduct((state) => state.detail.data)
-  if (!detail) return <NotFound />
-  return <ProductView product={detail} />
-}
+// pagination: page in React state keeps the current page visible while the next one loads
+const [page, setPage] = useState(1)
+const [isPending, startTransition] = useTransition()
+const product = useProduct((state) => ({
+  products: state.products.suspend({ page }),
+  actions: state.actions,
+}))
+const changePage = (next: number) => startTransition(() => setPage(next))
 ```
+
+### Partial resources — seed first, fill the rest
+
+- One ID-keyed detail resource. Before card navigation, an action puts the list item into it: `this.model.detail.set(item, { arg: item.id })`. The detail view keeps reading `detail.suspend(id)`. Do not create a seed model, a seed prop, a list-lookup fallback, or a second query for the same resource.
+- Prefer one presenter for list and detail so the list item is the whole resource. When the list genuinely carries fewer fields, type the resource as the list item plus optional detail-only fields (`Summary & Partial<DetailOnly>`). Missing fields stay `undefined` until the detail response arrives; the view renders a skeleton only for `undefined` fields. Never fill them with `""`, `[]` or `null` — those mean "loaded and empty".
+- `.set()` replaces the entry. When the card opens the detail that is already active (`this.model.detail.data?.id === item.id`), merge so loaded detail fields are not wiped: `set({ ...current, ...item }, { arg: item.id })`.
+- Detail-only resources that are not part of the core record (reviews, related items) are separate queries, read in a child component behind its own `<Suspense>` with a section skeleton. They never `.suspend()` in the core detail selector.
+
+### `.hydrate()` — only when `.suspend()` cannot be used
+
+`.hydrate()` seeds a query from data a Server Component already resolved. Use it
+only where render-time loading does not fit: the basic auth boundary below, or a
+value that must be decided on the server before the page renders. Call it
+unconditionally in a small client adapter that does not subscribe to that model;
+it accepts `null`/`undefined` as a no-op, never calls `queryFn`, and ignores
+equivalent repeated seeds.
 
 ### Basic auth and lazy separate-table data
 
@@ -228,25 +246,25 @@ model). Do not use previous-account placeholder data. A missing profile row does
 not change the authenticated user to `null`. Server guards and API authorization
 remain authoritative; client state is for rendering.
 
-### Query loading — selector `.load()` first
+### Query loading — `.suspend()` for screens, `.load()` for client-only reads
 
-- When the view owns the initial request, call `.load(arg?)` directly in the domain-hook selector.
+- Screens (lists, details, account pages) read their initial query with `.suspend(arg)` so they render on the server and paint from cache on return.
+- Use `.load(arg?)` only for client-driven reads that should not suspend the screen: a quote recalculated as the user types a coupon, a player that starts after mount, a section that must keep its own inline loading UI.
 - `.load()` is selector-only. It starts the request after React commits, deduplicates the same key, and changes cache keys when its serialized argument changes.
 - Merely selecting the query field is passive and never fetches.
-- Do not wrap an initial query action in `useEffect`. Existing code may still work, but new code must use selector `.load()` when the view owns the request.
+- Do not wrap an initial query action in `useEffect`. Existing code may still work, but new code must start the request from the selector.
 
 ```tsx
-function ProductList({ page }: { page: number }) {
-  const product = useProduct((state) => ({
-    products: state.products.load({ page }),
-    stats: state.stats.load(),
+function CouponQuote({ code }: { code: string }) {
+  const checkout = useCheckout((state) => ({
+    quote: state.quote.load({ code }),
     actions: state.actions,
   }))
 
-  if (product.products.isError) return <ErrorMessage error={product.products.error} />
-  if (product.products.isLoading) return <ProductsSkeleton />
+  if (checkout.quote.isError) return <ErrorMessage error={checkout.quote.error} />
+  if (checkout.quote.isLoading) return <QuoteSkeleton />
 
-  return <ProductsView products={product.products.data} stats={product.stats.data} />
+  return <QuoteView quote={checkout.quote.data} />
 }
 ```
 
@@ -254,7 +272,7 @@ Use passive selection only when another owner has already initialized or loaded 
 
 ```tsx
 const product = useProduct((state) => ({
-  products: state.products, // passive: SSR hydration or an action owns loading
+  products: state.products, // passive: an action owns loading
   actions: state.actions,
 }))
 ```
