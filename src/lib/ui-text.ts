@@ -122,4 +122,6 @@ export const storefrontText = {
     orders: "주문 내역",
     "order-detail": "주문 상세",
   },
+  empty: "표시할 상품이 없습니다.",
+  newArrivals: "새 상품",
 } as const;

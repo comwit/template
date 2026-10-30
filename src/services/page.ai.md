@@ -229,6 +229,10 @@ export default function Page() {
 - List cards call the detail action before navigating (`onClick={() => actions.open(item)}`) so the detail opens from that seed.
 - Lists do not get an intercepting route — they load on entry anyway. Only details are intercepted.
 
+Shop reference: `src/app/(app)/products/page.tsx` + `page/products/` (`Products` shell,
+`ProductList`, `ProductListSkeleton`) and the home's new-arrivals section
+(`src/app/(app)/page.tsx` + `page/home/`). Cards are `services/app/_components/product-card.tsx`.
+
 ## Detail Pages — one view, one resource, three entries
 
 Public detail pages need SSR for SEO **and** must open instantly from a card.
@@ -272,6 +276,10 @@ export default function PostDetail({ postId }: { postId: string }) {
 - Both routes use the detail skeleton as the Suspense fallback, never `null`. The intercepting route also has an `error.tsx` → not-found view for ids that have no cache and do not exist.
 - The view sets `document.title` itself because the intercepting route has no metadata. Re-apply it when `<head>` changes (a `MutationObserver` on `document.head`), since Next may insert the layout title after the effect runs.
 - Do not wrap `Link` in a custom component for this; the `onClick` → single action is the normal handler rule.
+
+Shop reference: `products/[id]` + `(.)products/[id]` with `page/product-detail/`. The
+list item is the whole `ProductView` (`findAll` and `find` share `presentProduct`), so
+`actions.open(product)` seeds every field and the detail paints complete.
 
 ### Pages behind login
 
