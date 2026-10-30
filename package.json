@@ -23,7 +23,9 @@
     "storybook:build": "storybook build -o storybook-static",
     "admin:create": "node scripts/run-server-script.mjs admin:create",
     "admin:path": "node .agents/scripts/setup-admin-path.mjs",
-    "validate:storybook": "tsc --project .storybook/tsconfig.json --noEmit && oxlint .storybook"
+    "validate:storybook": "tsc --project .storybook/tsconfig.json --noEmit && oxlint .storybook",
+    "reference:generate": "node scripts/export-course-reference.mjs",
+    "reference:check": "node scripts/export-course-reference.mjs --check"
   },
   "dependencies": {
     "@brrrd/adapter": "0.1.12",
