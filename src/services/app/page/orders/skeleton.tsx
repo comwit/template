@@ -2,7 +2,7 @@
 
 import { Skeleton } from "@/lib/components/ui/skeleton";
 
-/** 목록 Suspense 구멍의 fallback. OrderList 와 같은 자리·크기로 그린다. 순수 UI(page.ai.md). */
+/** 목록 Suspense 경계의 fallback. OrderList 와 같은 자리·크기로 그린다. 순수 UI(page.ai.md). */
 export function OrderListSkeleton() {
   return (
     <ul aria-busy="true" className="mt-8 flex flex-col gap-4">
