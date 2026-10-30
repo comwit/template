@@ -1,6 +1,5 @@
 "use client";
 
-import { useTransition } from "react";
 import Link from "next/link";
 import { usePurchases } from "@/services/app/state/purchases";
 import { siteText, courseText } from "@/lib/ui-text";
@@ -13,7 +12,6 @@ import { cn } from "@/lib/utils/cn";
 // 파일마다 "다운로드" → actions.downloadLink(fileId) 가 짧게 사는 주소를 받아 새 탭으로 연다(호출마다 횟수 차감).
 
 export function MyProductList() {
-  const [pending, startTransition] = useTransition();
   const purchases = usePurchases((state) => ({
     list: state.list.suspend({ page: state.page }),
     isSaving: state.isSaving,
@@ -41,8 +39,8 @@ export function MyProductList() {
         />
       ) : (
         <ul
-          aria-busy={pending}
-          className={cn("mt-8 flex flex-col gap-6", pending && "opacity-60")}>
+          aria-busy={list.isFetching}
+          className={cn("mt-8 flex flex-col gap-6", list.isFetching && "opacity-60")}>
           {list.data.items.map((purchase) => (
             <li key={purchase.id}>
               <p className="text-title-md">{purchase.productTitle}</p>
@@ -96,7 +94,7 @@ export function MyProductList() {
       <Pager
         page={list.data.page}
         totalPages={list.data.totalPages}
-        onChange={(page) => startTransition(() => purchases.actions.setPage(page))}
+        onChange={(page) => purchases.actions.setPage(page)}
       />
     </>
   );
