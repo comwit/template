@@ -91,14 +91,11 @@ Actions: `.query(arg?)` · `.refetch()` · `.set(data, { arg })` · `.nextFetch(
 ```tsx
 // app/(app)/products/page.tsx — Server Component
 <Suspense fallback={<ProductListSkeleton />}>   {/* skeleton shaped like the content */}
-  <ProductListRoute />
+  <ProductList />                               {/* client: s.products.suspend(...) */}
 </Suspense>
-
-async function ProductListRoute() {
-  await connection()                            // request-time hole for .suspend()
-  return <ProductList />                        // client: s.products.suspend(...)
-}
 // ✗ fallback={null} — only the service-root auth boundary
+// ✗ await connection() around the list — every link navigation then refetches the RSC
+//   (the service layout's session boundary already renders direct visits at request time)
 ```
 
 `StateProvider` already streams SSR results to the client. Results must be JSON-serializable.

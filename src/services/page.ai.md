@@ -202,13 +202,12 @@ function ProductList() {
 
 > `.suspend()` first load → Suspense fallback · revisit with cache → paints at once, `isFetching` in the background · arg change in React state + transition → keeps the old data
 
-## Lists — static shell, data hole
+## Lists — static shell, list in its own boundary
 
-A list screen keeps its title and fixed copy in the static shell and renders
-only the data-driven part (filters fed by data, items, pager) through
-`.suspend()` in a request-time hole. Direct visits and bots get the list in the
-SSR HTML (SEO); the fallback is a skeleton of the list only, so the title and
-copy never move.
+A list screen keeps its title and fixed copy in the shell and renders the
+data-driven part (filters fed by data, items, pager) through `.suspend()`
+inside its own `<Suspense>`. The fallback is a skeleton of the list only, so
+the title and copy never move.
 
 ```tsx
 // app/(app)/products/page.tsx — Server Component
@@ -216,18 +215,23 @@ export default function Page() {
   return (
     <Products>                                  {/* client shell: <main> + <h1> + copy */}
       <Suspense fallback={<ProductListSkeleton />}>
-        <ProductListRoute />
+        <ProductList />                         {/* client: list.suspend(...) + cards + pager */}
       </Suspense>
     </Products>
   )
 }
-
-async function ProductListRoute() {
-  await connection()                            // request-time hole for .suspend()
-  return <ProductList />                        // client: list.suspend(...) + cards + pager
-}
 ```
 
+- **No `await connection()` around the list.** Pages under the service layout
+  already render at request time on a direct visit, because the layout awaits
+  the session below its `<Suspense>`; the list's `.suspend()` runs there and
+  the HTML contains the list (SEO). Without a request-time API in the page
+  itself, the page's RSC payload is static and comes with the prefetched shell,
+  so returning by link paints from the query cache with no server round trip.
+  A `connection()` (or any request-time API) in the page makes every link
+  navigation fetch the page's RSC again and show the skeleton meanwhile.
+- A page outside a request-time layout boundary would freeze the skeleton at
+  build time; add `await connection()` only there.
 - The shell renders `children` where the list goes; it reads no query.
 - The skeleton mirrors the list's own blocks (filter row, card rows) with the same classes for spacing, and reads no state.
 - List cards call the detail action before navigating (`onClick={() => actions.open(item)}`) so the detail opens from that seed.
@@ -279,8 +283,7 @@ export default function PostDetail({ postId }: { postId: string }) {
 
 ### Pages behind login
 
-Account pages (orders, purchases) also read with `.suspend()` below a request-time
-hole (`await params`/`connection()`), so they render with the session on the
-server. A first-load rejection (signed out) throws to the segment's
+Account pages (orders, purchases) also read with `.suspend()` inside their own
+`<Suspense>`; the service layout renders them with the session on the server. A first-load rejection (signed out) throws to the segment's
 `error.tsx`, which offers the login link. Use `.load()` only for client-driven
 reads such as a quote that changes with user input.
