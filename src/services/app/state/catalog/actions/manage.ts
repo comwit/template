@@ -2,10 +2,8 @@ import { action } from "@comwit/state";
 import type {
   CourseFilter,
   CourseSummary,
-  CourseView,
   ProductFilter,
   ProductSummary,
-  ProductView,
 } from "@/lib/course";
 import type { DomainActions } from "../types";
 import { domain } from "../model";
@@ -24,18 +22,17 @@ export const manageActions = action<DomainActions>(({ state }) => {
     }
     /**
      * 카드 → 상세 소프트 내비 직전에 호출한다(`<Link onClick={() => actions.open(course)}>`).
-     * 목록 항목(CourseSummary)에 상세 전용 필드를 비워 채워 두면 인터셉트 라우트의 `.suspend(id)` 가
-     * 기다리지 않고 바로 그리고, 커밋 뒤 백그라운드 재조회가 커리큘럼·강사·수강 여부를 채운다.
+     * 목록 항목(CourseSummary)을 detail 리소스에 그대로 넣는다. 상세 전용 필드(소개·강사·커리큘럼·수강 여부)는
+     * 비워 두지 않고 `undefined` 로 남겨, 화면이 그 부분만 스켈레톤으로 그리게 한다. 인터셉트 라우트의
+     * `.suspend(id)` 는 이 값으로 바로 그리고, 커밋 뒤 백그라운드 재조회가 나머지를 채운다.
+     * `.set()` 은 병합하지 않으므로, 방금 본 같은 강의를 다시 열 때는 이미 받은 상세 필드를 지키고 목록 값만 덮는다.
      */
     open(course: CourseSummary) {
-      const seed: CourseView = {
-        ...course,
-        description: "",
-        instructor: null,
-        sections: [],
-        enrollment: null,
-      };
-      this.model.detail.set(seed, { arg: course.id });
+      const current = this.model.detail.data;
+      this.model.detail.set(
+        current?.id === course.id ? { ...current, ...course } : course,
+        { arg: course.id },
+      );
     }
     async refreshReviews() {
       await this.model.reviews.refetch();
@@ -53,16 +50,13 @@ export const manageActions = action<DomainActions>(({ state }) => {
     setProductPage(page: number) {
       this.model.productPage = page;
     }
-    /** 상품 카드 → 상세. 목록 항목에 상세 전용 필드를 비워 채워 `.suspend(id)` 가 바로 그리고 뒤에서 재조회한다. */
+    /** 상품 카드 → 상세. open() 과 같은 규칙: 목록 항목만 넣고 상세 전용 필드(소개·파일·포함 강의·구매 여부)는 응답 전까지 `undefined`. */
     openProduct(product: ProductSummary) {
-      const seed: ProductView = {
-        ...product,
-        description: "",
-        files: [],
-        courses: [],
-        purchase: null,
-      };
-      this.model.product.set(seed, { arg: product.id });
+      const current = this.model.product.data;
+      this.model.product.set(
+        current?.id === product.id ? { ...current, ...product } : product,
+        { arg: product.id },
+      );
     }
   }
   return new ManageActions();

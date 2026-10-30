@@ -12,6 +12,9 @@ import { Alert } from "@/lib/components/ui/alert";
 import { Checkbox } from "@/lib/components/ui/checkbox";
 import { Label } from "@/lib/components/ui/label";
 import { TextField } from "@/lib/components/ui/text-field";
+import { CheckoutBodyBones } from "./skeleton";
+
+export { CheckoutSkeleton } from "./skeleton";
 
 // 빈 깡통. 파생 프로젝트에서 섹션 파일로 나눠 채운다(page.ai.md).
 // `/checkout/course/[id]`·`/checkout/product/[id]` 공용. 읽는 상태: useCheckout quote(.load({ itemType, itemId, couponCode })
@@ -109,7 +112,7 @@ export default function Checkout({
           )}
         </div>
       ) : quote.isLoading || !data ? (
-        <p className="mt-8 text-body text-muted-foreground">{courseText.loading}</p>
+        <CheckoutBodyBones />
       ) : (
         <>
           <section className="mt-8">

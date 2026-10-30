@@ -17,6 +17,9 @@ import { LessonPlayer } from "./lesson-player";
 import { LessonList } from "./lesson-list";
 import { QnaPanel } from "./qna-panel";
 import { ReviewForm } from "./review-form";
+import { LearnSkeleton } from "./skeleton";
+
+export { LearnSkeleton } from "./skeleton";
 
 // 강의실. 파생 프로젝트는 구성을 바꿔도 저장 흐름은 유지한다(page.ai.md).
 // 읽는 상태: useEnrollments player(.load(courseId)), error. 액션: saveProgress.
@@ -134,13 +137,7 @@ export default function Learn({
         </p>
       </main>
     );
-  if (enrollments.player.isLoading || !player)
-    return (
-      <main className="mx-auto w-full max-w-5xl px-6 py-16">
-        <h1 className="text-display-sm text-balance">{siteText.pages["learn"]}</h1>
-        <p className="mt-8 text-body text-muted-foreground">{courseText.loading}</p>
-      </main>
-    );
+  if (enrollments.player.isLoading || !player) return <LearnSkeleton />;
 
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-8">

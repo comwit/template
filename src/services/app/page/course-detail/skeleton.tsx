@@ -28,3 +28,37 @@ export function CourseDetailSkeleton() {
     </main>
   );
 }
+
+/**
+ * 상세 리소스가 목록 시드만 가진 동안(상세 전용 필드가 `undefined`) 그 자리만 채우는 뼈대.
+ * 시드로 이미 그린 제목·가격 등은 그대로 두고, 응답이 오면 같은 자리에 실제 섹션이 들어간다.
+ */
+export function CourseActionBones() {
+  return <Skeleton aria-hidden className="h-9 w-36" />;
+}
+
+export function CourseSectionBones({ lines = 3 }: { lines?: number }) {
+  return (
+    <div aria-hidden className="mt-2 space-y-2">
+      {Array.from({ length: lines }, (_, index) => (
+        <Skeleton
+          key={index}
+          className={index === lines - 1 ? "h-4 w-2/3" : "h-4 w-full"}
+        />
+      ))}
+    </div>
+  );
+}
+
+export function CurriculumBones() {
+  return (
+    <section aria-busy="true" className="mt-10">
+      <Skeleton className="h-6 w-24" />
+      <div className="mt-2 space-y-2">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+    </section>
+  );
+}
