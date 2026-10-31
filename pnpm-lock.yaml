@@ -5,7 +5,6 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
-  '@brrrd/adapter@0.1.11': 19e35b4a2919c724343ab060b996a96ff121a47752e3bdb8ae9d94027b23a6eb
   '@storybook/nextjs-vite@10.6.2': f10ad508fd9f62ccb759aff96f32b87708b9b78eaccc7fd62c8026460d0c26f9
 
 importers:
