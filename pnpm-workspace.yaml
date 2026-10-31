@@ -9,7 +9,7 @@ allowBuilds:
   sharp: true
   unrs-resolver: true
 minimumReleaseAgeExclude:
-  - '@brrrd/adapter@0.1.11'
+  - '@brrrd/adapter'
   - '@next/env@16.4.3'
   - '@next/swc-darwin-arm64@16.4.3'
   - '@next/swc-darwin-x64@16.4.3'
@@ -27,5 +27,4 @@ minimumReleaseAgeExclude:
   - '@comwit/ui-templates'
   - 'comwit-ui'
 patchedDependencies:
-  '@brrrd/adapter@0.1.11': patches/@brrrd__adapter@0.1.11.patch
   '@storybook/nextjs-vite@10.6.2': patches/@storybook__nextjs-vite@10.6.2.patch
