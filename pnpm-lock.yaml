@@ -4,16 +4,13 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-patchedDependencies:
-  '@brrrd/adapter@0.1.11': 19e35b4a2919c724343ab060b996a96ff121a47752e3bdb8ae9d94027b23a6eb
-
 importers:
 
   .:
     dependencies:
       '@brrrd/adapter':
-        specifier: 0.1.11
-        version: 0.1.11(patch_hash=19e35b4a2919c724343ab060b996a96ff121a47752e3bdb8ae9d94027b23a6eb)(next@16.4.3(@babel/core@8.0.1)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
+        specifier: 0.1.12
+        version: 0.1.12(next@16.4.3(@babel/core@8.0.1)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
       '@comwit/state':
         specifier: 2.5.2
         version: 2.5.2(react@19.2.4)
@@ -379,8 +376,8 @@ packages:
   '@better-fetch/fetch@1.1.21':
     resolution: {integrity: sha512-/ImESw0sskqlVR94jB+5+Pxjf+xBwDZF/N5+y2/q4EqD7IARUTSpPfIo8uf39SYpCxyOCtbyYpUrZ3F/k0zT4A==}
 
-  '@brrrd/adapter@0.1.11':
-    resolution: {integrity: sha512-pnDo/fVEjBOmmMzugaqn4pC/RbXKW/BpDgjm8bkQ7F9/MKC30lSgAGsJqbEZP3NaurcZsxmHXJgQM1dw4CFEOw==}
+  '@brrrd/adapter@0.1.12':
+    resolution: {integrity: sha512-QcQYrno2fMPm43xPj5KOam/0wYmiyJxQuhWH4gWjP/YCuEtfHDuIMS6N9A7CzOaC/RwdIL7Ak7hiFXsQmf/5Iw==}
     peerDependencies:
       next: ^16.2
 
@@ -4605,7 +4602,7 @@ snapshots:
 
   '@better-fetch/fetch@1.1.21': {}
 
-  '@brrrd/adapter@0.1.11(patch_hash=19e35b4a2919c724343ab060b996a96ff121a47752e3bdb8ae9d94027b23a6eb)(next@16.4.3(@babel/core@8.0.1)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))':
+  '@brrrd/adapter@0.1.12(next@16.4.3(@babel/core@8.0.1)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))':
     dependencies:
       esbuild: 0.25.12
       next: 16.4.3(@babel/core@8.0.1)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
