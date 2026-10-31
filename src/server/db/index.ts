@@ -31,19 +31,12 @@ const createDb = () => {
     );
   }
   const client = createClient({ url, authToken });
-  // Comwit Cloud supports transactions only within one HTTP batch. Drizzle's
-  // batch must request an atomic mode and tuple rows from the compatibility driver.
+  // Drizzle's batch must request an atomic mode and tuple rows from the compatibility driver.
   const atomicClient = new Proxy(client, {
     get(target, property) {
       if (property === "batch")
         return (statements: Parameters<typeof client.batch>[0]) =>
           target.batch(statements, { mode: "immediate", raw: true });
-      if (property === "transaction")
-        return () => {
-          throw new Error(
-            "Interactive transactions are unsupported; use repository atomic() batches",
-          );
-        };
       const value = Reflect.get(target, property);
       return typeof value === "function" ? value.bind(target) : value;
     },

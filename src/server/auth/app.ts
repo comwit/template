@@ -32,7 +32,6 @@ async function createAuth() {
     },
     database: drizzleAdapter(db, {
       provider: "sqlite",
-      transaction: false,
       // better-auth looks up tables by the keys `user`, `session`, `account`,
       // `verification`. Because our tables are prefixed per service, you MUST
       // pass an explicit mapping here. `schema: schema` (the whole module) will

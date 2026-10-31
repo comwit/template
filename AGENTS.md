@@ -44,8 +44,7 @@ one-time cleanup in this source repository.
   `src/server/db/`. `_data/` mock files are seed/reference only; move any
   remaining mock reads to Drizzle queries and keep repository signatures.
 - Every new query needs a matching index in `src/server/db/schema.ts`.
-- Interactive `db.transaction()` is unsupported by the Cloud HTTP transport;
-  money/enrollment writes use `repository/atomic.ts`; lesson progress
+- Money/enrollment writes use `repository/atomic.ts`; lesson progress
   heartbeats upsert in a plain batch (`enrollments.saveProgress`).
 
 ---
