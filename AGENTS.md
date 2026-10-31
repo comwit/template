@@ -43,8 +43,7 @@ after successful checks. Do not run that one-time cleanup in this source reposit
   `src/server/db/`. `_data/` mock files are seed/reference only; move any
   remaining mock reads to Drizzle queries and keep repository signatures.
 - Every new query needs a matching index in `src/server/db/schema.ts`.
-- Interactive `db.transaction()` is unsupported by the Cloud HTTP transport;
-  commerce writes use `repository/atomic.ts`.
+- Commerce writes use `repository/atomic.ts`.
 
 ---
 
