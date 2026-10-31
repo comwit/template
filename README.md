@@ -122,7 +122,7 @@ Storybook:  같은 페이지 → 같은 state → app-api / admin-api mock
 
 현재 스키마는 쇼핑몰 16개, 인증 8개, 동시 변경 제어 1개로 구성됩니다. 금액은 원 단위 정수, 업무 시간은 UTC로 저장하고 화면에서는 KST로 표시합니다. 상품 정보를 변경해도 주문 당시 스냅샷은 변하지 않습니다.
 
-Comwit Cloud의 HTTP DB는 **여러 요청에 걸친 interactive transaction을 지원하지 않습니다**. 이 템플릿은 `repository/atomic.ts`에서 읽은 버전을 확인하고 모든 변경을 한 번의 원자적 배치로 커밋합니다. 버전 충돌은 재조회 후 최대 8회 시도합니다. 배치의 한 문장이 실패하면 전체가 롤백됩니다. `src/server/db/index.ts`는 Drizzle batch를 명시적인 atomic mode로 실행하고 interactive transaction 호출은 차단합니다.
+이 템플릿은 `repository/atomic.ts`에서 읽은 버전을 확인하고 모든 변경을 한 번의 원자적 배치로 커밋합니다. 버전 충돌은 재조회 후 최대 8회 시도합니다. 배치의 한 문장이 실패하면 전체가 롤백됩니다. `src/server/db/index.ts`는 Drizzle batch를 명시적인 atomic mode로 실행합니다.
 
 새로운 쇼핑몰 변경 로직도 반드시 `atomic(async (db, add) => ...)`를 사용하세요. 콜백 안에서는 DB를 조회하고 SQL을 `add()`로 등록합니다. 외부 결제·스토리지 요청은 콜백 밖에서 실행합니다. 결제 승인/환불의 진행 상태와 요청키를 먼저 저장한 뒤 외부 API를 호출하여 응답 유실을 복구합니다. 이 구조는 고처리량 멀티테넌트 시스템보다 단일 쇼핑몰의 일관성을 우선합니다.
 
