@@ -3,7 +3,6 @@
   `src/server/db/`. `_data/` mock files are seed/reference only; move any
   remaining mock reads to Drizzle queries and keep repository signatures.
 - Every new query needs a matching index in `src/server/db/schema.ts`.
-- Interactive `db.transaction()` is not supported by the Cloud HTTP transport.
 <!-- /comwit:slot -->
 <!-- comwit:slot stack -->
 **Database**: Comwit Cloud libSQL with Drizzle. Server-only modules read

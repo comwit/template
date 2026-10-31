@@ -53,7 +53,6 @@
     "custom/no-page-mock-import": "error",
     "custom/no-root-app-folder": "error",
     "custom/no-db-in-api": "error",
-    "custom/no-db-transaction": "error",
     "custom/server-only-import": "error",
     "custom/api-create-action": "error",
     "custom/api-action-error": "error",

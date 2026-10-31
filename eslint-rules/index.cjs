@@ -21,7 +21,6 @@ const apiOnlyServerAction = require('./api-only-server-action.cjs');
 const noPageMockImport = require('./no-page-mock-import.cjs');
 const noRootAppFolder = require('./no-root-app-folder.cjs');
 const noDbInApi = require('./no-db-in-api.cjs');
-const noDbTransaction = require('./no-db-transaction.cjs');
 const serverOnlyImport = require('./server-only-import.cjs');
 const apiCreateAction = require('./api-create-action.cjs');
 const apiActionError = require('./api-action-error.cjs');
@@ -53,7 +52,6 @@ module.exports = {
     'no-page-mock-import': noPageMockImport,
     'no-root-app-folder': noRootAppFolder,
     'no-db-in-api': noDbInApi,
-    'no-db-transaction': noDbTransaction,
     'server-only-import': serverOnlyImport,
     'api-create-action': apiCreateAction,
     'api-action-error': apiActionError,

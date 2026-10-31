@@ -35,7 +35,6 @@ async function createAuth() {
     },
     database: drizzleAdapter(db, {
       provider: "sqlite",
-      transaction: false,
       schema: {
         user: adminAuthUser,
         session: adminAuthSession,
