@@ -65,8 +65,9 @@ Rules:
   element: the route file or the page component it renders. `Suspense`,
   fragments and sibling scripts may sit above it; a wrapper `<div>` may not.
   Put the page's `Suspense` inside the screen so loading keeps the app bar and
-  back button. `(entry)` screens that own their top edge use
-  `<AppScreen bar={false}>`: the boundary without an app bar.
+  back button. Pass the bar explicitly (`bar="tab"` on tab screens,
+  `bar="back"`/`"sheet"` or `DetailScreen` on details); omit `bar` for the
+  boundary alone, as `(entry)` screens that own their top edge do.
 - **`@modal` intercept pages are not wrapped.** The `{modal}` slot renders
   outside the group boundary and animates by itself. Full-page `(.)`
   intercepts in `(detail)` are ordinary pages and do render `DetailScreen`.

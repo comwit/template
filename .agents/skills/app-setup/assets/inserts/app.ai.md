@@ -7,7 +7,7 @@ The shared shell is installed. For mobile screens, use these route groups, bound
 src/app/(app)/
 ├── layout.tsx                       # auth → AppShell (<Ssgoi> + scroller). No boundary.
 ├── (top-level)/layout.tsx           # <TabShell>: AppGroupLayout { tab body + tab bar }
-├── (top-level)/posts/page.tsx       # List tab: <AppScreen>
+├── (top-level)/posts/page.tsx       # List tab: <AppScreen bar="tab">
 ├── (detail)/layout.tsx              # <AppGroupLayout>
 ├── (detail)/posts/[id]/page.tsx     # Canonical detail route: <DetailScreen>
 ├── (detail)/(.)posts/[id]/page.tsx  # In-app entry point for SEO details only: <DetailScreen>
