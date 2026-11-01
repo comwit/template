@@ -27,8 +27,8 @@ importers:
         specifier: ^0.17.4
         version: 0.17.4
       '@ssgoi/react':
-        specifier: 7.4.1
-        version: 7.4.1(next@16.4.3(@babel/core@8.0.1)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: 7.5.0-beta.2
+        version: 7.5.0-beta.2(next@16.4.3(@babel/core@8.0.1)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@tanstack/react-table':
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1959,12 +1959,12 @@ packages:
       browserslist:
         optional: true
 
-  '@ssgoi/core@7.4.1':
-    resolution: {integrity: sha512-QQNZmGGfLI4EK50OLeElbhRbVsNuLLs4YzQ3Ym1nD+ufJqCIC53CktdvCbbMFwOB1OS5uBlZ3YWBG7EuPDOmnA==}
+  '@ssgoi/core@7.5.0-beta.2':
+    resolution: {integrity: sha512-M+EcoAHwSuUle+NmBUxV/2lwDbHcKYFBpbVLUXl8gfWRwB7Y4tkw0oXVJi3qSnB2CMMPqKaaRq4a1SU753WJFA==}
     engines: {node: '>=18.0.0'}
 
-  '@ssgoi/react@7.4.1':
-    resolution: {integrity: sha512-499zx303Y036zKIhNRioMz0sr2mzqheaA6IuYDvbYFrV6xQeDTH638lX+C2iefN+z8QoumRfLu4Vmqzmrc7SHA==}
+  '@ssgoi/react@7.5.0-beta.2':
+    resolution: {integrity: sha512-XP7wWkewDITlmYK7Rk5FifZ5YiScJqg59MGoGwaUFUF98DFHnzzMJnaJpjfHKNzPBrETi78budo72vl4t31LZg==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       '@remix-run/react': '*'
@@ -5642,12 +5642,12 @@ snapshots:
     optionalDependencies:
       browserslist: 4.28.2
 
-  '@ssgoi/core@7.4.1': {}
+  '@ssgoi/core@7.5.0-beta.2': {}
 
-  '@ssgoi/react@7.4.1(next@16.4.3(@babel/core@8.0.1)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@ssgoi/react@7.5.0-beta.2(next@16.4.3(@babel/core@8.0.1)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@babel/core': 7.29.0
-      '@ssgoi/core': 7.4.1
+      '@ssgoi/core': 7.5.0-beta.2
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
       unplugin: 2.3.11
