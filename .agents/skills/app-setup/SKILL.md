@@ -24,7 +24,7 @@ PullToRefresh, BottomSheet) is comwit-ui source installed in
 refresh gesture and back depth are `@comwit/ui` primitives. This skill only
 places them and lists the tabs. Transition rules use the SSGOI config shape
 (https://ssgoi.dev/llms.txt) through `appTransitions`. Older projects need
-`comwit.json`, `@comwit/ui@0.6.0`, `comwit-ui@0.7.1` (dev),
+`comwit.json`, `@comwit/ui@0.6.0`, `comwit-ui@0.8.0` (dev),
 `@ssgoi/react@7.5.0-beta.2` and `@comwit/state@2.7.0` or newer; install missing
 ones with `--save-exact` first. The CLI refuses older versions.
 
