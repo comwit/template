@@ -11,13 +11,33 @@ const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..
 const projectRoot = process.cwd()
 const usage = 'node <skill>/scripts/setup.mjs --tabs <tabs.json> [--pwa <pwa.json>] [--dry-run] (from project root)'
 // Installed with the project's comwit-ui CLI for the detected router. app-shell brings the whole
-// mobile shell (tab-bar, route-boundary, page-transition, pull-to-refresh, bottom-nav, glass);
-// app-screen brings the app bar. The skill's own assets only place these and list the tabs.
-const UI_COMPONENTS = ['app-shell', 'app-screen', 'bottom-sheet', 'button']
+// mobile shell (PageTransition/<Ssgoi> with the router adapter, scroller, TabShell, tab-bar,
+// pull-to-refresh, glass); app-group-layout and app-screen are the only SsgoiPageBoundary owners
+// (group layouts and pages). The skill's own assets only place these and list the tabs.
+const UI_COMPONENTS = ['app-shell', 'app-group-layout', 'app-screen', 'bottom-sheet', 'button']
 // Registry items above exist from these versions on. The CLI is bin-only, so it resolves by its entry file.
+// comwit-ui 0.7.1 is the first registry whose shell uses SsgoiPageBoundary (AppGroupLayout/AppScreen);
+// older shells key a RouteBoundary per route, which remounts pages Cache Components keeps alive.
 const MIN_VERSIONS = {
-  '@comwit/ui': { min: [0, 6], entry: '@comwit/ui' },
-  'comwit-ui': { min: [0, 7], entry: 'comwit-ui/src/index.js' },
+  '@comwit/ui': { min: [0, 6, 0], entry: '@comwit/ui' },
+  'comwit-ui': { min: [0, 7, 1], entry: 'comwit-ui/src/index.js' },
+  // SsgoiPageBoundary ships in @ssgoi/react 7.5.0 (beta.2 is the first usable build).
+  '@ssgoi/react': { min: [7, 5, 0, 'beta.2'], entry: '@ssgoi/react' },
+}
+// The installed boundary check (assets/tests) runs in `pnpm run validate` through this script.
+const TEST_SCRIPT = ['test:app', 'node --test tests/*.test.mjs']
+const TEMPLATE_VALIDATE = 'pnpm run --parallel "/^(typecheck|lint)$/"'
+const APP_VALIDATE = 'pnpm run --parallel "/^(typecheck|lint|test:app)$/"'
+
+/** -1/0/1 for semver [major, minor, patch, prerelease?]; a release sorts after its prereleases. */
+function compareVersion(version, [major, minor, patch, pre]) {
+  const [core, prerelease] = version.split('-', 2)
+  const parts = core.split('.').map(Number)
+  for (const [a, b] of [[parts[0], major], [parts[1], minor], [parts[2], patch]]) {
+    if (a !== b) return a < b ? -1 : 1
+  }
+  if (!prerelease || !pre) return prerelease ? -1 : pre ? 1 : 0
+  return prerelease.localeCompare(pre, 'en', { numeric: true })
 }
 
 /** Package "exports" may hide package.json, so walk up from the resolved entry to the package root. */
@@ -60,11 +80,11 @@ async function main() {
     if (!declared[name]) throw new Error(`Required package is not declared: ${name}`)
   }
   for (const name of ['@comwit/ui', '@ssgoi/react']) requireFromProject.resolve(name)
-  for (const [name, { min: [major, minor], entry }] of Object.entries(MIN_VERSIONS)) {
+  for (const [name, { min, entry }] of Object.entries(MIN_VERSIONS)) {
     const version = installedVersion(requireFromProject, name, entry)
-    const [a, b] = version.split('.').map(Number)
-    if (a < major || (a === major && b < minor)) {
-      throw new Error(`${name}@${version} is too old; app-setup needs ${name}@${major}.${minor}.0 or newer`)
+    if (compareVersion(version, min) < 0) {
+      const wanted = `${min.slice(0, 3).join('.')}${min[3] ? `-${min[3]}` : ''}`
+      throw new Error(`${name}@${version} is too old; app-setup needs ${name}@${wanted} or newer`)
     }
   }
   if (!fs.existsSync(path.join(projectRoot, 'comwit.json'))) {
@@ -112,15 +132,17 @@ async function main() {
     projectRoot, skillRoot, writes, review, startUrl: tabs[0].href,
     options: pwaPath ? JSON.parse(fs.readFileSync(path.resolve(projectRoot, pwaPath), 'utf8')) : undefined,
   })
-  const assetRoot = path.join(skillRoot, 'assets', 'src')
   function walk(dir) {
     return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
       const full = path.join(dir, entry.name)
       return entry.isDirectory() ? walk(full) : [full]
     })
   }
-  for (const source of walk(assetRoot)) {
-    const relative = path.join('src', path.relative(assetRoot, source))
+  // src/: group layouts, tab list, PWA banner. tests/: the (app) boundary check.
+  const assetSources = ['src', 'tests'].flatMap((base) =>
+    walk(path.join(skillRoot, 'assets', base)).map((source) => ({ base, source })))
+  for (const { base, source } of assetSources) {
+    const relative = path.join(base, path.relative(path.join(skillRoot, 'assets', base), source))
     let content = fs.readFileSync(source, 'utf8')
     if (path.basename(source) === 'app-tabs.ts') {
       const imports = [...new Set(tabs.map((tab) => `${tab.icon}Icon`))].join(', ')
@@ -147,7 +169,25 @@ async function main() {
     else if (!current.includes(insert.trimEnd())) review.push(`Reconcile existing guide block: ${relative}`)
   }
 
-  // The installed AppShell (scroller, refresh, scroll chrome, transitions, back depth) wraps the routed UI once.
+  // Keep the boundary check in validate after the skill removes itself.
+  const scripts = { ...pkg.scripts }
+  let scriptsChanged = false
+  if (!scripts[TEST_SCRIPT[0]]) {
+    scripts[TEST_SCRIPT[0]] = TEST_SCRIPT[1]
+    scriptsChanged = true
+  } else if (scripts[TEST_SCRIPT[0]] !== TEST_SCRIPT[1]) {
+    review.push(`Make package.json "${TEST_SCRIPT[0]}" run tests/app-boundaries.test.mjs`)
+  }
+  if (scripts.validate === TEMPLATE_VALIDATE) {
+    scripts.validate = APP_VALIDATE
+    scriptsChanged = true
+  } else if (scripts.validate !== APP_VALIDATE) {
+    review.push(`Make package.json "validate" also run "${TEST_SCRIPT[0]}"`)
+  }
+  if (scriptsChanged) write('package.json', JSON.stringify({ ...pkg, scripts }, null, 2) + '\n')
+
+  // The installed AppShell (<Ssgoi> + scroller, refresh, scroll chrome, back depth) wraps the routed
+  // UI once. It holds no transition boundary: group layouts and pages own those.
   const client = 'src/services/app/page/layout/client.tsx'
   const currentClient = read(client)
   const templateReturn = 'return <>{children}</>'
@@ -199,7 +239,7 @@ async function main() {
     dryRun, components, writes: writes.map((entry) => entry.relative), moves, review,
     next: dryRun
       ? 'Review the plan, then rerun without --dry-run. No files have been changed.'
-      : 'Shell installed; product work remains. Resolve review items, connect requested routes, seeded detail queries and shared detail UI using the three installed guides, then validate and clean up (see SKILL.md).',
+      : 'Shell installed; product work remains. Resolve review items, connect requested routes (every page renders AppScreen/DetailScreen, every group layout AppGroupLayout), seeded detail queries and shared detail UI using the three installed guides, then validate and clean up (see SKILL.md).',
   }, null, 2))
 }
 
