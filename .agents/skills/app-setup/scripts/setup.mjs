@@ -16,11 +16,11 @@ const usage = 'node <skill>/scripts/setup.mjs --tabs <tabs.json> [--pwa <pwa.jso
 // (group layouts and pages). The skill's own assets only place these and list the tabs.
 const UI_COMPONENTS = ['app-shell', 'app-group-layout', 'app-screen', 'bottom-sheet', 'button']
 // Registry items above exist from these versions on. The CLI is bin-only, so it resolves by its entry file.
-// comwit-ui 0.7.1 is the first registry whose shell uses SsgoiPageBoundary (AppGroupLayout/AppScreen);
+// comwit-ui 0.8.0 is the first registry whose shell uses SsgoiPageBoundary (AppGroupLayout/AppScreen);
 // older shells key a RouteBoundary per route, which remounts pages Cache Components keeps alive.
 const MIN_VERSIONS = {
   '@comwit/ui': { min: [0, 6, 0], entry: '@comwit/ui' },
-  'comwit-ui': { min: [0, 7, 1], entry: 'comwit-ui/src/index.js' },
+  'comwit-ui': { min: [0, 8, 0], entry: 'comwit-ui/src/index.js' },
   // SsgoiPageBoundary ships in @ssgoi/react 7.5.0 (beta.2 is the first usable build).
   '@ssgoi/react': { min: [7, 5, 0, 'beta.2'], entry: '@ssgoi/react' },
 }
