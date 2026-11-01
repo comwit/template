@@ -14,11 +14,11 @@ const assets = path.join(root, ".agents/skills/app-setup/assets");
 const UI = {
   "src/lib/components/ui/app-screen.tsx": `'use client'
 import { SsgoiPageBoundary } from '@ssgoi/react'
-function AppScreen({ children }: { children: React.ReactNode }) {
+function AppScreen({ children }: { bar?: 'tab' | 'back' | 'sheet'; children: React.ReactNode }) {
   return <SsgoiPageBoundary>{children}</SsgoiPageBoundary>
 }
-function DetailScreen(props: { children: React.ReactNode; fallback: string }) {
-  return <AppScreen {...props} />
+function DetailScreen({ children }: { children: React.ReactNode; fallback: string }) {
+  return <AppScreen bar="back">{children}</AppScreen>
 }
 export { AppScreen, DetailScreen }
 `,
@@ -58,7 +58,7 @@ export default function Page() {
 `,
   "src/services/app/page/home/index.tsx": `import { AppScreen } from '@/lib/components/ui/app-screen'
 export default function Home() {
-  return <AppScreen>home</AppScreen>
+  return <AppScreen bar="tab">home</AppScreen>
 }
 `,
   "src/app/(app)/(detail)/posts/[id]/page.tsx": `import { Suspense } from 'react'
