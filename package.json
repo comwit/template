@@ -3,7 +3,6 @@
   "name": "my-app",
   "version": "1.0.0",
   "private": true,
-  "packageManager": "pnpm@11.3.0",
   "imports": {
     "#comwit-server-fn-runtime": {
       "react-server": "./src/lib/server-action/server.ts",
