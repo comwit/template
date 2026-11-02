@@ -157,7 +157,7 @@
     "migrations/meta/0002_snapshot.json": "7d3e7923dc84662e9bf011e50488f026f9a47b21fbd7a80c1e8ed23908c84e70",
     "migrations/meta/_journal.json": "4544262e706cc75105d2787b0faf0f52448a3bfd6a98760144d5937550b8e5ce",
     "next.config.ts": "0000680eed65fa291fa9fa6fe245db18549b48549962f5d598c3228ae0902be1",
-    "package.json": "36361f59d1dbabb6291dcbb451b810f4d3d228b8a830808be85e51830888bb0c",
+    "package.json": "7420ad1336e3124e0ef8ecaeefe080cfe7c39d1cd7fcb36ca6d3e20facc72982",
     "patches/@storybook__nextjs-vite@10.6.2.patch": "f10ad508fd9f62ccb759aff96f32b87708b9b78eaccc7fd62c8026460d0c26f9",
     "pnpm-lock.yaml": "e9839a98377e0da6a3574e2eaf9799369ebf5c21caf5f8d920fb74f60b08c692",
     "pnpm-workspace.yaml": "05037b9750da8b54e5072574491c4b008718ed763a5bcb6758e4d1c7f9bc216e",
