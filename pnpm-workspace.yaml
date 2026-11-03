@@ -28,3 +28,5 @@ minimumReleaseAgeExclude:
   - 'comwit-ui'
   - '@ssgoi/core@7.5.0-beta.2'
   - '@ssgoi/react@7.5.0-beta.2'
+patchedDependencies:
+  next@16.4.3: patches/next@16.4.3.patch
