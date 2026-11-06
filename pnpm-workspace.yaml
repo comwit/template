@@ -26,5 +26,3 @@ minimumReleaseAgeExclude:
   - '@comwit/ui'
   - '@comwit/ui-templates'
   - 'comwit-ui'
-patchedDependencies:
-  '@storybook/nextjs-vite@10.6.2': patches/@storybook__nextjs-vite@10.6.2.patch
