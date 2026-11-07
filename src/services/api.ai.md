@@ -103,11 +103,12 @@ export type CreateRequest = {
 - Keep `'use server'` as the source convention. The build loader replaces it with `import 'server-only'`, so the output is not registered or invoked as a native Next/React Server Function.
 - Browser transport uses one dedicated POST Route Handler.
   - Every build removes action imports from API `index.ts` and emits a function-ID facade.
+  - Function IDs are opaque build-time hashes of `service/domain/file#export`. The browser bundle and the request URL carry only the hash; the readable label stays in the server manifest (`serverFnSources`) for logs.
   - Server Components/RSC select the manifest-direct runtime through the package `react-server` condition.
   - Client Component SSR selects the client runtime and never starts a request during render.
-  - Browsers use the client runtime and send POST requests.
+  - Browsers use the client runtime and send same-origin POST requests. The handler rejects cross-site requests (`Sec-Fetch-Site`, `Origin` vs `Host`) and never sends CORS headers.
   - Only the server manifest dynamically imports real action modules.
-  - Endpoint: `POST /api/internal/server-fn/[...slug]`
+  - Endpoint: `POST /api/internal/server-fn/<function-id>`
 - `createAction` returns the original `Promise<T>` function. The old one-item Promise tuple protocol is not used.
 
 ### Throw errors as `ActionError`

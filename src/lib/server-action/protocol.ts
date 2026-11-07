@@ -84,23 +84,25 @@ export function parseServerFnWire<T>(text: string): T {
   return restoreUndefined(parsed) as T
 }
 
-/** Move the registry ID's #export suffix to the final URL segment. */
+/**
+ * Compiled function IDs are opaque build-time hashes (see build/shared.cjs createActionId),
+ * so the URL carries one hex segment and never the service/domain/file layout.
+ */
+const SERVER_FN_ID_PATTERN = /^[0-9a-f]{16,64}$/
+
+/** Use the opaque registry ID as the single URL segment. */
 export function serverFnIdToPath(id: string): string {
-  const separator = id.lastIndexOf('#')
-  if (separator < 1 || separator === id.length - 1) {
+  if (!SERVER_FN_ID_PATTERN.test(id)) {
     throw new Error(`Invalid Server Function id: ${id}`)
   }
-
-  return `${id.slice(0, separator)}/${id.slice(separator + 1)}`
-    .split('/')
-    .map(encodeURIComponent)
-    .join('/')
+  return id
 }
 
-/** Restore catch-all Route Handler segments to a registry ID. */
+/** Restore the catch-all Route Handler segment to a registry ID; reject anything but one opaque ID. */
 export function serverFnPathToId(segments: string[]): string | null {
-  if (segments.length < 2 || segments.some((segment) => !segment)) return null
-  return `${segments.slice(0, -1).join('/')}#${segments.at(-1)}`
+  if (segments.length !== 1) return null
+  const [id] = segments
+  return SERVER_FN_ID_PATTERN.test(id) ? id : null
 }
 
 function isWireMarker(value: unknown): value is WireMarker {
