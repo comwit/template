@@ -67,9 +67,11 @@ export const catalog = {
     });
     return list(items, { search: filter.search }, page);
   }),
-  find: mockApi<CatalogAPI["find"]>((db, id) =>
-    withEnrollment(db, findItem(published(db), id)),
-  ),
+  // 실제 API 처럼 없는·비공개 강의는 null (상세 화면의 "없는 강의").
+  find: mockApi<CatalogAPI["find"]>((db, id) => {
+    const course = published(db).find((item) => item.id === id);
+    return course ? withEnrollment(db, course) : null;
+  }),
   categories: mockApi<CatalogAPI["categories"]>((db) => db.categories),
   reviews: mockApi<CatalogAPI["reviews"]>((db, courseId, page) =>
     paginate(
@@ -117,7 +119,8 @@ export const catalog = {
       });
     return list(items, { search: filter.search }, page);
   }),
-  product: mockApi<CatalogAPI["product"]>((db, id) =>
-    withPurchase(db, findItem(publishedProducts(db), id)),
-  ),
+  product: mockApi<CatalogAPI["product"]>((db, id) => {
+    const product = publishedProducts(db).find((item) => item.id === id);
+    return product ? withPurchase(db, product) : null;
+  }),
 } satisfies CatalogAPI;

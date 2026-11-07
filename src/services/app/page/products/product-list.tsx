@@ -17,7 +17,7 @@ import { EmptyState } from "@/lib/components/ui/empty-state";
 
 // 읽는 상태: useCatalog products(.suspend — 필터·페이지는 모델의 productFilter/productPage), categories(.suspend).
 // CourseList 와 같은 규칙: 직접 진입은 SSR, 다시 돌아오면 캐시로 바로, 필터·페이지 변경은 keepPreviousData 로 지금 목록 유지.
-// 카드 클릭 시 actions.openProduct(product) 로 상세 리소스를 목록 항목으로 채운다 → 인터셉트 라우트가 바로 그린다.
+// 카드는 평범한 <Link>. product query 의 `seed` 가 이 목록 항목으로 상세 첫 화면을 바로 그린다(state.ai.md → Detail seed).
 const ALL = "all";
 const KINDS = [
   { value: "file", label: "파일" },
@@ -130,11 +130,7 @@ export function ProductList() {
           className="mt-8 flex flex-col gap-4">
           {list.data.items.map((product) => (
             <li key={product.id}>
-              <Link
-                href={`/products/${product.id}`}
-                onClick={() => catalog.actions.openProduct(product)}
-                className="block"
-              >
+              <Link href={`/products/${product.id}`} className="block">
                 {product.thumbnail ? (
                   <img
                     src={product.thumbnail.thumb ?? product.thumbnail.url}

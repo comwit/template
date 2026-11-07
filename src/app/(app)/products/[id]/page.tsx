@@ -1,19 +1,20 @@
-import { Suspense, cache } from "react";
+import { Suspense } from "react";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { entityId } from "@/lib/course";
 import { siteText } from "@/lib/ui-text";
 import { presentProduct } from "@/server/course";
 import { CourseError, productRepository } from "@/server/repository";
-import ProductDetail, {
+import {
+  ProductDetailRoute,
   ProductDetailSkeleton,
 } from "@/services/app/page/product-detail";
 
 type Params = Promise<{ id: string }>;
 
-// 정식 라우트. 직접 진입·새로고침·공유 링크·봇만 여기로 온다 — 앱 안 소프트 내비는 `(.)products/[id]` 인터셉트가 잡는다.
-// 강의 상세와 같은 구조: 404·metadata 는 RSC 에서 한 번, 화면은 ProductDetail 의 `.suspend(id)` 가 SSR.
-const findProduct = cache(async (id: string) => {
+// 상품 상세의 유일한 라우트. 강의 상세(courses/[id])와 같은 구조: 본문은 정적, 서버 조회는 generateMetadata 하나.
+// 화면은 ProductDetail 의 `.suspend(id)` 가 읽고(직접 진입 SSR, 목록에서 들어오면 seed), 없는 상품은 null(noindex).
+async function findProduct(id: string) {
   if (!entityId.safeParse(id).success) return null;
   try {
     return presentProduct(await productRepository.findById(id, true));
@@ -21,7 +22,7 @@ const findProduct = cache(async (id: string) => {
     if (error instanceof CourseError && error.code === "NOT_FOUND") return null;
     throw error;
   }
-});
+}
 
 export async function generateMetadata({
   params,
@@ -50,16 +51,21 @@ export async function generateMetadata({
   };
 }
 
-export default function Page({ params }: { params: Params }) {
+export default function Page() {
   return (
-    <Suspense fallback={<ProductDetailSkeleton />}>
-      <ProductDetailRoute params={params} />
-    </Suspense>
+    <>
+      <Suspense fallback={<ProductDetailSkeleton />}>
+        <ProductDetailRoute />
+      </Suspense>
+      <Suspense>
+        <Connection />
+      </Suspense>
+    </>
   );
 }
 
-async function ProductDetailRoute({ params }: { params: Params }) {
-  const { id } = await params;
-  if (!(await findProduct(id))) notFound();
-  return <ProductDetail productId={id} />;
+/** 동적 마커. metadata 는 요청 시점에 만들고 본문은 정적 셸로 남긴다. */
+async function Connection() {
+  await connection();
+  return null;
 }

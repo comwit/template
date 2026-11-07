@@ -4,8 +4,8 @@ import Link from "next/link";
 import { Button } from "@/lib/components/ui/button";
 
 /**
- * 상품 상세 안내. 정식 라우트는 RSC 가 `notFound()` 로 먼저 거르고,
- * 목록 캐시에 남은 비공개 상품(재조회 NOT_FOUND)이 여기로 온다.
+ * 없는 상품 안내. product query 가 `data === null` 을 돌려줄 때 화면이 그린다 — 잘못된 id, 삭제·비공개 상품,
+ * 목록 seed 로 먼저 그렸다가 전체 응답이 null 로 온 경우 모두 여기다.
  */
 export function ProductNotFound() {
   return (

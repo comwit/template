@@ -4,7 +4,8 @@ import Link from "next/link";
 import { siteText } from "@/lib/ui-text";
 
 // 빈 깡통. 파생 프로젝트에서 섹션 파일로 나눠 채운다(page.ai.md). 데이터는 useCatalog의 .suspend()로 SSR 한다.
-// 레이아웃에 내비가 없어 주요 화면 링크만 둔다. 강의 카드를 넣을 땐 `<Link onClick={() => catalog.actions.open(course)}>`.
+// 레이아웃에 내비가 없어 주요 화면 링크만 둔다. 강의 카드를 넣을 땐 `/courses/[id]` 로 가는 평범한 <Link> 면 된다 —
+// 상세 첫 화면은 catalog 모델의 `seed` 가 그린다. 홈 전용 목록 query 를 두면 model.ts 의 seed 가 그 목록도 찾게 한다.
 export default function Home() {
   return (
     <main className="mx-auto w-full max-w-5xl px-6 py-16">
