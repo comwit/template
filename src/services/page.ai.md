@@ -152,9 +152,10 @@ const { products, actions } = useProduct();
 
 ### Using query data
 
-`.suspend()` returns only once the query has data, so the view renders data
-directly. The `<Suspense>` fallback covers the first load and an `error.tsx`
-covers a failed first load.
+`.suspend()` returns only once the query has data (or, for a seeded detail, its
+seed — `state.ai.md` → Detail seed), so the view renders data directly. The
+`<Suspense>` fallback covers the first load and an `error.tsx` covers a failed
+first load.
 
 ```tsx
 const product = useProduct((state) => ({
@@ -197,7 +198,7 @@ function ProductList() {
 }
 ```
 
-> `.suspend()` first load → Suspense fallback · revisit with cache → paints at once, `isFetching` in the background · arg change with `keepPreviousData` → keeps the old data, `isFetching` until the new page arrives
+> `.suspend()` first load → Suspense fallback · revisit with cache → paints at once, `isFetching` in the background · arg change with `keepPreviousData` → keeps the old data, `isFetching` until the new page arrives · seeded detail → paints the list item at once, `isPartial` until the upgrade lands
 
 ## Lists — static shell, list in its own boundary
 
@@ -222,52 +223,56 @@ export default function Page() {
 - Pages under the service layout SSR the list on direct visits (SEO), and in-app revisits paint from the query cache.
 - The shell renders `children` where the list goes; it reads no query.
 - The skeleton mirrors the list's own blocks (filter row, card rows) with the same classes for spacing, and reads no state.
-- List cards call the detail action before navigating (`onClick={() => actions.open(item)}`) so the detail opens from that seed.
-- Lists do not get an intercepting route — they load on entry anyway. Only details are intercepted.
+- List cards are plain `<Link>`s to the canonical detail URL; the detail query's `seed` derives its first paint from this list (`state.ai.md` → Detail seed). No `onClick` action.
 
-## Detail Pages — one view, one resource, three entries
+## Detail Pages — one route, one view, one resource
 
 Public detail pages need SSR for SEO **and** must open instantly from a card.
-One Client Component with one `.suspend(id)` covers both; the route layer
-decides how it is reached.
+One canonical route with a static body and one Client Component with one
+`.suspend(id)` cover both; the model's `seed` decides what that read paints.
 
-| Entry | Route | What `.suspend(id)` sees | Result |
-|---|---|---|---|
-| Direct visit, refresh, shared link, bots | `posts/[id]/page.tsx` (RSC: `cache()`d lookup → `notFound()`, `generateMetadata`) | nothing | SSR in the same request |
-| Soft nav from a card | `(.)posts/[id]/page.tsx` (intercepting route, pure client, `useParams`) | the list item put there by `actions.open(post)` | renders at once; detail-only fields fill in from the background refetch |
-| Soft nav without a card | intercepting route | nothing | skeleton, then client fetch |
+| Entry | What `.suspend(id)` sees | Result |
+|---|---|---|
+| Direct visit, refresh, shared link, bots | nothing | suspends; SSR in the same request, streamed into the client cache |
+| Soft nav from a list that holds the item | the list item via `seed` | paints at once (`isPartial: true`); the full detail upgrades in the background |
+| Soft nav without list data | nothing | skeleton, then client fetch |
 
 ```tsx
 // page/post-detail/index.tsx — the only view
 "use client";
+export function PostDetailRoute() {
+  const { id } = useParams<{ id: string }>();      // the id comes from the client, not from server params
+  return <PostDetail postId={id} />;
+}
+
 export default function PostDetail({ postId }: { postId: string }) {
   const post = usePost((state) => ({
     detail: state.detail.suspend(postId),
     actions: state.actions,
   }));
-  if (post.detail.isError || !post.detail.data) return <PostNotFound />;
-  const data = post.detail.data;
+  if (!post.detail.data) return <PostNotFound />;  // null from the upgrade or SSR → not found
+  const full = post.detail.isPartial ? null : post.detail.data;
   return (
     <main>
-      <h1>{data.title}</h1>                     {/* list fields: always there */}
-      {data.body === undefined ? <PostBodyBones /> : <PostBody body={data.body} />}
+      {full ? <PostJsonLd post={full} /> : null}   {/* structured data from the query, full result only */}
+      <h1>{post.detail.data.title}</h1>            {/* list fields: always there */}
+      {full ? <PostBody body={full.body} /> : <PostBodyBones />}
       <Suspense fallback={<CommentsBones />}>
-        <PostComments postId={data.id} />       {/* separate query, own boundary */}
+        <PostComments postId={postId} />           {/* separate query, own boundary */}
       </Suspense>
     </main>
   );
 }
 
-// any post card
-<Link href={`/posts/${post.id}`} onClick={() => postState.actions.open(post)}>
+// any post card: a plain link
+<Link href={`/posts/${post.id}`}>
 ```
 
-- The resource type is the list item plus optional detail-only fields (`state.ai.md` → Partial resources). `undefined` = not loaded yet → bones in that spot; `""`/`[]`/`null` = loaded and empty.
-- Only `detail` may `.suspend()` in the view's own selector. Any other `.suspend()` there blocks the whole page whenever its cache is empty. Read it in a child component behind its own `<Suspense>` with a bone fallback so the body paints first. A story that opens the detail from a list with the API blocked must still show the seeded fields.
-- Keep the intercepting route a pure client page: no server read, no `await`, no metadata. That is what puts the whole page into the default `<Link>` App Shell prefetch. Metadata, JSON-LD and the 404 decision belong to the formal route only.
-- Both routes use the detail skeleton as the Suspense fallback, never `null`. The intercepting route also has an `error.tsx` → not-found view for ids that have no cache and do not exist.
-- The view sets `document.title` itself because the intercepting route has no metadata. Re-apply it when `<head>` changes (a `MutationObserver` on `document.head`), since Next may insert the layout title after the effect runs.
-- Do not wrap `Link` in a custom component for this; the `onClick` → single action is the normal handler rule.
+- The route file (`src/app/.ai.md` → Data routes) has a static body: `generateMetadata` is its only server read and returns noindex for a missing item instead of `notFound()`; the body never `await`s. Metadata streams and does not block soft navigation; a server await in the body does.
+- Branch on `isPartial`, not on field checks. While partial, `data` is the list item plus optional detail-only fields (`state.ai.md` → Detail seed), so detail-only areas render bones; the full result renders everything. A story that opens the detail from a list with the API blocked must still show the seeded fields.
+- Only `detail` may `.suspend()` in the view's own selector. Any other `.suspend()` there blocks the whole page whenever its cache is empty. Read it in a child component behind its own `<Suspense>` with a bone fallback so the body paints first.
+- Not-found is `data === null` from the query (`queryFn` resolves `null`), rendered by the view: no second server read, no body `notFound()`, no per-route `error.tsx` for unknown ids. A failed upgrade keeps the seeded content with `isError`; without data, the segment's `error.tsx` covers a failed first load.
+- The route's Suspense fallback is the detail skeleton, never `null`. Intercepting routes (`(.)`) are for overlays only (a modal or sheet over the current screen), never a second entry for a detail page.
 
 ### Pages behind login
 
