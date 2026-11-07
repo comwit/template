@@ -1,7 +1,7 @@
 # State layer — usage guide
 
-How this template uses `@comwit/state`. `StateProvider` is already set up, so screens read server
-data with `.suspend()`. Full API: https://library.comwit.io/state/llms.txt
+How this template uses `@comwit/state`. `StateProvider` is already set up, so public screens read
+server data with `.suspend()`. Full API: https://library.comwit.io/state/llms.txt
 
 ## Make a domain
 
@@ -56,10 +56,10 @@ const product = useProduct((s) => ({ products: s.products.suspend({ page: s.page
 ## Read queries
 
 ```tsx
-// Screens: rendered on the server, painted from cache on return.
+// Public/SEO screens: rendered on the server, painted from cache on return.
 const detail = useProduct((s) => s.detail.suspend(id))
 
-// Client-only: renders isLoading first, requests after commit.
+// Everything else may use .load(): renders isLoading first, requests after commit.
 const quote = useCheckout((s) => s.quote.load({ code }))
 
 // Passive. Never starts a request.
@@ -69,6 +69,8 @@ const cached = useProduct((s) => s.products)
 - `Query<T, Arg, Seed?>`: remote query state; the third generic is a detail seed (Detail seed below).
   `Query.Infinite<T, Arg>`: cursor/infinite query.
 - Plain values: client-owned reactive state.
+- Use `.suspend()` where server HTML matters (SEO: public lists and details). Other screens (behind
+  login, client-driven reads) may use `.load()`.
 - Local resources are read with `.load()`; server-rendered reads stay plain `query()`.
 - Do not start an initial load from `useEffect`.
 
@@ -235,8 +237,8 @@ Elsewhere read `s.me.data`. Load profile or member tables with their own query o
 
 ## Delivery checklist
 
-- Screen data uses `.suspend()` inside `<Suspense>` with a shaped skeleton; `.load()` only for
-  client-only reads.
+- SEO screens use `.suspend()` inside `<Suspense>` with a shaped skeleton; other screens may use
+  `.load()` with a shaped skeleton for `isLoading`.
 - Paginated queries use `keepPreviousData`; the page lives in the model and changes through an action.
 - The detail query declares `seed` from its own list; views branch on `isPartial`; cards are plain links.
 - Guards, error toasts, and concurrency are decorators (`@RequireLogin`, `@Authorized`, `@OnError`,

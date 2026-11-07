@@ -130,7 +130,7 @@ import type { DomainType } from "@/services/{service}/state/{domain}";
 - One domain hook call per file
 - No destructuring - use namespace style
 - Access via `domain.field` and `domain.actions.method()`
-- When the view owns an initial query, start it inside the selector: `.suspend(arg)` for screens (server-rendered, cached on return), `.load(arg)` only for client-only reads (`state.ai.md` → Query loading). Do not trigger the initial load with `useEffect`.
+- When the view owns an initial query, start it inside the selector: `.suspend(arg)` for SEO screens (server-rendered, cached on return), `.load(arg)` elsewhere (`state.ai.md` → Read queries). Do not trigger the initial load with `useEffect`.
 - Select a query field without `.suspend()`/`.load()` only when a state action intentionally owns loading.
 
 ### Example
@@ -276,7 +276,6 @@ export default function PostDetail({ postId }: { postId: string }) {
 
 ### Pages behind login
 
-Account pages (orders, purchases) also read with `.suspend()` inside their own
-`<Suspense>`; the service layout renders them with the session on the server. A first-load rejection (signed out) throws to the segment's
-`error.tsx`, which offers the login link. Use `.load()` only for client-driven
-reads such as a quote that changes with user input.
+Account pages (orders, purchases) do not need SEO, so they may read with `.load()` and show their
+skeleton while `isLoading`; handle a signed-out result with the login link. Client-driven reads such
+as a quote that changes with user input also use `.load()`.
