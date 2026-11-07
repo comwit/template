@@ -1,28 +1,28 @@
 <!-- app-setup:routing -->
 ## Mobile App Detail UI (app-setup installed)
 
-For mobile details, this section replaces the general SSR Detail Pages / hydration examples above. Render one shared detail component from both route entry points, using `detail.suspend(id)` as described in `state.ai.md`. There is no separate seed UI or hydration adapter.
+For mobile details, this section replaces the general SSR Detail Pages / hydration examples above. Render one shared detail component from the one canonical route, using `detail.suspend(id)` as described in `state.ai.md`.
 
-- **Cached card navigation:** render the resource already stored by `actions.open(post)` immediately. Keep it visible during background refetch; do not replace it with a full skeleton because `isFetching` is true.
-- **Empty cache:** the route's `<Suspense fallback={<PostSkeleton />}>` covers the first core-resource request. Direct SEO visits resolve that same read on the server; uncached in-app navigation resolves it on the client.
-- **Partially populated resource:** render available fields from `detail.data` and skeletons only for missing fields until the detail response fills them. Represent missing fields explicitly; do not mistake empty values for unloaded values or pass another `seed` object.
+- **Seeded navigation (`isPartial: true`):** the list item is on screen at once. Render the summary fields and skeletons for the detail-only areas (body, permissions UI, comments) until the upgrade settles; keep the content visible during that upgrade — `isFetching` is never a reason for a full skeleton.
+- **Full result (`isPartial: false`):** render everything. `data === null` is the confirmed not-found state and replaces the content; render JSON-LD only here, from the query data.
+- **Empty cache:** the route's `<Suspense fallback={<PostSkeleton />}>` covers the first core-resource request. Direct visits resolve that same read on the server; in-app navigation without list data resolves it on the client.
 - **Independent sections:** reviews, related posts and other detail-only queries load separately and show section skeletons. Never add their `.suspend()` reads to the core detail selector; put them behind child Suspense boundaries or use `.load()` with local loading UI.
 
 ```tsx
-// PostDetail reads the one resource; PostView receives that resource only.
-function PostView({ post }: { post: Post }) {
+// PostDetail reads the one resource; PostView receives it plus `full` (null while partial).
+function PostView({ post, full }: { post: PostSummary & Partial<Post>; full: Post | null }) {
   return (
-    <DetailScreen fallback="/posts" actions={<ShareButton />}>
+    <DetailScreen title={post.title} fallback="/posts" actions={<ShareButton />}>
+      {full ? <PostJsonLd post={full} /> : null}
       <PostHeader post={post} />
-      {/* If body can be absent in list data, Post declares it as optional. */}
-      {post.body === undefined ? <PostBodySkeleton /> : <PostBody body={post.body} />}
+      {full ? <PostBody body={full.body} /> : <PostBodySkeleton />}
       <PostReviews id={post.id} /> {/* Own .load() query and section loading/error UI. */}
     </DetailScreen>
   )
 }
 ```
 
-Handle confirmed not-found/permission errors before cached data so deleted or inaccessible content does not remain visible. On a transient background failure, keep valid cached content with a retry indicator; without usable data, show the error screen. `.suspend()` can throw query errors, so give route/section error boundaries the same domain-aware policy. Suspense fallbacks are simple skeletons and never read the failing resource themselves.
+Handle confirmed not-found/permission results before content so deleted or inaccessible items do not remain visible. On a transient upgrade failure (`isError` with data still present), keep the content with a retry indicator; without usable data, show the error screen. `.suspend()` without a seed can throw query errors, so give route/section error boundaries the same domain-aware policy. Suspense fallbacks are simple skeletons and never read the failing resource themselves.
 
 ### Screen shell and back navigation
 

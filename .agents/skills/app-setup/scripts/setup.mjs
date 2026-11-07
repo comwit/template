@@ -199,7 +199,7 @@ async function main() {
     dryRun, components, writes: writes.map((entry) => entry.relative), moves, review,
     next: dryRun
       ? 'Review the plan, then rerun without --dry-run. No files have been changed.'
-      : 'Shell installed; product work remains. Resolve review items, connect requested routes, card-to-detail cache writes, shared detail queries and UI using the three installed guides, then validate and clean up (see SKILL.md).',
+      : 'Shell installed; product work remains. Resolve review items, connect requested routes, seeded detail queries and shared detail UI using the three installed guides, then validate and clean up (see SKILL.md).',
   }, null, 2))
 }
 

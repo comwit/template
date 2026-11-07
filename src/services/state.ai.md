@@ -1,7 +1,7 @@
 # State layer — usage guide
 
-How this template uses `@comwit/state`. `StateProvider` is already set up, so screens read server
-data with `.suspend()`. Full API: https://library.comwit.io/state/llms.txt
+How this template uses `@comwit/state`. `StateProvider` is already set up, so public screens read
+server data with `.suspend()`. Full API: https://library.comwit.io/state/llms.txt
 
 ## Make a domain
 
@@ -56,18 +56,22 @@ const product = useProduct((s) => ({ products: s.products.suspend({ page: s.page
 ## Read queries
 
 ```tsx
-// Screens: rendered on the server, painted from cache on return.
+// Public/SEO screens: rendered on the server, painted from cache on return.
 const detail = useProduct((s) => s.detail.suspend(id))
 
-// Client-only: renders isLoading first, requests after commit.
+// Everything else may use .load(): renders isLoading first, requests after commit.
 const quote = useCheckout((s) => s.quote.load({ code }))
 
 // Passive. Never starts a request.
 const cached = useProduct((s) => s.products)
 ```
 
-- `Query<T, Arg>`: remote query state. `Query.Infinite<T, Arg>`: cursor/infinite query.
+- `Query<T, Arg, Seed?>`: remote query state; the third generic is a detail seed (Detail seed below).
+  `Query.Infinite<T, Arg>`: cursor/infinite query.
 - Plain values: client-owned reactive state.
+- Use `.suspend()` where server HTML matters (SEO: public lists and details). Other screens (behind
+  login, client-driven reads) may use `.load()`.
+- Local resources are read with `.load()`; server-rendered reads stay plain `query()`.
 - Do not start an initial load from `useEffect`.
 
 ### Screens with `.suspend()`
@@ -105,22 +109,40 @@ A new page keeps the current list on screen unchanged (`isFetching: true`) inste
 
 ## Detail seed
 
-```ts
-// model.ts
-detail: query<Product | null, string>({ initialData: null, queryFn: (id) => api.product.findById(id) }),
+The detail query declares its seed from the list in the same model. The same `.suspend(id)` then
+serves every entry: a direct visit suspends and streams; in-app navigation from the list paints the
+list item at once (`isPartial: true`) and upgrades to the full detail in the background.
 
-// actions — a card fills the detail before navigating
-open(item: Product) {
-  this.model.detail.set(item, { arg: item.id })
-}
+A seed works with both `.load()` and `.suspend()`. While a seed exists, `.suspend()` behaves like
+`.load()`: it does not throw a promise, it paints the seed and fetches the full detail after commit.
+
+```ts
+// types.ts — the list item is the seed; detail-only fields are optional while partial
+detail: Query<ProductDetail | null, string, ProductSummary>
+
+// model.ts
+detail: query<ProductDetail | null, string, ProductSummary>({
+  initialData: null,
+  queryFn: (id) => api.product.findById(id), // resolves null for a missing item instead of throwing
+  seed: (id, { state }: QuerySeedContext<ProductState>) => state.products.data.items.find((p) => p.id === id),
+}),
 ```
 
 ```tsx
-const detail = useProduct((s) => s.detail.suspend(id)) // one resource, one .suspend
+const detail = useProduct((s) => s.detail.suspend(id)) // one resource, one .suspend; does not suspend while a seed exists
+if (!detail.data) return <ProductNotFound />              // null from the upgrade or SSR = not found
+if (detail.isPartial) return <ProductView summary={detail.data} />          // ProductSummary & Partial<ProductDetail>
+return <ProductView summary={detail.data} reviews={detail.data.reviews} /> // ProductDetail
 ```
 
-Type a lighter list item as `ProductSummary & Partial<ProductDetailOnly>` and leave unloaded fields
-`undefined`. Load reviews and related items in a child component with its own `<Suspense>`.
+- `seed` runs during render and must be pure: read only this model's own state, never write; return
+  `undefined` when the list does not hold the id. Its type may only name fields of the full value.
+- A full result always wins over a seed. A rejected upgrade
+  keeps the seed with `isError: true`; an upgrade that resolves `null` is not-found.
+- One model per resource: the seed source is the detail's own list. A screen that needs several
+  resources calls each resource's hook; a seed never reads another model.
+- Actions take the id and patch the detail only when it holds a full result; never write detail-only data into a partial key.
+- Load reviews and related items in a child component with its own `<Suspense>` or `.load()`.
 
 ## Actions and decorators
 
@@ -218,10 +240,10 @@ Elsewhere read `s.me.data`. Load profile or member tables with their own query o
 
 ## Delivery checklist
 
-- Screen data uses `.suspend()` inside `<Suspense>` with a shaped skeleton; `.load()` only for
-  client-only reads.
+- SEO screens use `.suspend()` inside `<Suspense>` with a shaped skeleton; other screens may use
+  `.load()` with a shaped skeleton for `isLoading`.
 - Paginated queries use `keepPreviousData`; the page lives in the model and changes through an action.
-- Cards seed the detail with one action; unloaded fields are `undefined`.
+- The detail query declares `seed` from its own list; views branch on `isPartial`; cards are plain links.
 - Guards, error toasts, and concurrency are decorators (`@RequireLogin`, `@Authorized`, `@OnError`,
   `@Queue`), not repeated `if` blocks.
 - CRUD rolls back failed optimistic writes and refetches related queries.

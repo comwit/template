@@ -24,7 +24,7 @@ detected router; the scroller, scroll chrome, refresh gesture and back depth are
 `@comwit/ui` primitives. This skill only places them and lists the tabs.
 Transition rules use the SSGOI config shape (https://ssgoi.dev/llms.txt) through
 `appTransitions`. Older projects need `comwit.json`, `@comwit/ui@0.6.0`,
-`comwit-ui@0.7.0` (dev), `@ssgoi/react@7.4.1` and `@comwit/state@2.5.0` or newer;
+`comwit-ui@0.7.0` (dev), `@ssgoi/react@7.4.1` and `@comwit/state@2.6.0` or newer;
 install missing ones with `--save-exact` first.
 
 ## 1. CLI: install the mechanical shell
@@ -85,14 +85,13 @@ the skill or mark setup complete.
 
 | Guide | Owns |
 | --- | --- |
-| `src/app/.ai.md` → Mobile App Route Groups ([source](assets/inserts/app.ai.md)) | Canonical SSR / intercepted client entry points sharing one detail view |
-| `src/services/page.ai.md` → Mobile App Detail UI ([source](assets/inserts/page.ai.md)) | Immediate cached content, empty-cache Suspense, and independent section loading |
-| `src/services/state.ai.md` → Mobile App Detail State ([source](assets/inserts/state.ai.md)) | Card action fills the same detail resource; one `.suspend(id)` read for every entry |
+| `src/app/.ai.md` → Mobile App Route Groups ([source](assets/inserts/app.ai.md)) | One canonical detail route with a static body; `generateMetadata` is the only server read |
+| `src/services/page.ai.md` → Mobile App Detail UI ([source](assets/inserts/page.ai.md)) | `isPartial` branches, not-found from `data === null`, and independent section loading |
+| `src/services/state.ai.md` → Mobile App Detail State ([source](assets/inserts/state.ai.md)) | The detail query declares `seed` from its own list; one `.suspend(id)` read for every entry |
 
 For mobile details these sections supersede the general detail hydration examples;
 keep the service-root auth hydration contract. Verify the existing StateProvider
 streaming integration and root SSR bridge import before using server `.suspend()`.
-Do not create a separate seed model/prop or a detail hydration adapter.
 
 Follow these guides to implement the requested tabs and detail flows with the
 product's domain data (mock repositories are fine). Keep each decision in its
@@ -105,16 +104,17 @@ routes, queries and shared detail UI must be connected.**
 Resolve CLI review items and run `pnpm run validate`. After route moves, regenerate
 stale types with `pnpm exec next typegen` if needed. Check the implemented flow:
 
-- A card action fills the ID-keyed detail resource before navigation. With the
-  detail API held pending, cached content still renders immediately; refetch does
-  not blank it. Missing fields and independent sections show only local loading.
-- An empty cache shows the route skeleton until the detail query resolves.
-  Changing IDs never flashes another resource; missing/forbidden responses hide
-  cached content, and transient failures offer retry.
-- Client-only details use one route. SEO details use a canonical SSR route and
-  a server-read-free intercepted route, both rendering the same `.suspend(id)`
-  view. Check direct visit/reload, cached card navigation, and uncached in-app
-  navigation; SSR data is streamed without a manual detail hydration adapter.
+- The detail query declares `seed` from its own list. With the detail API held
+  pending, navigating from a list still paints the list item immediately
+  (`isPartial: true`); the upgrade does not blank it. Detail-only areas and
+  independent sections show only local loading.
+- Without list data the route skeleton shows until the detail query resolves.
+  Changing IDs never flashes another item; a `null` result replaces content with
+  not-found, and a failed upgrade keeps the content and offers retry.
+- Every detail has exactly one route with a static body;
+  `generateMetadata` is its only server read (noindex for a missing item). Check
+  direct visit/reload, in-app navigation from a list, and in-app navigation
+  without list data.
 - Tabs retain BottomNav; fullscreen details hide it. Verify the app-bar back
   button after card navigation, browser back/forward, and direct-entry/reload
   parent fallback. Loading/error screens keep a usable back button. Check
