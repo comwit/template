@@ -1,20 +1,21 @@
-import { Suspense, cache } from "react";
+import { Suspense } from "react";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { entityId } from "@/lib/course";
 import { siteText } from "@/lib/ui-text";
 import { presentCourse } from "@/server/course";
 import { CourseError, catalogRepository } from "@/server/repository";
-import CourseDetail, {
+import {
+  CourseDetailRoute,
   CourseDetailSkeleton,
 } from "@/services/app/page/course-detail";
 
 type Params = Promise<{ id: string }>;
 
-// 정식 라우트. 직접 진입·새로고침·공유 링크·봇만 여기로 온다 — 앱 안 소프트 내비는 `(.)courses/[id]` 인터셉트가 잡는다.
-// 404 판단·metadata 용 RSC 조회는 한 요청에 한 번(React cache). 화면 데이터는 CourseDetail 의 `.suspend(id)` 가
-// 같은 요청에서 SSR 한다. 잘못된 id·없는·비공개 강의(NOT_FOUND)만 null, 다른 오류는 그대로 던진다.
-const findCourse = cache(async (id: string) => {
+// 강의 상세의 유일한 라우트. 본문은 정적이고 서버 조회는 generateMetadata 하나다(src/app/.ai.md → Data routes).
+// 화면 데이터는 CourseDetail 의 `.suspend(id)` 가 읽는다 — 직접 진입은 같은 요청에서 SSR(SEO), 목록에서 들어오면
+// 모델의 seed 로 바로 그린다. 잘못된 id·없는·비공개 강의(NOT_FOUND)만 null(noindex), 다른 오류는 그대로 던진다.
+async function findCourse(id: string) {
   if (!entityId.safeParse(id).success) return null;
   try {
     return presentCourse(await catalogRepository.findById(id, true));
@@ -22,7 +23,7 @@ const findCourse = cache(async (id: string) => {
     if (error instanceof CourseError && error.code === "NOT_FOUND") return null;
     throw error;
   }
-});
+}
 
 export async function generateMetadata({
   params,
@@ -51,17 +52,23 @@ export async function generateMetadata({
   };
 }
 
-// URL 데이터(params)는 Suspense 아래에서 읽어야 App Shell 이 즉시 뜬다. fallback 은 null 이 아니라 뼈대다.
-export default function Page({ params }: { params: Params }) {
+// 본문에서는 params 도 데이터도 await 하지 않는다. 그래야 소프트 내비 때 서버를 기다리지 않고 본문이 바로 그려진다.
+// id 는 CourseDetailRoute 가 클라에서 useParams 로 읽고, 없는 강의는 화면이 `data === null` 로 안내한다.
+export default function Page() {
   return (
-    <Suspense fallback={<CourseDetailSkeleton />}>
-      <CourseDetailRoute params={params} />
-    </Suspense>
+    <>
+      <Suspense fallback={<CourseDetailSkeleton />}>
+        <CourseDetailRoute />
+      </Suspense>
+      <Suspense>
+        <Connection />
+      </Suspense>
+    </>
   );
 }
 
-async function CourseDetailRoute({ params }: { params: Params }) {
-  const { id } = await params;
-  if (!(await findCourse(id))) notFound();
-  return <CourseDetail courseId={id} />;
+/** 동적 마커. metadata 는 요청 시점에 만들고 본문은 정적 셸로 남긴다. */
+async function Connection() {
+  await connection();
+  return null;
 }
