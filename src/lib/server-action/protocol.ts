@@ -1,5 +1,12 @@
-/** Single internal HTTP endpoint for browser Server Function calls. */
+/**
+ * Internal Route Handler for browser Server Function calls. Browsers never request this
+ * path directly: they POST to the current page URL with SERVER_FN_HEADER, and src/proxy.ts
+ * rewrites that request here. Direct requests to this path are rejected by the proxy.
+ */
 export const SERVER_FN_BASE_PATH = '/api/internal/server-fn'
+
+/** Request header carrying the opaque function ID on a page-URL POST. */
+export const SERVER_FN_HEADER = 'x-comwit-fn'
 
 export type ServerFnSuccess = {
   ok: true
@@ -84,23 +91,30 @@ export function parseServerFnWire<T>(text: string): T {
   return restoreUndefined(parsed) as T
 }
 
-/** Move the registry ID's #export suffix to the final URL segment. */
-export function serverFnIdToPath(id: string): string {
-  const separator = id.lastIndexOf('#')
-  if (separator < 1 || separator === id.length - 1) {
-    throw new Error(`Invalid Server Function id: ${id}`)
-  }
+/**
+ * Compiled function IDs are opaque build-time hashes (see build/shared.cjs createActionId),
+ * so the URL carries one hex segment and never the service/domain/file layout.
+ */
+const SERVER_FN_ID_PATTERN = /^[0-9a-f]{16,64}$/
 
-  return `${id.slice(0, separator)}/${id.slice(separator + 1)}`
-    .split('/')
-    .map(encodeURIComponent)
-    .join('/')
+/** True for a well-formed opaque function ID (lowercase hex). */
+export function isServerFnId(value: string | null | undefined): value is string {
+  return typeof value === 'string' && SERVER_FN_ID_PATTERN.test(value)
 }
 
-/** Restore catch-all Route Handler segments to a registry ID. */
+/** Internal Route Handler URL for one function ID (used by the proxy rewrite only). */
+export function serverFnIdToPath(id: string): string {
+  if (!isServerFnId(id)) {
+    throw new Error(`Invalid Server Function id: ${id}`)
+  }
+  return `${SERVER_FN_BASE_PATH}/${id}`
+}
+
+/** Restore the catch-all Route Handler segment to a registry ID; reject anything but one opaque ID. */
 export function serverFnPathToId(segments: string[]): string | null {
-  if (segments.length < 2 || segments.some((segment) => !segment)) return null
-  return `${segments.slice(0, -1).join('/')}#${segments.at(-1)}`
+  if (segments.length !== 1) return null
+  const [id] = segments
+  return isServerFnId(id) ? id : null
 }
 
 function isWireMarker(value: unknown): value is WireMarker {
