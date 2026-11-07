@@ -14,7 +14,9 @@ type ActionFn = (...args: any[]) => Promise<unknown>
 
 /**
  * Identity marker for the API index's public object. During Next builds, the index
- * loader replaces this call and all action imports with an environment-specific ID facade.
+ * loader replaces this call and all action imports with an ID facade only for the
+ * browser and Client Component SSR. On the server it keeps the original action references
+ * and wraps the object in the per-request memo (src/lib/server-action/server.ts).
  */
 export function resolveActions<T extends Record<string, ActionFn>>(
   actions: T,

@@ -35,31 +35,37 @@ export function withServerFn(config: NextConfig): NextConfig {
         '*': [
           ...existingWildcardRules,
           {
-            // Replace source 'use server' with a server-only import in output. The browser
-            // action loader then replaces the handler and import with a function-ID reference.
+            // Replace source 'use server' with a server-only import in output. The client index
+            // variant drops action imports; this guard fails the build if one leaks there anyway.
             condition: {
               path: /src\/services\/[^/]+\/api\/[^/]+\/actions\/.*\.ts$/,
             },
             loaders: [serverOnlyLoader],
             as: '*.js',
           },
-          {
+          // One API index, three variants: the plain import re-exports the conditional
+          // `#comwit-server-fn-api/*` package import, which selects `?comwit-server-fn=server`
+          // under `react-server` and `?comwit-server-fn=client` otherwise (browser and SSR).
+          ...(['facade', 'server', 'client'] as const).map((runtime) => ({
             condition: {
               all: [
                 {
                   path: /src\/services\/[^/]+\/api\/[^/]+\/index\.ts$/,
                 },
-                { content: /\bresolveActions\s*\(/ },
+                { content: /\bresolveActions\b/ },
+                runtime === 'facade'
+                  ? { not: { query: /[?&]comwit-server-fn=/ } }
+                  : { query: `?comwit-server-fn=${runtime}` },
               ],
             },
             loaders: [
               {
                 loader: indexLoader,
-                options: { projectRoot },
+                options: { projectRoot, runtime },
               },
             ],
             as: '*.js',
-          },
+          })),
           {
             condition: {
               all: [

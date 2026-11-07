@@ -155,15 +155,27 @@ function transpile(filePath, source) {
  * Keep 'use server' only as a source convention. Replace the Next/React directive
  * with a server-only poison import so leaking actions outside the server graph fails the build.
  */
-function replaceUseServerWithServerOnly(source) {
-  return source.replace(
-    /^(\uFEFF?\s*)?(['"])use server\2;?\s*/,
-    (_match, prefix = '') => `${prefix}import 'server-only'\n\n`,
-  )
+function replaceUseServerWithServerOnly(filePath, source) {
+  const sourceFile = parseSource(filePath, source)
+  // Directives can follow comments, a BOM or another directive (e.g. use strict).
+  // Only inspect the directive prologue; a later string expression is not one.
+  const directives = []
+  for (const statement of sourceFile.statements) {
+    if (
+      !ts.isExpressionStatement(statement) ||
+      !ts.isStringLiteral(statement.expression)
+    ) break
+    if (statement.expression.text === 'use server') directives.push(statement)
+  }
+  for (const directive of directives.reverse()) {
+    source = source.slice(0, directive.getStart(sourceFile)) +
+      "import 'server-only';" + source.slice(directive.end)
+  }
+  return source
 }
 
 function transformServerOnlyActionSource(filePath, source) {
-  return transpile(filePath, replaceUseServerWithServerOnly(source))
+  return transpile(filePath, replaceUseServerWithServerOnly(filePath, source))
 }
 
 function findResolveActionsAliases(sourceFile) {
@@ -383,7 +395,65 @@ function getApiDefinitions(projectRoot, filePath, source) {
   return { apiExports, passthroughExports }
 }
 
-function transformApiIndexSource(projectRoot, filePath, source) {
+const SERVER_MEMO_LOCAL = '__comwitMemoizeServerActions'
+
+/** Rewrite `export const x = resolveActions({...})` to `__memo(resolveActions({...}))`. */
+function wrapServerApiExports(filePath, source) {
+  const sourceFile = parseSource(filePath, source)
+  const resolveAliases = findResolveActionsAliases(sourceFile)
+  const ranges = []
+
+  for (const statement of sourceFile.statements) {
+    if (!ts.isVariableStatement(statement) || !hasExportModifier(statement)) {
+      continue
+    }
+    for (const declaration of statement.declarationList.declarations) {
+      const initializer = declaration.initializer
+      if (
+        initializer &&
+        ts.isCallExpression(initializer) &&
+        ts.isIdentifier(initializer.expression) &&
+        resolveAliases.has(initializer.expression.text)
+      ) {
+        ranges.push([initializer.getStart(sourceFile), initializer.getEnd()])
+      }
+    }
+  }
+
+  let output = source
+  for (const [start, end] of ranges.reverse()) {
+    output = `${output.slice(0, start)}${SERVER_MEMO_LOCAL}(${output.slice(start, end)})${output.slice(end)}`
+  }
+  return output
+}
+
+/**
+ * Emit one of three variants of an API index.
+ * - facade (no query): re-exports `#comwit-server-fn-api/<service>/api/<domain>`; the package
+ *   import condition then picks the server or client variant of the same file.
+ * - server (`react-server`, RSC and Route Handlers): the original index plus `server-only`,
+ *   importing only this domain's actions and wrapping each API object in the request memo.
+ * - client (browser and Client Component SSR): function-ID facade without any action import.
+ */
+function transformApiIndexSource(projectRoot, filePath, source, runtime = 'facade') {
+  if (runtime === 'facade') {
+    const relative = projectRelative(projectRoot, filePath)
+    const match = relative.match(/^src\/services\/(.+\/api\/[^/]+)\/index\.ts$/)
+    if (!match) throw new Error(`Unsupported API index path: ${relative}`)
+    // Package conditions separate RSC/Route Handler from BOTH browser and SSR.
+    // The query makes the selected variant a different module, avoiding a cycle.
+    return `export * from ${JSON.stringify(`#comwit-server-fn-api/${match[1]}`)}\n`
+  }
+  if (runtime === 'server') {
+    // Preserve the source semantics and import only this domain's actions. Never
+    // connect a server API index to the global HTTP dispatch manifest.
+    // Wrap each exported resolveActions object in the request-scoped React.cache memo.
+    return transpile(
+      filePath,
+      `import 'server-only'\nimport { memoizeServerActions as ${SERVER_MEMO_LOCAL} } from '@/lib/server-action/server'\n${wrapServerApiExports(filePath, source)}`,
+    )
+  }
+  if (runtime !== 'client') throw new Error(`Unknown Server Function runtime: ${runtime}`)
   const { apiExports, passthroughExports } = getApiDefinitions(
     projectRoot,
     filePath,
@@ -392,7 +462,7 @@ function transformApiIndexSource(projectRoot, filePath, source) {
   const lines = []
 
   lines.push(
-    "import { resolveCompiledActions } from '#comwit-server-fn-runtime'",
+    "import { resolveCompiledActions } from '@/lib/server-action/client-runtime'",
   )
   lines.push('', ...passthroughExports, '')
 

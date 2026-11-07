@@ -10,5 +10,6 @@ module.exports = function indexLoader(source) {
     options.projectRoot ?? process.cwd(),
     this.resourcePath,
     source,
+    options.runtime,
   )
 }
