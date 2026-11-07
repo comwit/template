@@ -3,7 +3,7 @@
 import { Skeleton } from "@/lib/components/ui/skeleton";
 
 /**
- * 상품 상세 라우트 두 곳(정식·인터셉트)의 Suspense fallback. state·캐시를 읽지 않는 순수 UI(page.ai.md).
+ * 상품 상세 라우트 `products/[id]` 의 Suspense fallback(seed 도 캐시도 없는 첫 진입). state·캐시를 읽지 않는 순수 UI(page.ai.md).
  * 파생 프로젝트는 자기 상세 구조에 맞게 뼈대만 바꾼다.
  */
 export function ProductDetailSkeleton() {

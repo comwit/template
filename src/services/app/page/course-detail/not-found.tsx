@@ -4,8 +4,8 @@ import Link from "next/link";
 import { Button } from "@/lib/components/ui/button";
 
 /**
- * 상세 라우트 공용 안내. 정식 라우트는 RSC 가 `notFound()` 로 먼저 거르고, 인터셉트 라우트는
- * 목록 캐시에 남은 비공개 강의(재조회 NOT_FOUND)·캐시 없는 잘못된 id(`error.tsx`)가 여기로 온다.
+ * 없는 강의 안내. 상세 query 가 `data === null` 을 돌려줄 때 화면이 그린다 — 잘못된 id, 삭제·비공개 강의,
+ * 목록 seed 로 먼저 그렸다가 전체 응답이 null 로 온 경우 모두 여기다(generateMetadata 는 같은 경우를 noindex 로 표시).
  */
 export function CourseNotFound() {
   return (
