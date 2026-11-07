@@ -11,7 +11,7 @@ import { ProductCard } from "@/services/app/_components/product-card";
 // 같은 인자의 캐시로 기다리지 않고 바로 그리고, 커밋 뒤 백그라운드로 다시 받는다.
 // 필터·페이지는 모델에 있어 다른 화면에 갔다 와도 그대로다(같은 인자 캐시로 바로 그림). 바꾸면 keepPreviousData 로
 // 지금 목록을 그대로 둔다(state.ai.md).
-// 카드 클릭 시 actions.open(product) 로 상세 리소스를 채운다(목록 항목 = 상세) → 인터셉트 라우트가 바로 그린다.
+// 카드는 상세로 가는 평범한 링크다. 상세는 detail 모델의 `seed` 가 이 목록 캐시에서 항목을 찾아 바로 그린다(state.ai.md → Detail seed).
 export function ProductList() {
   const catalog = useCatalog((state) => ({
     list: state.list.suspend({
@@ -35,10 +35,7 @@ export function ProductList() {
       >
         {list.data.items.map((product) => (
           <li key={product.id}>
-            <ProductCard
-              product={product}
-              onOpen={() => catalog.actions.open(product)}
-            />
+            <ProductCard product={product} />
           </li>
         ))}
       </ul>

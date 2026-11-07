@@ -1,20 +1,22 @@
-import { Suspense, cache } from "react";
+import { Suspense } from "react";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { entityId } from "@/lib/commerce";
 import { storefrontText } from "@/lib/ui-text";
 import { presentProduct } from "@/server/commerce";
 import { CommerceError, catalogRepository } from "@/server/repository";
-import ProductDetail, {
-  ProductDetailSkeleton,
-} from "@/services/app/page/product-detail";
+import { ProductDetailSkeleton } from "@/services/app/page/product-detail";
+import { ProductDetailRoute } from "@/services/app/page/product-detail/route";
 
 type Params = Promise<{ id: string }>;
 
-// 정식 라우트. 직접 진입·새로고침·공유 링크·봇만 여기로 온다 — 앱 안 소프트 내비는 `(.)products/[id]` 인터셉트가 잡는다.
-// 404 판단·metadata 용 RSC 조회는 한 요청에 한 번(React cache). 화면 데이터는 ProductDetail 의 `.suspend(id)` 가
-// 같은 요청에서 SSR 한다. 잘못된 id·없는·비공개 상품(NOT_FOUND)만 null, 다른 오류는 그대로 던진다.
-const findProduct = cache(async (id: string) => {
+// 상품 상세의 유일한 라우트. 직접 진입·새로고침·공유 링크·봇과 앱 안 소프트 내비가 모두 여기로 온다.
+// 본문은 정적이다: 서버 조회는 generateMetadata 하나뿐이고, 화면 데이터는 ProductDetailRoute 가 클라에서 id 를 읽어
+// useCatalog detail 을 `.suspend(id)` 한다 — 직접 진입은 같은 요청에서 SSR(SEO), 목록에서 넘어오면 모델의 seed 로 바로 그린다.
+// 본문에서 params 나 데이터를 await 하면 동적 구멍이 생겨 소프트 내비마다 서버를 기다리게 된다(src/app/.ai.md → Data routes).
+
+// metadata 용 조회. 잘못된 id·없는·비공개 상품(NOT_FOUND)만 null, 다른 오류는 그대로 던진다.
+async function findProduct(id: string) {
   if (!entityId.safeParse(id).success) return null;
   try {
     return presentProduct(await catalogRepository.findById(id, true));
@@ -23,9 +25,9 @@ const findProduct = cache(async (id: string) => {
       return null;
     throw error;
   }
-});
+}
 
-// 공유 미리보기는 상품명·소개 첫 문단·첫 사진. seo-optimize 스킬이 buildMetadata·JSON-LD 로 확장한다.
+// 공유 미리보기는 상품명·소개 첫 문단·첫 사진. 없는 상품은 noindex. seo-optimize 스킬이 buildMetadata·JSON-LD 로 확장한다.
 export async function generateMetadata({
   params,
 }: {
@@ -54,17 +56,21 @@ export async function generateMetadata({
   };
 }
 
-// URL 데이터(params)는 Suspense 아래에서 읽어야 App Shell 이 즉시 뜬다. fallback 은 null 이 아니라 뼈대다.
-export default function Page({ params }: { params: Params }) {
+export default function Page() {
   return (
-    <Suspense fallback={<ProductDetailSkeleton />}>
-      <ProductDetailRoute params={params} />
-    </Suspense>
+    <>
+      <Suspense fallback={<ProductDetailSkeleton />}>
+        <ProductDetailRoute />
+      </Suspense>
+      {/* 동적 표시. metadata 는 요청 시점에 만들고 본문은 정적으로 남긴다. */}
+      <Suspense>
+        <Connection />
+      </Suspense>
+    </>
   );
 }
 
-async function ProductDetailRoute({ params }: { params: Params }) {
-  const { id } = await params;
-  if (!(await findProduct(id))) notFound();
-  return <ProductDetail productId={id} />;
+async function Connection() {
+  await connection();
+  return null;
 }
