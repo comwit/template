@@ -4,13 +4,13 @@ import { mutate } from "@/lib/commerce-state";
 import { popup } from "@/lib/popup";
 import type {
   ListFilter,
-  ProductView,
   ShipmentInput,
   RefundInput,
   StockInput,
 } from "@/lib/commerce";
 import type { DomainActions } from "../types";
 import { domain } from "../model";
+// 상세는 액션으로 채우지 않는다: 카드는 평범한 링크고, detail 의 `seed` 가 목록에서 첫 화면을 만든다(model.ts).
 export const manageActions = action<DomainActions>(({ state }) => {
   class ManageActions {
     private model = state(domain);
@@ -23,14 +23,6 @@ export const manageActions = action<DomainActions>(({ state }) => {
     }
     async refresh() {
       await this.model.list.refetch();
-    }
-    /**
-     * 카드 → 상세 소프트 내비 직전에 호출한다(`<Link onClick={() => actions.open(product)}>`).
-     * 목록 항목이 곧 상세(같은 presentProduct)라 detail 캐시를 채워 두면 인터셉트 라우트의
-     * `.suspend(id)` 가 기다리지 않고 바로 그리고, 커밋 뒤 백그라운드로 최신 재고를 다시 받는다.
-     */
-    open(product: ProductView) {
-      this.model.detail.set(product, { arg: product.id });
     }
   }
   return new ManageActions();

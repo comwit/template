@@ -6,18 +6,13 @@ import { Skeleton } from "@/lib/components/ui/skeleton";
 
 /**
  * 상품 카드 최소 골격(목록·홈 공용). 파생 프로젝트가 브랜드에 맞게 고친다.
- * `onOpen` 은 카드의 단일 액션(`actions.open(product)`) — 상세 리소스를 채워 인터셉트 라우트가 바로 그리게 한다.
+ * 정식 상세 주소로 가는 평범한 `<Link>` 다 — 클릭 액션이 없다. 상세는 detail 모델의 `seed` 가 list 캐시에서 이 항목을 찾아
+ * 바로 그린다(state.ai.md → Detail seed).
  */
-export function ProductCard({
-  product,
-  onOpen,
-}: {
-  product: ProductView;
-  onOpen: () => void;
-}) {
+export function ProductCard({ product }: { product: ProductView }) {
   const image = product.images[0];
   return (
-    <Link href={`/products/${product.id}`} onClick={onOpen} className="block">
+    <Link href={`/products/${product.id}`} className="block">
       <div className="aspect-[3/4] w-full overflow-hidden rounded-card bg-muted">
         {image ? (
           <img
