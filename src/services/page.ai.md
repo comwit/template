@@ -241,7 +241,8 @@ One canonical route with a static body and one Client Component with one
 // page/post-detail/index.tsx — the only view
 "use client";
 export function PostDetailRoute() {
-  const { id } = useParams<{ id: string }>();      // the id comes from the client, not from server params
+  const params = useParams<{ id: string }>();      // the id comes from the client, not from server params
+  const [id] = useState(params.id);                // snapshot: a kept-alive route must keep its own id
   return <PostDetail postId={id} />;
 }
 
@@ -269,6 +270,7 @@ export default function PostDetail({ postId }: { postId: string }) {
 ```
 
 - The route file (`src/app/.ai.md` → Data routes) has a static body: `generateMetadata` is its only server read and returns noindex for a missing item instead of `notFound()`; the body never `await`s. Metadata streams and does not block soft navigation; a server await in the body does.
+- Read the id once at mount (`useState(params.id)`). With Cache Components, visited detail routes stay mounted in a hidden `<Activity>`, and `useParams`/`usePathname` follow the current URL; without the snapshot a hidden `/posts/a` tree re-renders with `b` (or `undefined` after leaving the route) and reads the wrong key. Another id mounts a new page instance with its own snapshot.
 - Branch on `isPartial`, not on field checks. While partial, `data` is the list item plus optional detail-only fields (`state.ai.md` → Detail seed), so detail-only areas render bones; the full result renders everything. A story that opens the detail from a list with the API blocked must still show the seeded fields.
 - Only `detail` may `.suspend()` in the view's own selector. Any other `.suspend()` there blocks the whole page whenever its cache is empty. Read it in a child component behind its own `<Suspense>` with a bone fallback so the body paints first.
 - Not-found is `data === null` from the query (`queryFn` resolves `null`), rendered by the view: no second server read, no body `notFound()`, no per-route `error.tsx` for unknown ids. A failed upgrade keeps the seeded content with `isError`; without data, the segment's `error.tsx` covers a failed first load.
