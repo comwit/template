@@ -18,7 +18,7 @@ describe("Storybook API boundary", () => {
   it("shares saved products across admin/customer APIs while cloning query results", async () => {
     const draft = await adminCatalog.find(product.id);
     draft.name = "수정한 예시 상품";
-    expect((await catalog.find(product.id)).name).toBe(product.name);
+    expect((await catalog.find(product.id))?.name).toBe(product.name);
     await adminCatalog.save(draft);
     expect(
       (await catalog.findAll({ ...filter, search: "수정한" }, page)).items[0]
