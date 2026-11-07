@@ -9,7 +9,7 @@ src/app/(app)/
 └── (detail)/posts/[id]/page.tsx   # The one detail route: static body, server read only in generateMetadata
 ```
 
-**One canonical route per detail. Do not add a `(.)posts/[id]` intercepting route.** The route body is static: no server data read and no `await params` in it. The `PostDetail` Client Component reads the ID once at mount with `useParams` and makes one `detail.suspend(id)` read; the model's `seed` (see `state.ai.md`) decides what that read paints.
+**One canonical route per detail. Do not add a `(.)posts/[id]` intercepting route.** The route body is static: no server data read and no `await params` in it. The `PostDetail` Client Component reads the ID with `useParams` and makes one `detail.suspend(id)` read; the model's `seed` (see `state.ai.md`) decides what that read paints.
 
 | Entry | Route behavior | Detail resource behavior |
 | --- | --- | --- |
@@ -52,13 +52,11 @@ async function Connection() {
 ```tsx
 // In the service page layer's 'use client' module, not the app-router file:
 export function PostDetailRoute() {
-  const params = useParams<{ id: string }>()
-  const [id] = useState(params.id) // snapshot: a kept-alive route must keep its own id
+  const { id } = useParams<{ id: string }>()
   return <PostDetail id={id} />
 }
 ```
 
-- Read the ID once at mount. With Cache Components, visited detail routes stay mounted in a hidden `<Activity>`, and `useParams`/`usePathname` follow the current URL; without the snapshot a hidden `/posts/a` tree re-renders with `b` (or `undefined` after leaving the route) and reads the wrong key. Navigating to another ID mounts a new page instance, which takes its own snapshot.
 - Always link to the canonical URL `/posts/:id` with a plain `<Link>`; cards run no action before navigating. `generateMetadata` is the only server read and returns a noindex result for a missing item instead of `notFound()`. The view renders not-found UI from `data === null` and JSON-LD from the query data once `isPartial` is `false`. No per-route `error.tsx` for unknown IDs and no `document.title` effect.
 - Keep the route file a thin synchronous Server Component: no `await params`, no fetch and no `'use client'` in the body. A server await in the body makes it a dynamic hole, so every in-app navigation waits for a server round trip before the body can paint; `generateMetadata` does not block it.
 - Intercepting routes (`(.)`) are only for real overlays (a modal or sheet layered over the current screen), never a second entry for a full detail page.
