@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "private": true,
   "imports": {
-    "#comwit-server-fn-api/*": {
-      "react-server": "./src/services/*/index.ts?comwit-server-fn=server",
-      "default": "./src/services/*/index.ts?comwit-server-fn=client"
+    "#comwit-server-fn-runtime": {
+      "react-server": "./src/lib/server-action/server.ts",
+      "default": "./src/lib/server-action/client-runtime.ts"
     }
   },
   "scripts": {

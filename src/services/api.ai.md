@@ -102,11 +102,12 @@ export type CreateRequest = {
 - Internal functions are declared with a `_` prefix and exported wrapped in `createAction`
 - Keep `'use server'` as the source convention. The build loader replaces it with `import 'server-only'`, so the output is not registered or invoked as a native Next/React Server Function.
 - Browser transport uses one dedicated POST Route Handler.
-  - Every build compiles API `index.ts` into `#comwit-server-fn-api/<service>/api/<domain>`; the package import condition picks a variant of the same file.
-  - Server Components/RSC and Route Handlers (`react-server`) get the original index, importing only that domain's actions. Each method is wrapped in a per-request `React.cache` memo keyed by argument values, so equal calls in one render run once; do not wrap API calls in `cache()` yourself.
-  - Browsers and Client Component SSR get a function-ID facade with no action imports. SSR never starts a request during render.
-  - Browsers POST to the current page URL with the `x-comwit-fn` header; `src/proxy.ts` routes it to the internal handler.
-  - Only the Route Handler's manifest dynamically imports every action module.
+  - Every build removes action imports from API `index.ts` and emits a function-ID facade.
+  - Server Components/RSC select the manifest-direct runtime through the package `react-server` condition.
+    It wraps every method in a per-request `React.cache` memo keyed by argument values, so equal calls in one render run once; do not wrap API calls in `cache()` yourself.
+  - Client Component SSR selects the client runtime and never starts a request during render.
+  - Browsers use the client runtime and POST to the current page URL with the `x-comwit-fn` header; `src/proxy.ts` routes it to the internal handler.
+  - Only the server manifest dynamically imports real action modules.
 - `createAction` returns the original `Promise<T>` function. The old one-item Promise tuple protocol is not used.
 
 ### Throw errors as `ActionError`
@@ -136,7 +137,7 @@ export const create = createAction(_create)
 - No type annotation (rely on inference)
 - Direct re-export via `export { X } from './actions/...'` is forbidden
 - Only the domain's `index.ts` may import action implementation files. Helpers, state, pages, and other APIs must use the domain index API object (enforced by `no-direct-api-action-import`).
-- In source and tests, `resolveActions` is an identity marker. During a Next build, the index loader replaces it and all action imports with an ID facade for the browser and Client Component SSR only; the server keeps the original actions behind the request memo.
+- In source and tests, `resolveActions` is an identity marker. During a Next build, the index loader replaces it and all action imports with a conditional-runtime ID facade.
 - The browser wire codec serializes enumerable values. Do not add API-transport-only `deproxy()`, `isProxy()`, or `snapshot()` handling; use `snapshot()` only when application logic needs a fixed local copy.
 
 **Pattern:**
