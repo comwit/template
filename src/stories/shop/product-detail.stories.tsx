@@ -90,9 +90,10 @@ export const Seeded: Story = {
     await userEvent.click(
       await canvas.findByRole("link", { name: new RegExp(product.name) }),
     );
-    await expect(
-      await canvas.findByRole("heading", { name: product.name }),
-    ).toBeVisible();
+    const heading = await canvas.findByRole("heading", { name: product.name });
+    await expect(heading).toBeVisible();
+    // 상세 API 가 응답하지 않으니 seed 가 그린 부분 상태(`isPartial` → aria-busy)가 유지되어야 한다.
+    await expect(heading.closest("main")).toHaveAttribute("aria-busy", "true");
     // seed 가 그린 뒤 커밋에서 전체 상세를 다시 받기 시작한다(여기서는 응답이 오지 않는다).
     await waitFor(() => expect(catalog.find).toHaveBeenCalledWith(product.id));
   },

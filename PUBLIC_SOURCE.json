@@ -584,7 +584,7 @@
     "src/stories/mocks/payment-sdk.ts": "457ba42be726ec7c583319539549339795b2fcd6ad276d90f0894851ca0bb3f0",
     "src/stories/mocks/preview-state.tsx": "60d24ce62182c7ae59095cef1949611286b4d5715e9553b6179f1a2a774e77f6",
     "src/stories/mocks/runtime.ts": "3828aee16a829b2462d15a3c0fc8435bc2047bd68791d2aec271869648523547",
-    "src/stories/shop/product-detail.stories.tsx": "b2520b0ff0f3d12948fd47c538e8ce3e7bace60095f59e7255ca88606dd6e955",
+    "src/stories/shop/product-detail.stories.tsx": "8490462a24f1bb74e6c93ccd4c9a814e085fcfeb078c32e8df02c4034b53b3ee",
     "src/stories/ui-kit.stories.tsx": "c804e67b08ad53e60245ceb6b43932672e649839bfaee188fd7b9f864006ce98",
     "tests/access-and-webhook.test.ts": "996e5fb1c282e1c5747e8c3daa2d63f221da62db6bec07c1c34cd9c2859f6fa4",
     "tests/admin-auth.integration.test.ts": "b8badab17bd0418693441fe1d9c41b8221aef91c80684e22a0374474f75fa4de",
