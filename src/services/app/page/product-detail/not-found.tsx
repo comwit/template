@@ -4,8 +4,8 @@ import Link from "next/link";
 import { Button } from "@/lib/components/ui/button";
 
 /**
- * 상세 라우트 공용 안내. 정식 라우트는 RSC 가 `notFound()` 로 먼저 거르고, 인터셉트 라우트는
- * 목록 캐시에 남은 삭제 상품(재조회 NOT_FOUND)·캐시 없는 잘못된 id(`error.tsx`)가 여기로 온다.
+ * 상세 뷰가 `detail.data === null` 일 때 그리는 안내. 잘못된 id·없는·비공개 상품은 queryFn 이 null 을 돌려주고,
+ * 목록 캐시에 남은 삭제 상품도 seed 위의 재조회가 null 로 올라와 여기로 온다. 라우트의 generateMetadata 는 같은 경우 noindex 를 낸다.
  */
 export function ProductNotFound() {
   return (

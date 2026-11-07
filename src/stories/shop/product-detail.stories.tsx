@@ -1,54 +1,48 @@
 /* oxlint-disable custom/kebab-case-filename -- Storybook CSF convention. */
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import {
-  Component,
-  Suspense,
-  useLayoutEffect,
-  useState,
-  type ReactNode,
-} from "react";
-import { expect, within } from "storybook/test";
+import { Suspense, useState } from "react";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import ProductDetail, {
   ProductDetailSkeleton,
-  ProductNotFound,
 } from "@/services/app/page/product-detail";
-import { useCatalog } from "@/services/app/state/catalog";
+import Products, {
+  ProductList,
+  ProductListSkeleton,
+} from "@/services/app/page/products";
+import { catalog } from "../mocks/app-api/catalog";
 import { product } from "../fixtures";
 
-/** 인터셉트 라우트의 `error.tsx` 와 같은 역할 — `.suspend()` 가 던진 오류를 안내 화면으로 받는다. */
-class RouteErrorBoundary extends Component<
-  { children: ReactNode },
-  { failed: boolean }
-> {
-  state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-  render() {
-    return this.state.failed ? <ProductNotFound /> : this.props.children;
-  }
-}
-
-/** 라우트 두 곳(정식·인터셉트)과 같은 경계: 스켈레톤 fallback + 오류 경계. */
+/** 정식 라우트 `products/[id]` 와 같은 경계: 상세 뼈대 fallback 안에서 뷰 하나가 `.suspend(id)` 한다. */
 function Route({ productId }: { productId: string }) {
   return (
-    <RouteErrorBoundary>
-      <Suspense fallback={<ProductDetailSkeleton />}>
-        <ProductDetail productId={productId} />
-      </Suspense>
-    </RouteErrorBoundary>
+    <Suspense fallback={<ProductDetailSkeleton />}>
+      <ProductDetail productId={productId} />
+    </Suspense>
   );
 }
 
-/** 카드 클릭이 하는 일(`actions.open`)을 흉내 낸다 — detail 캐시를 먼저 채우고 나서 화면을 그린다. */
-function SeedFromCard({ children }: { children: ReactNode }) {
-  const catalog = useCatalog((state) => ({ actions: state.actions }));
-  const [ready, setReady] = useState(false);
-  useLayoutEffect(() => {
-    catalog.actions.open(product);
-    setReady(true);
-  }, [catalog.actions]);
-  return ready ? children : null;
+/**
+ * 목록 → 상세 소프트 내비를 실제 순서로 흉내 낸다. 목록 화면이 먼저 그려져 list 캐시를 채우고, 카드 클릭이 상세 라우트를
+ * 마운트한다(라우터 이동만 막는다). store 에 직접 쓰는 것은 없다 — detail 의 `seed` 가 그 캐시에서 항목을 찾아 그려야 한다.
+ */
+function FromList({ productId }: { productId: string }) {
+  const [opened, setOpened] = useState(false);
+  if (opened) return <Route productId={productId} />;
+  return (
+    <div
+      onClickCapture={(event) => {
+        if (!(event.target as HTMLElement).closest("a")) return;
+        event.preventDefault();
+        setOpened(true);
+      }}
+    >
+      <Products>
+        <Suspense fallback={<ProductListSkeleton />}>
+          <ProductList />
+        </Suspense>
+      </Products>
+    </div>
+  );
 }
 
 const meta = {
@@ -68,24 +62,8 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = { name: "직접 진입" };
-
-export const Loading: Story = {
-  name: "캐시 없는 소프트 내비",
-  parameters: { apiMock: { mode: "loading" } },
-};
-
-export const Seeded: Story = {
-  name: "목록에서 진입",
-  // API 가 영원히 응답하지 않아도(loading) 카드가 채운 캐시로 즉시 그려져야 한다.
-  parameters: { apiMock: { mode: "loading" } },
-  decorators: [
-    (Story) => (
-      <SeedFromCard>
-        <Story />
-      </SeedFromCard>
-    ),
-  ],
+export const Default: Story = {
+  name: "직접 진입",
   play: async ({ canvasElement }) => {
     await expect(
       await within(canvasElement).findByRole("heading", {
@@ -95,7 +73,40 @@ export const Seeded: Story = {
   },
 };
 
+export const Loading: Story = {
+  name: "목록 캐시 없는 소프트 내비",
+  parameters: { apiMock: { mode: "loading" } },
+};
+
+export const Seeded: Story = {
+  name: "목록에서 진입",
+  // 상세 API 가 영원히 응답하지 않아도 목록 캐시의 seed 로 즉시 그려져야 한다. 목록 API 는 그대로 응답한다.
+  beforeEach: () => {
+    catalog.find.mockImplementation(() => new Promise(() => {}));
+  },
+  render: (args) => <FromList {...args} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(
+      await canvas.findByRole("link", { name: new RegExp(product.name) }),
+    );
+    const heading = await canvas.findByRole("heading", { name: product.name });
+    await expect(heading).toBeVisible();
+    // 상세 API 가 응답하지 않으니 seed 가 그린 부분 상태(`isPartial` → aria-busy)가 유지되어야 한다.
+    await expect(heading.closest("main")).toHaveAttribute("aria-busy", "true");
+    // seed 가 그린 뒤 커밋에서 전체 상세를 다시 받기 시작한다(여기서는 응답이 오지 않는다).
+    await waitFor(() => expect(catalog.find).toHaveBeenCalledWith(product.id));
+  },
+};
+
 export const NotFound: Story = {
   name: "없는 상품",
-  parameters: { apiMock: { mode: "error" } },
+  args: { productId: "0195aa00-0000-7000-8000-000000000000" },
+  play: async ({ canvasElement }) => {
+    await expect(
+      await within(canvasElement).findByRole("heading", {
+        name: "상품을 찾을 수 없습니다",
+      }),
+    ).toBeVisible();
+  },
 };

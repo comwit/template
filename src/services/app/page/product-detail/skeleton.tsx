@@ -3,7 +3,8 @@
 import { Skeleton } from "@/lib/components/ui/skeleton";
 
 /**
- * 상세 라우트 두 곳(정식·인터셉트)의 Suspense fallback. state·캐시를 읽지 않는 순수 UI(page.ai.md).
+ * 상세 라우트 `products/[id]` 의 Suspense fallback — 직접 진입과 목록 캐시 없는 소프트 내비가 기다리는 동안 보인다
+ * (목록에서 넘어오면 seed 가 바로 그려 뼈대를 거치지 않는다). state·캐시를 읽지 않는 순수 UI(page.ai.md).
  * 갤러리 비율·2단 구성·여백을 실제 화면과 맞춰 두면 내용이 들어올 때 레이아웃이 흔들리지 않는다.
  * 파생 프로젝트는 자기 상세 구조에 맞게 뼈대만 바꾼다.
  */
