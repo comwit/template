@@ -1,5 +1,12 @@
-/** Single internal HTTP endpoint for browser Server Function calls. */
+/**
+ * Internal Route Handler for browser Server Function calls. Browsers never request this
+ * path directly: they POST to the current page URL with SERVER_FN_HEADER, and src/proxy.ts
+ * rewrites that request here. Direct requests to this path are rejected by the proxy.
+ */
 export const SERVER_FN_BASE_PATH = '/api/internal/server-fn'
+
+/** Request header carrying the opaque function ID on a page-URL POST. */
+export const SERVER_FN_HEADER = 'x-comwit-fn'
 
 export type ServerFnSuccess = {
   ok: true
@@ -90,19 +97,24 @@ export function parseServerFnWire<T>(text: string): T {
  */
 const SERVER_FN_ID_PATTERN = /^[0-9a-f]{16,64}$/
 
-/** Use the opaque registry ID as the single URL segment. */
+/** True for a well-formed opaque function ID (lowercase hex). */
+export function isServerFnId(value: string | null | undefined): value is string {
+  return typeof value === 'string' && SERVER_FN_ID_PATTERN.test(value)
+}
+
+/** Internal Route Handler URL for one function ID (used by the proxy rewrite only). */
 export function serverFnIdToPath(id: string): string {
-  if (!SERVER_FN_ID_PATTERN.test(id)) {
+  if (!isServerFnId(id)) {
     throw new Error(`Invalid Server Function id: ${id}`)
   }
-  return id
+  return `${SERVER_FN_BASE_PATH}/${id}`
 }
 
 /** Restore the catch-all Route Handler segment to a registry ID; reject anything but one opaque ID. */
 export function serverFnPathToId(segments: string[]): string | null {
   if (segments.length !== 1) return null
   const [id] = segments
-  return SERVER_FN_ID_PATTERN.test(id) ? id : null
+  return isServerFnId(id) ? id : null
 }
 
 function isWireMarker(value: unknown): value is WireMarker {

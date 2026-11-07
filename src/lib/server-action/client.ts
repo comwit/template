@@ -1,8 +1,7 @@
 import {
-  SERVER_FN_BASE_PATH,
+  SERVER_FN_HEADER,
   SERVER_FN_SSR_DISPATCH,
   parseServerFnWire,
-  serverFnIdToPath,
   stringifyServerFnWire,
   type ServerFnResponse,
   type ServerFnSsrDispatch,
@@ -16,12 +15,18 @@ function ssrDispatch(): ServerFnSsrDispatch | undefined {
   ]
 }
 
+/**
+ * POST to the current page URL, like a Next Server Action, carrying the opaque function ID
+ * in a header. src/proxy.ts rewrites the request to the internal Route Handler, so neither
+ * the handler path nor the ID appears in the URL.
+ */
 async function postServerFn(id: string, args: unknown[]): Promise<string> {
-  const response = await fetch(`${SERVER_FN_BASE_PATH}/${serverFnIdToPath(id)}`, {
+  const response = await fetch(window.location.pathname, {
     method: 'POST',
     credentials: 'same-origin',
     headers: {
       'Content-Type': 'application/json',
+      [SERVER_FN_HEADER]: id,
     },
     body: stringifyServerFnWire({ args }),
   })
