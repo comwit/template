@@ -9,7 +9,7 @@ src/app/(app)/
 └── (detail)/posts/[id]/page.tsx   # The one detail route: static body, server read only in generateMetadata
 ```
 
-**One canonical route per detail. Do not add a `(.)posts/[id]` intercepting route.** The route body is static: no server data read and no `await params` in it. The `PostDetail` Client Component reads the ID with `useParams` and makes one `detail.suspend(id)` read; the model's `seed` (see `state.ai.md`) decides what that read paints.
+**One canonical route per detail.** The route body is static: no server data read and no `await params` in it. The `PostDetail` Client Component reads the ID with `useParams` and makes one `detail.suspend(id)` read; the model's `seed` (see `state.ai.md`) decides what that read paints.
 
 | Entry | Route behavior | Detail resource behavior |
 | --- | --- | --- |
@@ -59,7 +59,6 @@ export function PostDetailRoute() {
 
 - Always link to the canonical URL `/posts/:id` with a plain `<Link>`; cards run no action before navigating. `generateMetadata` is the only server read and returns a noindex result for a missing item instead of `notFound()`. The view renders not-found UI from `data === null` and JSON-LD from the query data once `isPartial` is `false`. No per-route `error.tsx` for unknown IDs and no `document.title` effect.
 - Keep the route file a thin synchronous Server Component: no `await params`, no fetch and no `'use client'` in the body. A server await in the body makes it a dynamic hole, so every in-app navigation waits for a server round trip before the body can paint; `generateMetadata` does not block it.
-- Intercepting routes (`(.)`) are only for real overlays (a modal or sheet layered over the current screen), never a second entry for a full detail page.
 - Keep temporary sheet routes in `(detail)` too; select the sheet wrapper and transition as described in the UI guide. Reuse the installed route groups and bottom navigation.
 - Match tab definitions/order in `layout/app-tabs.ts`. The `/` tab is `(top-level)/page.tsx`; do not retain `(app)/page.tsx`.
 - The shell consists of `<AppShell tabs={APP_TABS}>` in `layout/client.tsx` (scrolling, refresh, transitions, back navigation) and `<TabShell>` in `(top-level)/layout.tsx` (tab bar). Both come from installed `@/lib/components/ui/app-shell`. Tab-to-tab navigation preserves the bar; other paths drill into details.

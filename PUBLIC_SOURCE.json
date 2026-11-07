@@ -15,10 +15,10 @@
     ".agents/scripts/register-mcp.mjs": "1634e04c9a87d80845d0b7b902b4619cfcfee015902d4be09820d6885703f441",
     ".agents/scripts/sync-resource-env.mjs": "4be43c992c27f3da6d216a9a94c5b02a2b0092c271f8bd1dec614fa5ebcd1fce",
     ".agents/scripts/verify-env-merge.mjs": "2a14ae88d26a4c8182ac41fcf5c67c97a6db077514bc8466a1f91417dcc1449f",
-    ".agents/skills/app-setup/SKILL.md": "6a78879b0f01634fbe6674ecac185591c95f7988574da327107de63e08f5f09e",
-    ".agents/skills/app-setup/assets/inserts/app.ai.md": "24a3dcef29a0e2ae425424296f6db4014372e87a991aaec051ffd5df42ce9f39",
+    ".agents/skills/app-setup/SKILL.md": "5f59ae4a6d2bc0eac6ec9f8b44beeac97bb1928e119cf9ced68095393c7ad38b",
+    ".agents/skills/app-setup/assets/inserts/app.ai.md": "9eb9c4cb08ea3c9d3c2dbd111f6b0be64e47cd99c83348dfecf82deb3061037b",
     ".agents/skills/app-setup/assets/inserts/page.ai.md": "83bbe17b5002521584815fba574404abf95f08e5dc817d61165fbc02f7eb212b",
-    ".agents/skills/app-setup/assets/inserts/state.ai.md": "b932b5a46c0f1970b06c95eaf51cb840047918864ed92191f6f6aec61b014b2a",
+    ".agents/skills/app-setup/assets/inserts/state.ai.md": "55d800ecc338e586ffeb8dcaf006adab855b315462992b3c397d48585965424f",
     ".agents/skills/app-setup/assets/public/pwa/apple-icon.png": "d15482b9fb8a5e9accffc1eb78b099144823d20564a1494c1202d209fa2c8ab8",
     ".agents/skills/app-setup/assets/public/pwa/icon-192.png": "943dbb5741592806a5534eb9ba270b9c652daa84e68bfd3aece8f9abb3485761",
     ".agents/skills/app-setup/assets/public/pwa/icon-512.png": "6a59c3b3039538a2359c78feada1b300dbe06983a7fc0ff275b5a7bf750ac2a8",
@@ -178,7 +178,7 @@
     "src/app/(admin)/admin/login/page.tsx": "b89dae104eddd0c474621bfea37ce9c96003ef2adfc0feb281f73ad92211ce9e",
     "src/app/(app)/layout.tsx": "bdde69cb1354cbd6b941464d4f4accc7b19ced116330e40a5dee758bf2bba21a",
     "src/app/(app)/page.tsx": "70f2257c555872ac3c90c91a1b2e6962b70dddc078c44f19f5a6197534e4b0e4",
-    "src/app/.ai.md": "ed6228797344b9feff61127dc63b0e97c1b7ad8ef5e8a5ac7968bf7c6982a99c",
+    "src/app/.ai.md": "153ab6a081a030a3ffc2c0f25470aff69245fad8108b81a9a05ef9ea1d25d805",
     "src/app/api/internal/server-fn/[...slug]/route.ts": "f0c955def0b61bd94bf5105365816aa6a092bb1e45f9abd3c48e9c90e2fdce5c",
     "src/app/comwit-tokens.css": "5ccbb12d5af22e89958660aed2f4c2f04ef1c7e9f8559cc95082afc17e0568d7",
     "src/app/favicon.ico": "2b8ad2d33455a8f736fc3a8ebf8f0bdea8848ad4c0db48a2833bd0f9cd775932",
@@ -318,8 +318,8 @@
     "src/services/app/state/user/index.ts": "0b3d4a01ba535cd6bb47eec7d88bb95534cba98ea42740bb49bb49895f4a5677",
     "src/services/app/state/user/model.ts": "114c6e9e99ab948b46400e26c3f3f6747a3529e7962114289e2d40e9b65fc041",
     "src/services/app/state/user/types.ts": "97314548d56986498143952c861b7eaa31e6d823aa9c4e5f9c2ce8745350fe5c",
-    "src/services/page.ai.md": "7e1e94d81ce4db1ad3841e56e2d9e381d35ff9327addabc4598d416521b9d8b8",
-    "src/services/state.ai.md": "7d9e77d634ca65b26aef89a72093db013e27ee37c6110e5f417f6fceb09af751",
+    "src/services/page.ai.md": "1e50ae5f4f1e5bb993eeb509479c7c32c35fe32c97bf64417d63c17d624afe54",
+    "src/services/state.ai.md": "c629d15281ed5732fb0d0db307e16f202a8f1b9e264b92ce6087f96d35658ce6",
     "tsconfig.json": "907de2b74ed469e71ca904d8af9f4a543914e640992c5648c5d8966b71d076df"
   }
 }

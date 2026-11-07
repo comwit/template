@@ -69,8 +69,7 @@ const cached = useProduct((s) => s.products)
 - `Query<T, Arg, Seed?>`: remote query state; the third generic is a detail seed (Detail seed below).
   `Query.Infinite<T, Arg>`: cursor/infinite query.
 - Plain values: client-owned reactive state.
-- Local resources (`local()`, `local.query()`, `local.infinite()`) are `.load()`-only (`.restore()` for
-  `local()`); `.suspend()` on them is a type error and throws. Keep server-rendered reads as plain `query()`.
+- Local resources are read with `.load()`; server-rendered reads stay plain `query()`.
 - Do not start an initial load from `useEffect`.
 
 ### Screens with `.suspend()`
