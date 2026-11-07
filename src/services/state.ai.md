@@ -132,12 +132,11 @@ return <ProductView summary={detail.data} reviews={detail.data.reviews} /> // Pr
 
 - `seed` runs during render and must be pure: read only this model's own state, never write; return
   `undefined` when the list does not hold the id. Its type may only name fields of the full value.
-- A full result (fetch, SSR stream, `.set()`, `hydrate()`) always wins over a seed. A rejected upgrade
+- A full result always wins over a seed. A rejected upgrade
   keeps the seed with `isError: true`; an upgrade that resolves `null` is not-found.
 - One model per resource: the seed source is the detail's own list. A screen that needs several
   resources calls each resource's hook; a seed never reads another model.
-- Cards are plain `<Link>`s: no `open(item)` action, no `.set()` before navigation. Actions take the id
-  and patch the detail only when it holds a full result; never write detail-only data into a partial key.
+- Actions take the id and patch the detail only when it holds a full result; never write detail-only data into a partial key.
 - Load reviews and related items in a child component with its own `<Suspense>` or `.load()`.
 
 ## Actions and decorators

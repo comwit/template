@@ -29,7 +29,7 @@ type Props = { params: Promise<{ id: string }> }
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
   const post = await api.post.findById(id).catch(() => null) // the only server read
-  if (!post) return { title: 'Post', robots: { index: false, follow: false } } // noindex, not notFound()
+  if (!post) return { title: 'Post', robots: { index: false, follow: false } } // noindex for a missing item
   return { title: post.title, description: post.excerpt }
 }
 
@@ -57,7 +57,7 @@ export function PostDetailRoute() {
 }
 ```
 
-- Always link to the canonical URL `/posts/:id` with a plain `<Link>`; cards run no action before navigating. `generateMetadata` is the only server read and returns a noindex result for a missing item instead of `notFound()`. The view renders not-found UI from `data === null` and JSON-LD from the query data once `isPartial` is `false`. No per-route `error.tsx` for unknown IDs and no `document.title` effect.
+- Link to the canonical URL `/posts/:id` with `<Link>`. `generateMetadata` is the only server read and returns a noindex result for a missing item. The view renders not-found UI from `data === null` and JSON-LD from the query data once `isPartial` is `false`.
 - Keep the route file a thin synchronous Server Component: no `await params`, no fetch and no `'use client'` in the body. A server await in the body makes it a dynamic hole, so every in-app navigation waits for a server round trip before the body can paint; `generateMetadata` does not block it.
 - Keep temporary sheet routes in `(detail)` too; select the sheet wrapper and transition as described in the UI guide. Reuse the installed route groups and bottom navigation.
 - Match tab definitions/order in `layout/app-tabs.ts`. The `/` tab is `(top-level)/page.tsx`; do not retain `(app)/page.tsx`.

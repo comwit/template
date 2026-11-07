@@ -1,7 +1,7 @@
 <!-- app-setup:routing -->
 ## Mobile App Detail UI (app-setup installed)
 
-For mobile details, this section replaces the general SSR Detail Pages / hydration examples above. Render one shared detail component from the one canonical route, using `detail.suspend(id)` as described in `state.ai.md`. There is no separate seed UI or hydration adapter.
+For mobile details, this section replaces the general SSR Detail Pages / hydration examples above. Render one shared detail component from the one canonical route, using `detail.suspend(id)` as described in `state.ai.md`.
 
 - **Seeded navigation (`isPartial: true`):** the list item is on screen at once. Render the summary fields and skeletons for the detail-only areas (body, permissions UI, comments) until the upgrade settles; keep the content visible during that upgrade — `isFetching` is never a reason for a full skeleton.
 - **Full result (`isPartial: false`):** render everything. `data === null` is the confirmed not-found state and replaces the content; render JSON-LD only here, from the query data.

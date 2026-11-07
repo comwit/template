@@ -92,8 +92,6 @@ the skill or mark setup complete.
 For mobile details these sections supersede the general detail hydration examples;
 keep the service-root auth hydration contract. Verify the existing StateProvider
 streaming integration and root SSR bridge import before using server `.suspend()`.
-Do not create a separate seed model/prop, an `open(item)` cache-writing action or a
-detail hydration adapter.
 
 Follow these guides to implement the requested tabs and detail flows with the
 product's domain data (mock repositories are fine). Keep each decision in its
@@ -116,7 +114,7 @@ stale types with `pnpm exec next typegen` if needed. Check the implemented flow:
 - Every detail has exactly one route with a static body;
   `generateMetadata` is its only server read (noindex for a missing item). Check
   direct visit/reload, in-app navigation from a list, and in-app navigation
-  without list data; SSR data streams without a manual detail hydration adapter.
+  without list data.
 - Tabs retain BottomNav; fullscreen details hide it. Verify the app-bar back
   button after card navigation, browser back/forward, and direct-entry/reload
   parent fallback. Loading/error screens keep a usable back button. Check
