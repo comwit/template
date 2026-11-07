@@ -282,10 +282,10 @@ export default function PostDetail({ postId }: { postId: string }) {
 - Not-found is `data === null` from the query (`queryFn` resolves `null`), rendered by the view. A failed upgrade keeps the seeded content with `isError`; without data, the segment's `error.tsx` covers a failed first load.
 - The route's Suspense fallback is the detail skeleton, never `null`.
 
-Shop reference: `src/app/(app)/products/[id]/page.tsx` + `page/product-detail/`; the catalog
-`detail` query declares `seed` from `list` in `state/catalog/model.ts`. The list item is the whole
-`ProductView` (`findAll` and `find` share `presentProduct`), so a seeded detail paints complete and
-the upgrade only refreshes stock.
+Shop reference: `src/app/(app)/products/[id]/page.tsx` + `page/product-detail/` (`route.tsx` reads
+the id with `useParams`); the catalog `detail` query declares `seed` from `list` in
+`state/catalog/model.ts`. The list item is the whole `ProductView` (`findAll` and `find` share
+`presentProduct`), so a seeded detail paints complete and the upgrade only refreshes stock.
 
 ### Pages behind login
 

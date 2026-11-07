@@ -2598,11 +2598,6 @@
       "intercepted": false
     },
     {
-      "file": "src/app/(app)/(.)products/[id]/page.tsx",
-      "path": "/products/[id]",
-      "intercepted": true
-    },
-    {
       "file": "src/app/(app)/products/[id]/page.tsx",
       "path": "/products/[id]",
       "intercepted": false
