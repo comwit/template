@@ -18,7 +18,7 @@
     ".agents/skills/app-setup/SKILL.md": "60eebb3ceae3ecd08c5598ead1a20e7a3c1d8b039c461fbf0dba0a7bd586f3e1",
     ".agents/skills/app-setup/assets/inserts/app.ai.md": "206782c6f4edd3c92b33614a01a38fb16b95650d60ca35a1b04d7dbad5585083",
     ".agents/skills/app-setup/assets/inserts/page.ai.md": "3d2d55c8932a893f1b130ad43d508fcb83a88cf617f7269909162d80e570f014",
-    ".agents/skills/app-setup/assets/inserts/state.ai.md": "791f4646307c98c95aedb4259b24b17039b3f6a582462860bc01351217d7d185",
+    ".agents/skills/app-setup/assets/inserts/state.ai.md": "579fb34e47f965280d79c254223757a68705af37bbf45737c606dab1c9cc49e0",
     ".agents/skills/app-setup/assets/public/pwa/apple-icon.png": "d15482b9fb8a5e9accffc1eb78b099144823d20564a1494c1202d209fa2c8ab8",
     ".agents/skills/app-setup/assets/public/pwa/icon-192.png": "943dbb5741592806a5534eb9ba270b9c652daa84e68bfd3aece8f9abb3485761",
     ".agents/skills/app-setup/assets/public/pwa/icon-512.png": "6a59c3b3039538a2359c78feada1b300dbe06983a7fc0ff275b5a7bf750ac2a8",
@@ -319,7 +319,7 @@
     "src/services/app/state/user/model.ts": "114c6e9e99ab948b46400e26c3f3f6747a3529e7962114289e2d40e9b65fc041",
     "src/services/app/state/user/types.ts": "97314548d56986498143952c861b7eaa31e6d823aa9c4e5f9c2ce8745350fe5c",
     "src/services/page.ai.md": "866926e2b18e86f0b46378028d4fc8580ef9d535f5486719dbaaacdf99922751",
-    "src/services/state.ai.md": "774dcfcf7344809025dad19e1851fc0954e82e6ea1ca4c7e4171aafbfa576f00",
+    "src/services/state.ai.md": "884f8a564b901632b0373932ca43a58ae89ef1277557dc7bd36a94d447cdf5d6",
     "tsconfig.json": "907de2b74ed469e71ca904d8af9f4a543914e640992c5648c5d8966b71d076df"
   }
 }

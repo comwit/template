@@ -113,6 +113,9 @@ The detail query declares its seed from the list in the same model. The same `.s
 serves every entry: a direct visit suspends and streams; in-app navigation from the list paints the
 list item at once (`isPartial: true`) and upgrades to the full detail in the background.
 
+A seed works with both `.load()` and `.suspend()`. While a seed exists, `.suspend()` behaves like
+`.load()`: it does not throw a promise, it paints the seed and fetches the full detail after commit.
+
 ```ts
 // types.ts — the list item is the seed; detail-only fields are optional while partial
 detail: Query<ProductDetail | null, string, ProductSummary>
