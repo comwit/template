@@ -6,55 +6,63 @@ The shared shell is installed. For mobile details, use this layout and ID-only r
 ```text
 src/app/(app)/
 ├── (top-level)/posts/page.tsx     # List tab
-├── (detail)/posts/[id]/page.tsx   # Canonical detail route
-└── (.)posts/[id]/page.tsx         # In-app entry point for SEO details only
+└── (detail)/posts/[id]/page.tsx   # The one detail route: static body, server read only in generateMetadata
 ```
 
-**Use a single canonical route for non-SEO details. Add interception only for SEO-critical details.** Both SEO entry points render the same `PostDetail` Client Component, whose only core resource read is `detail.suspend(id)`.
+**One canonical route per detail. Do not add a `(.)posts/[id]` intercepting route.** The route body is static: no server data read and no `await params` in it. The `PostDetail` Client Component reads the ID with `useParams` and makes one `detail.suspend(id)` read; the model's `seed` (see `state.ai.md`) decides what that read paints.
 
 | Entry | Route behavior | Detail resource behavior |
 | --- | --- | --- |
-| Direct visit, reload, shared URL, bot | Canonical SEO route handles metadata/404 and passes the ID | `.suspend(id)` resolves during SSR and streams its cache to the browser |
-| In-app card navigation | Intercepted route reads ID with `useParams`; no server data read | Card's `actions.open(post)` has filled the cache: render immediately, refetch in the background |
-| In-app navigation without cached data | Same intercepted route | Show the detail skeleton while the client query resolves |
+| Direct visit, reload, shared URL, bot | `generateMetadata` reads the item on the server (title/OG, noindex when missing); the body streams | `.suspend(id)` suspends, resolves during SSR and streams its cache to the browser |
+| In-app navigation from a list that holds the item | The static shell commits at once; no server round trip for the body | `seed` paints the list item immediately (`isPartial: true`); the full detail upgrades in the background |
+| In-app navigation without list data | Same static shell | `.suspend(id)` shows the detail skeleton until the client query resolves |
 
 ```tsx
-// Canonical SEO route: (detail)/posts/[id]/page.tsx
+// (detail)/posts/[id]/page.tsx — the only detail route
+import type { Metadata } from 'next'
+import { connection } from 'next/server'
 import { Suspense } from 'react'
-import { PostDetail, PostSkeleton } from '@/services/app/page/post-detail'
+import { PostDetailRoute, PostSkeleton } from '@/services/app/page/post-detail'
+
 type Props = { params: Promise<{ id: string }> }
-export default function Page({ params }: Props) {
-  return <Suspense fallback={<PostSkeleton />}><Loader params={params} /></Suspense>
-}
-async function Loader({ params }: Props) {
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
-  // When needed, do a cached server lookup here for notFound(), not for UI props.
-  return <PostDetail id={id} />
+  const post = await api.post.findById(id).catch(() => null) // the only server read
+  if (!post) return { title: 'Post', robots: { index: false, follow: false } } // noindex, not notFound()
+  return { title: post.title, description: post.excerpt }
+}
+
+export default function Page() {
+  return (
+    <>
+      <Suspense fallback={<PostSkeleton />}><PostDetailRoute /></Suspense>
+      <Suspense><Connection /></Suspense>
+    </>
+  )
+}
+
+/** Dynamic marker: metadata is request-time while the body stays a static shell. */
+async function Connection() {
+  await connection()
+  return null
 }
 ```
 
 ```tsx
-// Intercepted SEO route: (.)posts/[id]/page.tsx
-// Also use this wrapper for the canonical route of client-only, non-SEO details.
-import { Suspense } from 'react'
-import { PostClientRoute, PostSkeleton } from '@/services/app/page/post-detail'
-export default function Page() {
-  return <Suspense fallback={<PostSkeleton />}><PostClientRoute /></Suspense>
-}
-
 // In the service page layer's 'use client' module, not the app-router file:
-function PostClientRoute() {
+export function PostDetailRoute() {
   const { id } = useParams<{ id: string }>()
   return <PostDetail id={id} />
 }
 ```
 
-- Always link to the canonical URL `/posts/:id`. Place `generateMetadata`, JSON-LD and server `notFound()` decisions only in the canonical SEO route. Share its metadata/404 lookup with React `cache()` where needed; the view reads its resource through `.suspend()`, not server data props.
-- Keep the intercepted wrapper synchronous: no server lookup, `await params`, or metadata. Read the ID with `useParams` in the service client component under Suspense so the wrapper can be prefetched as an app shell. Keep app-router files as thin Server Component wrappers.
-- Provide an error boundary for query failures on both entry paths; map confirmed missing/forbidden resources according to domain policy. Use a real detail skeleton as each Suspense fallback, never `null`. Update the document title from the resource on intercepted navigation, which has no route metadata.
+- Always link to the canonical URL `/posts/:id` with a plain `<Link>`; cards run no action before navigating. `generateMetadata` is the only server read and returns a noindex result for a missing item instead of `notFound()`. The view renders not-found UI from `data === null` and JSON-LD from the query data once `isPartial` is `false`. No per-route `error.tsx` for unknown IDs and no `document.title` effect.
+- Keep the route file a thin synchronous Server Component: no `await params`, no fetch and no `'use client'` in the body. A server await in the body makes it a dynamic hole, so every in-app navigation waits for a server round trip before the body can paint; `generateMetadata` does not block it.
+- Intercepting routes (`(.)`) are only for real overlays (a modal or sheet layered over the current screen), never a second entry for a full detail page.
 - Keep temporary sheet routes in `(detail)` too; select the sheet wrapper and transition as described in the UI guide. Reuse the installed route groups and bottom navigation.
 - Match tab definitions/order in `layout/app-tabs.ts`. The `/` tab is `(top-level)/page.tsx`; do not retain `(app)/page.tsx`.
 - The shell consists of `<AppShell tabs={APP_TABS}>` in `layout/client.tsx` (scrolling, refresh, transitions, back navigation) and `<TabShell>` in `(top-level)/layout.tsx` (tab bar). Both come from installed `@/lib/components/ui/app-shell`. Tab-to-tab navigation preserves the bar; other paths drill into details.
 
-Use Mobile App Detail State in `src/services/state.ai.md` for cache writes and SSR prerequisites, and Mobile App Detail UI in `src/services/page.ai.md` for the shared screen.
+Use Mobile App Detail State in `src/services/state.ai.md` for the seed declaration and SSR prerequisites, and Mobile App Detail UI in `src/services/page.ai.md` for the shared screen.
 <!-- /app-setup:routing -->
