@@ -24,7 +24,7 @@ detected router; the scroller, scroll chrome, refresh gesture and back depth are
 `@comwit/ui` primitives. This skill only places them and lists the tabs.
 Transition rules use the SSGOI config shape (https://ssgoi.dev/llms.txt) through
 `appTransitions`. Older projects need `comwit.json`, `@comwit/ui@0.6.0`,
-`comwit-ui@0.7.0` (dev), `@ssgoi/react@7.4.1` and `@comwit/state@2.6.0` or newer;
+`comwit-ui@0.7.0` (dev), `@ssgoi/react@7.4.1` and `@comwit/state@2.7.0` or newer;
 install missing ones with `--save-exact` first.
 
 ## 1. CLI: install the mechanical shell
