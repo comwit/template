@@ -104,10 +104,10 @@ export type CreateRequest = {
 - Browser transport uses one dedicated POST Route Handler.
   - Every build removes action imports from API `index.ts` and emits a function-ID facade.
   - Server Components/RSC select the manifest-direct runtime through the package `react-server` condition.
+    It wraps every method in a per-request `React.cache` memo keyed by argument values, so equal calls in one render run once; do not wrap API calls in `cache()` yourself.
   - Client Component SSR selects the client runtime and never starts a request during render.
-  - Browsers use the client runtime and send POST requests.
+  - Browsers use the client runtime and POST to the current page URL with the `x-comwit-fn` header; `src/proxy.ts` routes it to the internal handler.
   - Only the server manifest dynamically imports real action modules.
-  - Endpoint: `POST /api/internal/server-fn/[...slug]`
 - `createAction` returns the original `Promise<T>` function. The old one-item Promise tuple protocol is not used.
 
 ### Throw errors as `ActionError`

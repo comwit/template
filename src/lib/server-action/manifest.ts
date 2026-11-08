@@ -5,5 +5,9 @@
 export type ServerFn = (...args: unknown[]) => Promise<unknown>
 export type ServerFnModuleLoader = () => Promise<ServerFn>
 
+/** Opaque function ID → lazy action module loader. */
 export const serverFnManifest: Readonly<Record<string, ServerFnModuleLoader>> =
   Object.freeze({})
+
+/** Opaque function ID → readable `service/domain/file#export` label, for server logs only. */
+export const serverFnSources: Readonly<Record<string, string>> = Object.freeze({})

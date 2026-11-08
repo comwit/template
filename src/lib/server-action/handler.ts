@@ -3,6 +3,7 @@ import 'server-only'
 import { ActionError } from '@/lib/utils/action-error'
 import {
   serverFnManifest,
+  serverFnSources,
   type ServerFnModuleLoader,
 } from './manifest'
 import {
@@ -171,7 +172,11 @@ export async function executeServerFn(
       }
     }
 
-    console.error(`[server-fn] action failed: ${id}`, error)
+    // Log the readable source label; the wire ID alone is an opaque hash.
+    console.error(
+      `[server-fn] action failed: ${serverFnSources[id] ?? id}`,
+      error,
+    )
     return {
       body: {
         ok: false,
