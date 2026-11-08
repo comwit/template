@@ -863,6 +863,29 @@
     }
   }
 
+  /*
+   * Panels share a neutral film and soft shadow. Morphing blurs the backdrop until it is unreadable
+   * while the lens still bends it; frosted swaps refraction for a denser film. Dense surfaces below can still
+   * increase film opacity above a scrim. :where keeps preference overrides later in this layer effective.
+   */
+  .glass-panel {
+    --glass-tint: var(--glass-panel-tint);
+    --glass-opacity: var(--glass-panel-opacity);
+    /* Without the SVG lens (non-Chromium), blur as hard as the lens filter so content behind stays unreadable. */
+    --glass-morphing-backdrop: blur(40px) saturate(165%) contrast(103%);
+    border-color: color-mix(in srgb, var(--glass-edge) 35%, transparent);
+    background-image: none;
+    box-shadow: var(--glass-panel-shadow);
+  }
+  .glass-panel::after {
+    display: none;
+  }
+  .glass-panel:where(.glass-frosted) {
+    --glass-opacity: var(--glass-frosted-panel-opacity);
+    -webkit-backdrop-filter: blur(24px) saturate(65%);
+    backdrop-filter: blur(24px) saturate(65%);
+  }
+
   /* 레이어가 가진 그림자는 여기서 끈다(바깥 버튼이 아니라) — 앱바 뒤로가기처럼 면에 붙는 유리 */
   .glass.glass-shadowless {
     box-shadow: none;
@@ -880,7 +903,7 @@
   }
 
   /* 유리 메뉴 행 — hover·포커스에도 굴절 면이 비쳐 보이게 채움 대신 글자색으로 표시한다 */
-  .glass-morphing [data-glass-item] {
+  :is(.glass-morphing, .glass-frosted) [data-glass-item] {
     transition:
       color 150ms ease,
       background-color 150ms ease,
@@ -922,7 +945,7 @@
     color: inherit;
   }
   /* 스크롤되는 메뉴 안에서도 보이도록 안쪽 아웃라인 */
-  .glass-morphing [data-glass-item]:focus-visible {
+  :is(.glass-morphing, .glass-frosted) [data-glass-item]:focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: -2px;
     box-shadow: none;
