@@ -4,13 +4,16 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  next@16.4.3: d9847489baf0bf3715e6a27245adb96751eb18e383fcca9f3debc40b920c449a
+
 importers:
 
   .:
     dependencies:
       '@brrrd/adapter':
         specifier: 0.1.12
-        version: 0.1.12(next@16.4.3(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
+        version: 0.1.12(next@16.4.3(patch_hash=d9847489baf0bf3715e6a27245adb96751eb18e383fcca9f3debc40b920c449a)(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
       '@comwit/state':
         specifier: 2.7.0
         version: 2.7.0(react@19.2.4)
@@ -27,8 +30,8 @@ importers:
         specifier: ^0.17.4
         version: 0.17.4
       '@ssgoi/react':
-        specifier: 7.4.1
-        version: 7.4.1(next@16.4.3(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(supports-color@7.2.0)
+        specifier: 7.5.0
+        version: 7.5.0(next@16.4.3(patch_hash=d9847489baf0bf3715e6a27245adb96751eb18e383fcca9f3debc40b920c449a)(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(supports-color@7.2.0)
       '@tanstack/react-table':
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -43,7 +46,7 @@ importers:
         version: 1.4.0
       better-auth:
         specifier: ^1.4.7
-        version: 1.6.11(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@libsql/client@0.17.4)(kysely@0.28.17))(next@16.4.3(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.11(@types/node@20.19.41)(vite@7.3.7(@types/node@20.19.41)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.3)(yaml@2.9.0)))
+        version: 1.6.11(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@libsql/client@0.17.4)(kysely@0.28.17))(next@16.4.3(patch_hash=d9847489baf0bf3715e6a27245adb96751eb18e383fcca9f3debc40b920c449a)(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.11(@types/node@20.19.41)(vite@7.3.7(@types/node@20.19.41)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.3)(yaml@2.9.0)))
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -70,7 +73,7 @@ importers:
         version: 12.40.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       next:
         specifier: ~16.4.3
-        version: 16.4.3(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        version: 16.4.3(patch_hash=d9847489baf0bf3715e6a27245adb96751eb18e383fcca9f3debc40b920c449a)(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -113,7 +116,7 @@ importers:
         version: 10.6.5(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(storybook@10.6.5(@types/react@19.2.15)(prettier@3.9.10)(react@19.2.4))
       '@storybook/nextjs-vite':
         specifier: 10.6.5
-        version: 10.6.5(@babel/core@7.29.0(supports-color@7.2.0))(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(next@16.4.3(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.64.5)(storybook@10.6.5(@types/react@19.2.15)(prettier@3.9.10)(react@19.2.4))(supports-color@7.2.0)(typescript@5.9.3)(vite@7.3.7(@types/node@20.19.41)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.3)(yaml@2.9.0))
+        version: 10.6.5(@babel/core@7.29.0(supports-color@7.2.0))(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(next@16.4.3(patch_hash=d9847489baf0bf3715e6a27245adb96751eb18e383fcca9f3debc40b920c449a)(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.64.5)(storybook@10.6.5(@types/react@19.2.15)(prettier@3.9.10)(react@19.2.4))(supports-color@7.2.0)(typescript@5.9.3)(vite@7.3.7(@types/node@20.19.41)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.3)(yaml@2.9.0))
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.3.0
@@ -4593,10 +4596,10 @@ snapshots:
 
   '@better-fetch/fetch@1.1.21': {}
 
-  '@brrrd/adapter@0.1.12(next@16.4.3(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))':
+  '@brrrd/adapter@0.1.12(next@16.4.3(patch_hash=d9847489baf0bf3715e6a27245adb96751eb18e383fcca9f3debc40b920c449a)(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))':
     dependencies:
       esbuild: 0.25.12
-      next: 16.4.3(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      next: 16.4.3(patch_hash=d9847489baf0bf3715e6a27245adb96751eb18e383fcca9f3debc40b920c449a)(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
 
   '@comwit/state@2.7.0(react@19.2.4)':
     dependencies:
@@ -5630,15 +5633,15 @@ snapshots:
 
   '@ssgoi/core@7.5.0': {}
 
-  '@ssgoi/react@7.4.1(next@16.4.3(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(supports-color@7.2.0)':
+  '@ssgoi/react@7.5.0(next@16.4.3(patch_hash=d9847489baf0bf3715e6a27245adb96751eb18e383fcca9f3debc40b920c449a)(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(supports-color@7.2.0)':
     dependencies:
       '@babel/core': 7.29.0(supports-color@7.2.0)
-      '@ssgoi/core': 7.4.1
+      '@ssgoi/core': 7.5.0
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
       unplugin: 2.3.11
     optionalDependencies:
-      next: 16.4.3(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      next: 16.4.3(patch_hash=d9847489baf0bf3715e6a27245adb96751eb18e383fcca9f3debc40b920c449a)(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
     transitivePeerDependencies:
       - supports-color
 
@@ -5679,18 +5682,18 @@ snapshots:
     dependencies:
       react: 19.2.4
 
-  '@storybook/nextjs-vite@10.6.5(@babel/core@7.29.0(supports-color@7.2.0))(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(next@16.4.3(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.64.5)(storybook@10.6.5(@types/react@19.2.15)(prettier@3.9.10)(react@19.2.4))(supports-color@7.2.0)(typescript@5.9.3)(vite@7.3.7(@types/node@20.19.41)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.3)(yaml@2.9.0))':
+  '@storybook/nextjs-vite@10.6.5(@babel/core@7.29.0(supports-color@7.2.0))(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(next@16.4.3(patch_hash=d9847489baf0bf3715e6a27245adb96751eb18e383fcca9f3debc40b920c449a)(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.64.5)(storybook@10.6.5(@types/react@19.2.15)(prettier@3.9.10)(react@19.2.4))(supports-color@7.2.0)(typescript@5.9.3)(vite@7.3.7(@types/node@20.19.41)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.3)(yaml@2.9.0))':
     dependencies:
       '@storybook/builder-vite': 10.6.5(storybook@10.6.5(@types/react@19.2.15)(prettier@3.9.10)(react@19.2.4))(vite@7.3.7(@types/node@20.19.41)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.3)(yaml@2.9.0))
       '@storybook/react': 10.6.5(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(storybook@10.6.5(@types/react@19.2.15)(prettier@3.9.10)(react@19.2.4))(supports-color@7.2.0)(typescript@5.9.3)
       '@storybook/react-vite': 10.6.5(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(rollup@4.64.5)(storybook@10.6.5(@types/react@19.2.15)(prettier@3.9.10)(react@19.2.4))(supports-color@7.2.0)(typescript@5.9.3)(vite@7.3.7(@types/node@20.19.41)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.3)(yaml@2.9.0))
-      next: 16.4.3(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      next: 16.4.3(patch_hash=d9847489baf0bf3715e6a27245adb96751eb18e383fcca9f3debc40b920c449a)(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
       storybook: 10.6.5(@types/react@19.2.15)(prettier@3.9.10)(react@19.2.4)
       styled-jsx: 5.1.6(@babel/core@7.29.0(supports-color@7.2.0))(react@19.2.4)
       vite: 7.3.7(@types/node@20.19.41)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.3)(yaml@2.9.0)
-      vite-plugin-storybook-nextjs: 10.6.5(next@16.4.3(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(rollup@4.64.5)(storybook@10.6.5(@types/react@19.2.15)(prettier@3.9.10)(react@19.2.4))(supports-color@7.2.0)(typescript@5.9.3)(vite@7.3.7(@types/node@20.19.41)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.3)(yaml@2.9.0))
+      vite-plugin-storybook-nextjs: 10.6.5(next@16.4.3(patch_hash=d9847489baf0bf3715e6a27245adb96751eb18e383fcca9f3debc40b920c449a)(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(rollup@4.64.5)(storybook@10.6.5(@types/react@19.2.15)(prettier@3.9.10)(react@19.2.4))(supports-color@7.2.0)(typescript@5.9.3)(vite@7.3.7(@types/node@20.19.41)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.3)(yaml@2.9.0))
     optionalDependencies:
       '@types/react': 19.2.15
       '@types/react-dom': 19.2.3(@types/react@19.2.15)
@@ -6244,7 +6247,7 @@ snapshots:
 
   baseline-browser-mapping@2.10.32: {}
 
-  better-auth@1.6.11(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@libsql/client@0.17.4)(kysely@0.28.17))(next@16.4.3(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.11(@types/node@20.19.41)(vite@7.3.7(@types/node@20.19.41)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.3)(yaml@2.9.0))):
+  better-auth@1.6.11(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@libsql/client@0.17.4)(kysely@0.28.17))(next@16.4.3(patch_hash=d9847489baf0bf3715e6a27245adb96751eb18e383fcca9f3debc40b920c449a)(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.11(@types/node@20.19.41)(vite@7.3.7(@types/node@20.19.41)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.3)(yaml@2.9.0))):
     dependencies:
       '@better-auth/core': 1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0)
       '@better-auth/drizzle-adapter': 1.6.11(@better-auth/core@1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(drizzle-orm@0.45.2(@libsql/client@0.17.4)(kysely@0.28.17))
@@ -6266,7 +6269,7 @@ snapshots:
     optionalDependencies:
       drizzle-kit: 0.31.10
       drizzle-orm: 0.45.2(@libsql/client@0.17.4)(kysely@0.28.17)
-      next: 16.4.3(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      next: 16.4.3(patch_hash=d9847489baf0bf3715e6a27245adb96751eb18e383fcca9f3debc40b920c449a)(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
       vitest: 4.1.11(@types/node@20.19.41)(vite@7.3.7(@types/node@20.19.41)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.3)(yaml@2.9.0))
@@ -7332,7 +7335,7 @@ snapshots:
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
 
-  next@16.4.3(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
+  next@16.4.3(patch_hash=d9847489baf0bf3715e6a27245adb96751eb18e383fcca9f3debc40b920c449a)(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
     dependencies:
       '@next/env': 16.4.3
       '@swc/helpers': 0.5.23
@@ -8150,13 +8153,13 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite-plugin-storybook-nextjs@10.6.5(next@16.4.3(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(rollup@4.64.5)(storybook@10.6.5(@types/react@19.2.15)(prettier@3.9.10)(react@19.2.4))(supports-color@7.2.0)(typescript@5.9.3)(vite@7.3.7(@types/node@20.19.41)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.3)(yaml@2.9.0)):
+  vite-plugin-storybook-nextjs@10.6.5(next@16.4.3(patch_hash=d9847489baf0bf3715e6a27245adb96751eb18e383fcca9f3debc40b920c449a)(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(rollup@4.64.5)(storybook@10.6.5(@types/react@19.2.15)(prettier@3.9.10)(react@19.2.4))(supports-color@7.2.0)(typescript@5.9.3)(vite@7.3.7(@types/node@20.19.41)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.3)(yaml@2.9.0)):
     dependencies:
       '@next/env': 16.4.3
       '@rollup/pluginutils': 5.4.0(rollup@4.64.5)
       magic-string: 0.30.21
       module-alias: 2.3.4
-      next: 16.4.3(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      next: 16.4.3(patch_hash=d9847489baf0bf3715e6a27245adb96751eb18e383fcca9f3debc40b920c449a)(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       pathe: 2.0.3
       probe-image-size: 7.4.0(supports-color@7.2.0)
       semver: 7.8.5
