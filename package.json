@@ -62,7 +62,7 @@
     "@types/node": "^20.19.17",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "comwit-ui": "0.7.0",
+    "comwit-ui": "0.8.0",
     "drizzle-kit": "^0.31.10",
     "esbuild": "0.25.12",
     "eslint-plugin-react-hooks": "^7.0.1",
