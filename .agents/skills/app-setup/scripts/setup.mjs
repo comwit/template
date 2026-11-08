@@ -21,8 +21,8 @@ const UI_COMPONENTS = ['app-shell', 'app-group-layout', 'app-screen', 'bottom-sh
 const MIN_VERSIONS = {
   '@comwit/ui': { min: [0, 6, 0], entry: '@comwit/ui' },
   'comwit-ui': { min: [0, 8, 0], entry: 'comwit-ui/src/index.js' },
-  // SsgoiPageBoundary ships in @ssgoi/react 7.5.0 (beta.2 is the first usable build).
-  '@ssgoi/react': { min: [7, 5, 0, 'beta.2'], entry: '@ssgoi/react' },
+  // SsgoiPageBoundary ships in @ssgoi/react 7.5.0.
+  '@ssgoi/react': { min: [7, 5, 0], entry: '@ssgoi/react' },
 }
 // The installed boundary check (assets/tests) runs in `pnpm run validate` through this script.
 const TEST_SCRIPT = ['test:app', 'node --test tests/*.test.mjs']

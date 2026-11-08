@@ -25,7 +25,7 @@ refresh gesture and back depth are `@comwit/ui` primitives. This skill only
 places them and lists the tabs. Transition rules use the SSGOI config shape
 (https://ssgoi.dev/llms.txt) through `appTransitions`. Older projects need
 `comwit.json`, `@comwit/ui@0.6.0`, `comwit-ui@0.8.0` (dev),
-`@ssgoi/react@7.5.0-beta.2` and `@comwit/state@2.7.0` or newer; install missing
+`@ssgoi/react@7.5.0` and `@comwit/state@2.7.0` or newer; install missing
 ones with `--save-exact` first. The CLI refuses older versions.
 
 ## Route structure and transition boundaries
@@ -69,8 +69,9 @@ Rules:
   `bar="back"`/`"sheet"` or `DetailScreen` on details); omit `bar` for the
   boundary alone, as `(entry)` screens that own their top edge do.
 - **`@modal` intercept pages are not wrapped.** The `{modal}` slot renders
-  outside the group boundary and animates by itself. Full-page `(.)`
-  intercepts in `(detail)` are ordinary pages and do render `DetailScreen`.
+  outside the group boundary and animates by itself. Intercepts are `@modal`
+  overlays only; a detail has one canonical route and no full-page `(.)`
+  intercept route.
 - Only the installed shell components render `<Ssgoi>` or
   `SsgoiPageBoundary`, and nothing outside `src/services/app` and
   `src/lib/components/ui` imports `@ssgoi/react`. Never add
@@ -118,7 +119,7 @@ const framework: SsgoiFramework = {
 };
 ```
 
-Known beta limitation (`@ssgoi/react` 7.5.0-beta): while a soft-intercepted
+Known limitation (`@ssgoi/react` 7.5.0): while a soft-intercepted
 `@modal` is open, visible background boundaries take the modal's URL as their
 id, so a transition rule keyed on the background path may not match.
 
