@@ -174,7 +174,7 @@
     "scripts/app-version.mjs": "3197321a079522ac06477f830d0f457d43d4ebec2670f64183db84ed19dcaf19",
     "scripts/build-service-worker.mjs": "7b98c966a5fae62fa2b3c4f4fae772c35a3243efdeae3ec00b187246384c47ca",
     "scripts/lint.mjs": "692326b9dc22e0b43aa7916c3a0cbb5695d8a2302384e018e1c6fbe10b0729d8",
-    "scripts/patch-next-router.mjs": "7cf3a1d5e8339c70182522af38d902065c972a2788db4e9f66cf3c94e23f3b04",
+    "scripts/patch-next-router.mjs": "d88661062d06fa4401065a7d860fd248587493784d4d8126733194d012182f42",
     "scripts/write-version.mjs": "28152304c486448f0d37a346d680f41ac596bc80e80d8a4981458e486155a498",
     "src/app/(admin)/admin/(dashboard)/account/page.tsx": "ac6d7e9c8c5078dd546634f23c21f1f2370f9ddc8693582f7fb13f68ab157e6b",
     "src/app/(admin)/admin/(dashboard)/page.tsx": "c93c6bf597711ab555cad994486143f497ac5bcd845f59024e433028a6337fac",
