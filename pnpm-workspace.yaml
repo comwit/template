@@ -28,5 +28,6 @@ minimumReleaseAgeExclude:
   - 'comwit-ui'
   - '@ssgoi/core@7.5.0'
   - '@ssgoi/react@7.5.0'
-patchedDependencies:
-  next@16.4.3: patches/next@16.4.3.patch
+# Keep the Next router fix local to this project when using a shared pnpm store.
+enableGlobalVirtualStore: false
+virtualStoreDir: node_modules/.pnpm
