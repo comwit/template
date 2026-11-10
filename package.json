@@ -10,7 +10,6 @@
     }
   },
   "scripts": {
-    "postinstall": "node scripts/patch-next-router.mjs",
     "dev": "node scripts/patch-next-router.mjs && node ./.tools/dev.js",
     "build": "node scripts/patch-next-router.mjs && pnpm run sw:build && next build",
     "sw:build": "node scripts/write-version.mjs && node scripts/build-service-worker.mjs",
@@ -28,7 +27,8 @@
     "reference:generate": "node scripts/export-shop-reference.mjs",
     "reference:check": "node scripts/export-shop-reference.mjs --check",
     "admin:path": "node .agents/scripts/setup-admin-path.mjs",
-    "validate:storybook": "tsc --project .storybook/tsconfig.json --noEmit && oxlint .storybook"
+    "validate:storybook": "tsc --project .storybook/tsconfig.json --noEmit && oxlint .storybook",
+    "postinstall": "node scripts/patch-next-router.mjs"
   },
   "dependencies": {
     "@brrrd/adapter": "0.1.12",
