@@ -161,7 +161,7 @@
     "eslint-rules/server-only-import.cjs": "102a8ab46faf6bb9d563e2d21cc180545e4d099868c1df635a19013a05fb8c38",
     "eslint-rules/state-structure.cjs": "2804ddcd970d29c2b3c34ee4cbe261af2e230113eb6ac1cdec90611de9e4ea0c",
     "knip.json": "dbc03fe84bbdbef4d3f4085978d6c419e4fc48d1a5ff093ca49094dea65b8554",
-    "next.config.ts": "3e6258a639d17fe02af27b4d2bd09cefea9e475e6258692ef3f9de6cf7d2ce64",
+    "next.config.ts": "aafe2f98882f7a6fc3d7a292e8a7f1a16e9437627429aa21c7ab381b1369894c",
     "package.json": "fe27baed0fec4b986a1169a7dc6927c417a9029b076e60a812c9a402c4ef1b72",
     "pnpm-lock.yaml": "8b856b3e51ee1addf5788dc13ae4f3e8960af8ba6cd041e35fec503fdd264020",
     "pnpm-workspace.yaml": "4f911a8040588bb72da97c84edb22e794b87d753b7583342a7522fe927e5694b",

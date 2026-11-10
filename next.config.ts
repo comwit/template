@@ -7,6 +7,21 @@ const require = createRequire(import.meta.url);
 
 const appVersion = readAppVersion();
 const STATIC_SHELL_CACHE_SECONDS = 365 * 24 * 60 * 60;
+// `next dev` runs with NODE_ENV=development, so preview hosts can embed the dev
+// server in an iframe. Production builds (build/start/deploy) refuse
+// cross-origin framing without any extra configuration.
+const allowCrossOriginFraming = process.env.NODE_ENV === "development";
+const frameProtectionHeaders = allowCrossOriginFraming
+  ? []
+  : [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+        ],
+      },
+    ];
 
 const nextConfig: NextConfig = {
   // Comwit Cloud's brrrd build adapter emits dist/brrrd during `next build`.
@@ -40,6 +55,7 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      ...frameProtectionHeaders,
       {
         source: "/sw.js",
         headers: [
