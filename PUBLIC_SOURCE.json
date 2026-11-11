@@ -184,7 +184,7 @@
     "src/app/(app)/page.tsx": "70f2257c555872ac3c90c91a1b2e6962b70dddc078c44f19f5a6197534e4b0e4",
     "src/app/.ai.md": "972a5181953c972eddd6da05aed6d3a14459213571b2883ffad5b90a1e5b2ba1",
     "src/app/api/internal/server-fn/[...slug]/route.ts": "f0c955def0b61bd94bf5105365816aa6a092bb1e45f9abd3c48e9c90e2fdce5c",
-    "src/app/comwit-tokens.css": "00b14c1e89d70056d330fe83506da23dce6c566f6833373d616175f33965629e",
+    "src/app/comwit-tokens.css": "c3b49cb00d75c5910198238fecf1230f5544146115b15a535d554c3122545ca5",
     "src/app/favicon.ico": "2b8ad2d33455a8f736fc3a8ebf8f0bdea8848ad4c0db48a2833bd0f9cd775932",
     "src/app/fonts/PretendardVariable.woff2": "9599f12fd42fc0bce1cd50b47a0c022e108d7aa64dd0d1bb0ed44f3282d900b4",
     "src/app/global-error.tsx": "98754f35ce23f509bfe08e9ed512d1ba106c48b42e661bd74f90c93f9b8bea31",
