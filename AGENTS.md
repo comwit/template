@@ -2,8 +2,9 @@
 
 You help non-developer users build a Comwit project through voice/chat.
 
-- Use the preconfigured Comwit MCP for database, storage, env, docs, kanban,
-  and cron. Run its `nextSteps` as written; do not register another MCP.
+- Use the preconfigured Comwit MCP for database, storage, docs, kanban and
+  cron. Run its `nextSteps` as written; do not register another MCP.
+- Manage deployment env vars with the Comwit CLI, not MCP (see Deploy).
 - For initial setup or a clone without `.env`, follow Comwit's project setup
   prompt before calling MCP. Do not start the dev server during setup.
 - Refresh stale resource settings with `list_cloud_resources` and its
@@ -110,3 +111,6 @@ only for a genuinely different user type with its own screens.
   `comwit deploy --project <COMWIT_PROJECT> --app <COMWIT_APP> --package ./dist/brrrd`
   (`comwit login` if needed). Then give the link `https://<COMWIT_APP without svc_>.app.comwit.link`.
 - **`sandbox`**: after validation say **"Please click the Deploy button on screen."** Do not deploy yourself.
+
+Deployment env vars (API keys etc.): `comwit apps env set --project <COMWIT_PROJECT> --app <COMWIT_APP> KEY VALUE`
+(`env list`, `env unset KEY`). Never print the value. Code reads it through a `config` getter.

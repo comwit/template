@@ -102,6 +102,8 @@ Browser transfers use the exact URL/method/headers returned by the server's offi
 - `local`: validate/build, then deploy with the authenticated Comwit CLI `comwit deploy`, exact project/app IDs, and `./dist/brrrd`. Never put tokens in command arguments.
 - `sandbox`: after validation, ask the user to **click the Deploy button on screen**. The agent must not call the CLI or publish_project on their behalf.
 
+Deployment environment variables are managed with the Comwit CLI, not MCP: `comwit apps env list|set|unset --project <COMWIT_PROJECT> --app <COMWIT_APP>`. Never print values.
+
 Hosted deployment refreshes Cloud bindings and reconciles deployment environment state. App validation remains required. Resource setup must synchronize both deployment configuration and the active session environment; saving a binding alone does not prove preview readiness.
 
 ## External contract boundaries
