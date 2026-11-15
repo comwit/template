@@ -62,7 +62,7 @@ pnpm storybook:build
 | `TOSS_CLIENT_KEY`, `TOSS_SECRET_KEY`, `TOSS_MID` | 동일 상점·동일 환경의 토스 키 쌍과 상점 ID                         |
 | `COMMERCE_CRON_SECRET`                           | 정기 처리 경로 보호용 비밀키                                       |
 
-비밀키는 서버의 `src/server/config.ts`에서 읽습니다. 토스 클라이언트 키만 결제 준비 응답에 포함합니다. 연결 설정 화면은 키 값 대신 설정 여부를 보여줍니다. 호스팅 App/Code 환경은 Comwit MCP `upsert_envs`로 동기화하고 배포합니다.
+비밀키는 서버의 `src/server/config.ts`에서 읽습니다. 토스 클라이언트 키만 결제 준비 응답에 포함합니다. 연결 설정 화면은 키 값 대신 설정 여부를 보여줍니다. 배포 App 환경변수는 MCP가 아니라 Comwit CLI `comwit apps env set --project <COMWIT_PROJECT> --app <COMWIT_APP> KEY VALUE`로 등록한 뒤 배포합니다.
 
 ## 초기 관리자 계정
 
