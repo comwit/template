@@ -1,6 +1,6 @@
 // Next.js #98623: moving cached Activity siblings resets embedded frames, media
-// and inner scroll positions. Apply the 16.4.3 fix inside this project's
-// node_modules after dependencies are installed.
+// and inner scroll positions. Apply the fix inside this project's node_modules
+// after dependencies are installed (layout-router.js is identical in 16.4.3-16.4.6).
 //
 // This script never fails an install, dev or build. When it cannot apply the fix
 // it prints one warning and exits 0; the app then runs on stock Next.js.
@@ -13,7 +13,7 @@ import { createRequire } from 'node:module'
 import { dirname, isAbsolute, join, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const VERSION = '16.4.3'
+const VERSION = '16.4.6'
 // Blob IDs from the original pnpm patch: [file, stock, patched].
 const targets = [
   ['dist/client/components/layout-router.js', '316197c6b1e4f8fc97c410fce920c653a70ba2cb', '9e75a5f3bcdcd0f0d16c6da5593142f59913e1d1'],
