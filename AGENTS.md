@@ -106,6 +106,7 @@ only for a genuinely different user type with its own screens.
 ## Deploy
 
 `COMWIT_EXECUTION_ENV` (process env, then `.env`) decides the path. Never guess it.
+Before deploying, commit and push every change; never deploy uncommitted or unpushed work.
 
 - **`local`**: `pnpm run validate` → `pnpm run build` →
   `comwit deploy --project <COMWIT_PROJECT> --app <COMWIT_APP> --package ./dist/brrrd`
