@@ -6,7 +6,7 @@
     ".agents/rules/project-instructions.md": "05ceaa14830961a2849d494ec05bb8458cdc74aee37f63972ad09130eccefa35",
     ".agents/scaffolds/database/comwit-libsql-proxy.ts": "6f3a15d14915a8dd32b41e88640d4c67683d0f23ded1c2eac120a60478ec6f8a",
     ".agents/scaffolds/database/drizzle.config.ts": "80a8b9d737ff39f305538309e4b1980575132e5e2a71e8f5e2f627c03f4a52dd",
-    ".agents/scaffolds/database/src/server/db/index.ts": "fc748e6e808b6cb470eaae22030e391f2a4740d4a03e96636983dd11b25e593e",
+    ".agents/scaffolds/database/src/server/db/index.ts": "a98884e4078720f9e2c825c768c3dc2a3d82a9fa11deafa28e82fcbd810da8f8",
     ".agents/scaffolds/storage/src/lib/image.ts": "789ea71a9cdde21f8413f7deab10733e8ffd57640df3af4b8fb359a110a55953",
     ".agents/scaffolds/storage/src/server/storage/index.ts": "b38f852b55400f19ad8d5e270242e523cbe10e187f0462ebe73d8909c41ecb4b",
     ".agents/scripts/cleanup-skill.mjs": "12b25139f2c6ba6c90964b98db863714e7054eee4ba8a4f84fdaf09272128619",
