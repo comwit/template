@@ -307,7 +307,7 @@
     "src/server/course/handlers.ts": "a7bc51e9d3d0865719cc33cfe54a25d9bdeba51c41628f4c49cf29662bcf69ee",
     "src/server/course/index.ts": "0b1ad3f06d1da0cb9592ae23029277aef1e31ad627571697f10d36ee6f18c9e1",
     "src/server/course/presenters.ts": "47a6025c31eb101e7fb7d9b3d0b4aef80901db5c05dfe178bbea8ba625e67f0d",
-    "src/server/db/index.ts": "3ed3b7792e7640dd20eba6544647464ea512bf96828f8cdaa7ef2a05c064e330",
+    "src/server/db/index.ts": "87f7993dd6586ad4d41cfa918bcbc4970ffbcca5ad2a49634ab6233af3abb85a",
     "src/server/db/plugin/auth/admin-schema.ts": "9a8361b999bf993723dc1ba8d0587b0d09214523186607164a24097afb4c9f83",
     "src/server/db/plugin/auth/app-schema.ts": "fa15cb45aa66a18b06a5cdd61e5eb8622b79936ca25a1e2473823ddf3169293f",
     "src/server/db/schema.ts": "2b15418edc89c287e1746008ba78475e634fff29b971e4159f216447d8212649",
