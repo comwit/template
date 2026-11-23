@@ -105,13 +105,12 @@ only for a genuinely different user type with its own screens.
 
 ## Deploy
 
-`COMWIT_EXECUTION_ENV` (process env, then `.env`) decides the path. Never guess it.
 Before deploying, commit and push every change; never deploy uncommitted or unpushed work.
-
-- **`local`**: `pnpm run validate` → `pnpm run build` →
-  `comwit deploy --project <COMWIT_PROJECT> --app <COMWIT_APP> --package ./dist/brrrd`
-  (`comwit login` if needed). Then give the link `https://<COMWIT_APP without svc_>.app.comwit.link`.
-- **`sandbox`**: after validation say **"Please click the Deploy button on screen."** Do not deploy yourself.
+Deploy with **`pnpm run deploy`** (not `pnpm deploy`, a different pnpm built-in); `--dry-run` checks without building.
+It reads only `COMWIT_PROJECT` / `COMWIT_APP` (process env, then `.env`), refuses uncommitted or
+unpushed work, runs `validate` and a fresh `build` without `NODE_ENV`, stops at the first failure,
+then runs `comwit deploy` and prints the app link. Never run these steps by hand or source `.env`;
+on failure fix the cause and rerun. In a hosted (sandbox) session it stops: say **"Please click the Deploy button on screen."** and do not deploy yourself.
 
 Deployment env vars (API keys etc.): `comwit apps env set --project <COMWIT_PROJECT> --app <COMWIT_APP> KEY VALUE`
 (`env list`, `env unset KEY`). Never print the value. Code reads it through a `config` getter.

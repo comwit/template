@@ -97,10 +97,15 @@ Browser transfers use the exact URL/method/headers returned by the server's offi
 
 ## Deploy
 
-`AGENTS.md` selects the deployment flow using `COMWIT_EXECUTION_ENV`. Process environment takes precedence over `.env`. If missing or invalid, establish the execution environment first; never guess from NODE_ENV, operating system, or `.env` existence.
+Deploy with `pnpm run deploy` (`pnpm deploy` without `run` is a different pnpm built-in). The script `scripts/deploy.mjs`:
 
-- `local`: validate/build, then deploy with the authenticated Comwit CLI `comwit deploy`, exact project/app IDs, and `./dist/brrrd`. Never put tokens in command arguments.
-- `sandbox`: after validation, ask the user to **click the Deploy button on screen**. The agent must not call the CLI or publish_project on their behalf.
+- reads only `COMWIT_PROJECT`, `COMWIT_APP` and `COMWIT_EXECUTION_ENV` (process environment first, then `.env`); nothing else from `.env` is loaded and no other value is printed;
+- in a hosted session (`COMWIT_EXECUTION_ENV=sandbox`) stops and asks the user to **click the Deploy button on screen** (the agent never calls the CLI or publish_project on their behalf);
+- refuses uncommitted changes, a branch without an upstream, or commits not yet pushed;
+- runs `pnpm run validate`, removes `dist/brrrd`, runs `pnpm run build` without `NODE_ENV`, and stops at the first failure so a stale package is never uploaded;
+- runs `comwit deploy --project <COMWIT_PROJECT> --app <COMWIT_APP> --package ./dist/brrrd` with the authenticated CLI (`comwit login`; tokens never go in arguments) and prints `https://<app>.app.comwit.link`.
+
+`pnpm run deploy --dry-run` performs the checks and prints the commands without running them. Never run the steps by hand or source `.env` into the shell.
 
 Deployment environment variables are managed with the Comwit CLI, not MCP: `comwit apps env list|set|unset --project <COMWIT_PROJECT> --app <COMWIT_APP>`. Never print values.
 
