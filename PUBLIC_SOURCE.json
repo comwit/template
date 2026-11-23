@@ -319,7 +319,7 @@
     "src/server/commerce/index.ts": "e60224afd530eab41fb04314e42eaf7f1eaa4ed05b5cfe2c01e3639d71d6d14f",
     "src/server/commerce/presenters.ts": "2feb30a64f42244cf60f8e5cc103cbe0797f79fbd9f007f23233e0681d4da88a",
     "src/server/config.ts": "38c11b54842b83be7dbb4818d6f0a8285cee64553307d043135665ca2c388e70",
-    "src/server/db/index.ts": "3ed3b7792e7640dd20eba6544647464ea512bf96828f8cdaa7ef2a05c064e330",
+    "src/server/db/index.ts": "87f7993dd6586ad4d41cfa918bcbc4970ffbcca5ad2a49634ab6233af3abb85a",
     "src/server/db/plugin/auth/admin-schema.ts": "9a8361b999bf993723dc1ba8d0587b0d09214523186607164a24097afb4c9f83",
     "src/server/db/plugin/auth/app-schema.ts": "fa15cb45aa66a18b06a5cdd61e5eb8622b79936ca25a1e2473823ddf3169293f",
     "src/server/db/schema.ts": "47f51bb0691d00d3d0cd4c26d0a6061b4909391104eb3fb43c99d005f39bd392",
