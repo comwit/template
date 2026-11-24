@@ -99,7 +99,7 @@ Browser transfers use the exact URL/method/headers returned by the server's offi
 
 Commit and push every change before deploying. Deploy with the Comwit MCP `publish_project` and check it with `get_deployment_status`. Deployment environment variables use `list_envs`, `upsert_envs` and `delete_env`. Never print values.
 
-Validate the app before deploying. Resource setup must synchronize both deployment configuration and the active session environment; saving a binding alone does not prove preview readiness.
+Run `pnpm run validate` before deploying: it is the only type check, because the remote build skips Next's (`typescript.ignoreBuildErrors`). Resource setup must synchronize both deployment configuration and the active session environment; saving a binding alone does not prove preview readiness.
 
 ## External contract boundaries
 

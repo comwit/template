@@ -30,6 +30,9 @@ const nextConfig: NextConfig = {
   // brrrd runtime loads it from the packaged node_modules tree.
   serverExternalPackages: ["@libsql/isomorphic-ws"],
   reactStrictMode: false,
+  // Type checking inside `next build` exceeds the remote build's heap limit. Types are
+  // checked before deploying by `pnpm run validate` (tsc --noEmit); the build skips them.
+  typescript: { ignoreBuildErrors: true },
   deploymentId: appVersion,
   // Cache Components separates reusable static shells/RSC payloads from
   // request-time data. Partial Prefetching then fetches only the reusable shell.
