@@ -13,7 +13,6 @@
     "postinstall": "node scripts/patch-next-router.mjs",
     "dev": "node scripts/patch-next-router.mjs && node ./.tools/dev.js",
     "build": "node scripts/patch-next-router.mjs && pnpm run sw:build && next build",
-    "deploy": "node scripts/deploy.mjs",
     "sw:build": "node scripts/write-version.mjs && node scripts/build-service-worker.mjs",
     "lint": "node scripts/lint.mjs",
     "typecheck": "tsc --noEmit",

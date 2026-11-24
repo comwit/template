@@ -40,7 +40,7 @@ MCP responses contain non-secret environment values and `nextSteps`, never token
 
 The shared `.agents/scripts/sync-resource-env.mjs` handles both initial project snapshots and DB/storage groups (`--resource project|database|storage`). Database/storage modes read MCP environment JSON from stdin, atomically merge only that group, and install `.agents/scaffolds/<resource>/` without overwriting existing files. Never copy DB/storage values into tracked source.
 
-For local runtime credentials or CLI deployment, guide the user through browser approval in the `comwit login` device flow. After success, check `comwit projects list` and safely merge credentials with `comwit auth export-token --env-out .env`, without exposing the `cwt_`. New MCP connections use this Cloud login. Legacy project URLs and PATs remain server-compatible but are never registered or issued by this template.
+For local runtime credentials, guide the user through browser approval in the `comwit login` device flow. After success, check `comwit projects list` and safely merge credentials with `comwit auth export-token --env-out .env`, without exposing the `cwt_`. New MCP connections use this Cloud login. Legacy project URLs and PATs remain server-compatible but are never registered or issued by this template.
 
 For a fresh clone, pass the exact project JSON on stdin before exporting the token:
 
@@ -97,17 +97,7 @@ Browser transfers use the exact URL/method/headers returned by the server's offi
 
 ## Deploy
 
-Deploy with `pnpm run deploy` (`pnpm deploy` without `run` is a different pnpm built-in). The script `scripts/deploy.mjs`:
-
-- reads only `COMWIT_PROJECT`, `COMWIT_APP` and `COMWIT_EXECUTION_ENV` (process environment first, then `.env`); nothing else from `.env` is loaded and no other value is printed;
-- in a hosted session (`COMWIT_EXECUTION_ENV=sandbox`) stops and asks the user to **click the Deploy button on screen** (the agent never calls the CLI or publish_project on their behalf);
-- refuses uncommitted changes, a branch without an upstream, or commits not yet pushed;
-- runs `pnpm run validate`, removes `dist/brrrd`, runs `pnpm run build` without `NODE_ENV`, and stops at the first failure so a stale package is never uploaded;
-- runs `comwit deploy --project <COMWIT_PROJECT> --app <COMWIT_APP> --package ./dist/brrrd` with the authenticated CLI (`comwit login`; tokens never go in arguments) and prints `https://<app>.app.comwit.link`.
-
-`pnpm run deploy --dry-run` performs the checks and prints the commands without running them. Never run the steps by hand or source `.env` into the shell.
-
-Deployment environment variables are managed with the Comwit CLI, not MCP: `comwit apps env list|set|unset --project <COMWIT_PROJECT> --app <COMWIT_APP>`. Never print values.
+Commit and push every change before deploying. Deploy with the Comwit MCP `publish_project` and check it with `get_deployment_status`. Deployment environment variables use `list_envs`, `upsert_envs` and `delete_env`. Never print values.
 
 Hosted deployment refreshes Cloud bindings and reconciles deployment environment state. App validation remains required. Resource setup must synchronize both deployment configuration and the active session environment; saving a binding alone does not prove preview readiness.
 

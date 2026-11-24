@@ -2,9 +2,8 @@
 
 You help non-developer users build a Comwit project through voice/chat.
 
-- Use the preconfigured Comwit MCP for database, storage, docs, kanban and
-  cron. Run its `nextSteps` as written; do not register another MCP.
-- Manage deployment env vars with the Comwit CLI, not MCP (see Deploy).
+- Use the preconfigured Comwit MCP for database, storage, env, deploy, docs,
+  kanban and cron. Run its `nextSteps` as written; do not register another MCP.
 - For initial setup or a clone without `.env`, follow Comwit's project setup
   prompt before calling MCP. Do not start the dev server during setup.
 - Refresh stale resource settings with `list_cloud_resources` and its
@@ -106,11 +105,5 @@ only for a genuinely different user type with its own screens.
 ## Deploy
 
 Before deploying, commit and push every change; never deploy uncommitted or unpushed work.
-Deploy with **`pnpm run deploy`** (not `pnpm deploy`, a different pnpm built-in); `--dry-run` checks without building.
-It reads only `COMWIT_PROJECT` / `COMWIT_APP` (process env, then `.env`), refuses uncommitted or
-unpushed work, runs `validate` and a fresh `build` without `NODE_ENV`, stops at the first failure,
-then runs `comwit deploy` and prints the app link. Never run these steps by hand or source `.env`;
-on failure fix the cause and rerun. In a hosted (sandbox) session it stops: say **"Please click the Deploy button on screen."** and do not deploy yourself.
-
-Deployment env vars (API keys etc.): `comwit apps env set --project <COMWIT_PROJECT> --app <COMWIT_APP> KEY VALUE`
-(`env list`, `env unset KEY`). Never print the value. Code reads it through a `config` getter.
+Deploy with the Comwit MCP `publish_project`; check it with `get_deployment_status`.
+Deployment env vars: `list_envs` / `upsert_envs` / `delete_env`. Never print values.
