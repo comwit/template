@@ -167,7 +167,7 @@ pnpm drizzle-kit migrate
 
 개발 시 `pnpm run validate`, `pnpm test`, `pnpm run build`, `pnpm storybook:build`를 실행하세요. mutation testing은 포함하지 않습니다.
 
-배포 전에 변경사항을 모두 커밋·푸시하고, Comwit MCP `publish_project`로 배포한 뒤 `get_deployment_status`로 확인합니다.
+배포 전에 `pnpm run validate`를 실행하고 변경사항을 모두 커밋·푸시한 뒤, Comwit MCP `publish_project`로 배포하고 `get_deployment_status`로 확인합니다. `publish_project`가 실패하면 `pnpm run build` 후 `comwit deploy --project <COMWIT_PROJECT> --app <COMWIT_APP> --package dist/brrrd`로 배포합니다(ID는 `.env`). `pnpm run build`도 `next build` 전에 별도 프로세스로 타입을 검사하고, 타입 오류가 있으면 멈춥니다. 큰 프로젝트는 `TYPECHECK_MAX_OLD_SPACE_SIZE`(MB, 기본 4096)로 검사기 힙을 늘릴 수 있습니다.
 
 
 ## SOLAPI 알림 / 문자
