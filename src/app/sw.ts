@@ -7,16 +7,29 @@ import type {
 } from "serwist";
 import {
   CacheFirst,
+  ExpirationPlugin,
   NetworkFirst,
   NetworkOnly,
   Serwist,
+  StaleWhileRevalidate,
 } from "serwist";
 
 import { activateUpdate } from "../lib/service-worker/activate-update";
+import {
+  ASSET_CACHE,
+  CROSS_ORIGIN_CACHE,
+  DYNAMIC_CACHE,
+  PRECACHE,
+  STATIC_CACHE,
+  isImmutableAsset,
+  outdatedCacheNames,
+  withoutDeploymentQuery,
+} from "../lib/service-worker/cache-policy";
 
 import { cacheableDocument } from "../lib/service-worker";
 
 declare const __COMWIT_APP_VERSION__: string;
+declare const __COMWIT_FAVICON_REVISION__: string;
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -27,6 +40,7 @@ declare global {
 declare const self: ServiceWorkerGlobalScope;
 
 const APP_VERSION = __COMWIT_APP_VERSION__;
+// Only documents and RSC payloads are deployment caches; see lib/service-worker/cache-policy.ts.
 const CACHE_NAMESPACE = `comwit-${APP_VERSION}`;
 const STATIC_RSC_STALE_SECONDS = 365 * 24 * 60 * 60;
 const OFFLINE_URL = "/offline";
@@ -73,6 +87,13 @@ const cachePublicResponse: SerwistPlugin = {
   },
 };
 
+// Same file, same key across deployments: drop Next's `?dpl=` query from the cache key.
+const deploymentFreeKey: SerwistPlugin = {
+  async cacheKeyWillBeUsed({ request }) {
+    return withoutDeploymentQuery(new URL(request.url));
+  },
+};
+
 const cacheStaticDocumentResponse: SerwistPlugin = {
   cacheWillUpdate: ({ response }) => cacheableDocument(response),
 };
@@ -97,9 +118,33 @@ const cacheStaticRscResponse: SerwistPlugin = {
   },
 };
 
-const staticAssets = new CacheFirst({
-  cacheName: `${CACHE_NAMESPACE}-assets`,
-  plugins: [cacheSuccessfulResponse],
+// Content-hashed files never change in place: serve from cache, keep the recently used ones.
+const immutableAssets = new CacheFirst({
+  cacheName: STATIC_CACHE,
+  plugins: [
+    deploymentFreeKey,
+    cacheSuccessfulResponse,
+    new ExpirationPlugin({
+      maxEntries: 400,
+      maxAgeSeconds: 60 * 24 * 60 * 60,
+      maxAgeFrom: "last-used",
+      purgeOnQuotaError: true,
+    }),
+  ],
+});
+// Unhashed files can change under the same URL: answer from cache, refresh in the background.
+const staticAssets = new StaleWhileRevalidate({
+  cacheName: ASSET_CACHE,
+  plugins: [
+    deploymentFreeKey,
+    cacheSuccessfulResponse,
+    new ExpirationPlugin({
+      maxEntries: 200,
+      maxAgeSeconds: 30 * 24 * 60 * 60,
+      maxAgeFrom: "last-used",
+      purgeOnQuotaError: true,
+    }),
+  ],
 });
 const staticRsc = new CacheFirst({
   cacheName: `${CACHE_NAMESPACE}-static-rsc`,
@@ -118,20 +163,25 @@ const dynamicRsc = new NetworkFirst({
   plugins: [cachePublicResponse],
 });
 const dynamicRequests = new NetworkFirst({
-  cacheName: `${CACHE_NAMESPACE}-dynamic`,
+  cacheName: DYNAMIC_CACHE,
   networkTimeoutSeconds: 4,
-  plugins: [cachePublicResponse],
+  plugins: [
+    cachePublicResponse,
+    new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 7 * 24 * 60 * 60, purgeOnQuotaError: true }),
+  ],
 });
 
 const serwist = new Serwist({
   cacheId: CACHE_NAMESPACE,
+  // One precache across deployments: an install downloads only entries whose revision changed.
+  // The offline page links this deployment's chunks, so it follows the app version.
   precacheEntries: [
     { url: OFFLINE_URL, revision: APP_VERSION },
     { url: "/manifest.webmanifest", revision: APP_VERSION },
-    { url: "/favicon.ico", revision: APP_VERSION },
+    { url: "/favicon.ico", revision: __COMWIT_FAVICON_REVISION__ },
   ],
   precacheOptions: {
-    cacheName: `${CACHE_NAMESPACE}-precache`,
+    cacheName: PRECACHE,
     cleanupOutdatedCaches: true,
   },
   // Updates wait for user acceptance; controllerchange reloads the document
@@ -146,6 +196,10 @@ const serwist = new Serwist({
         sameOrigin &&
         (url.pathname === "/sw.js" || url.pathname === "/version.json"),
       handler: new NetworkOnly(),
+    },
+    {
+      matcher: ({ sameOrigin, url }) => sameOrigin && isImmutableAsset(url),
+      handler: immutableAssets,
     },
     {
       matcher: ({ request, sameOrigin, url }) =>
@@ -188,9 +242,12 @@ const serwist = new Serwist({
     {
       matcher: ({ sameOrigin }) => !sameOrigin,
       handler: new NetworkFirst({
-        cacheName: `${CACHE_NAMESPACE}-cross-origin`,
+        cacheName: CROSS_ORIGIN_CACHE,
         networkTimeoutSeconds: 4,
-        plugins: [cachePublicResponse],
+        plugins: [
+          cachePublicResponse,
+          new ExpirationPlugin({ maxEntries: 64, maxAgeSeconds: 7 * 24 * 60 * 60, purgeOnQuotaError: true }),
+        ],
       }),
     },
   ],
@@ -208,19 +265,15 @@ const serwist = new Serwist({
 
 serwist.addEventListeners();
 
-// Remove caches created by older hand-written or Serwist workers after a new
-// deployment version activates.
+// A new deployment removes only older deployment caches (documents, RSC) and caches
+// of older workers. Hashed files, the precache and data caches stay.
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) =>
       Promise.all(
-        cacheNames
-          .filter(
-            (cacheName) =>
-              cacheName.startsWith("comwit-") &&
-              !cacheName.startsWith(`${CACHE_NAMESPACE}-`),
-          )
-          .map((cacheName) => caches.delete(cacheName)),
+        outdatedCacheNames(cacheNames, CACHE_NAMESPACE).map((cacheName) =>
+          caches.delete(cacheName),
+        ),
       ),
     ),
   );
