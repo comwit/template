@@ -108,6 +108,6 @@ Before deploying, run `pnpm run validate` and commit and push every change; neve
 uncommitted, unpushed or unvalidated work. `pnpm run build` type checks in a separate step
 before `next build` and stops on type errors (`scripts/typecheck.mjs`).
 Deploy with the Comwit MCP `publish_project`; check it with `get_deployment_status`.
-If `publish_project` fails, deploy manually after `comwit login` (IDs from `.env`): `pnpm run build`, then
-`comwit deploy --project <COMWIT_PROJECT> --app <COMWIT_APP> --package dist/brrrd`.
+If `publish_project` fails, run `pnpm run build`, then
+`comwit deploy --project <COMWIT_PROJECT> --app <COMWIT_APP> --package dist/brrrd` (IDs from `.env`).
 Deployment env vars: `list_envs` / `upsert_envs` / `delete_env`. Never print values.
