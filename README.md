@@ -62,7 +62,7 @@ pnpm storybook:build
 | `TOSS_CLIENT_KEY`, `TOSS_SECRET_KEY`, `TOSS_MID` | 동일 상점·동일 환경의 토스 키 쌍과 상점 ID                         |
 | `COMMERCE_CRON_SECRET`                           | 정기 처리 경로 보호용 비밀키                                       |
 
-비밀키는 서버의 `src/server/config.ts`에서 읽습니다. 토스 클라이언트 키만 결제 준비 응답에 포함합니다. 연결 설정 화면은 키 값 대신 설정 여부를 보여줍니다. 배포 App 환경변수는 MCP가 아니라 Comwit CLI `comwit apps env set --project <COMWIT_PROJECT> --app <COMWIT_APP> KEY VALUE`로 등록한 뒤 배포합니다.
+비밀키는 서버의 `src/server/config.ts`에서 읽습니다. 토스 클라이언트 키만 결제 준비 응답에 포함합니다. 연결 설정 화면은 키 값 대신 설정 여부를 보여줍니다. 배포 App 환경변수는 Comwit MCP `upsert_envs`로 등록한 뒤 배포합니다.
 
 ## 초기 관리자 계정
 
@@ -167,7 +167,7 @@ pnpm drizzle-kit migrate
 
 개발 시 `pnpm run validate`, `pnpm test`, `pnpm run build`, `pnpm storybook:build`를 실행하세요. mutation testing은 포함하지 않습니다.
 
-배포는 `AGENTS.md`의 실행 환경 규칙을 따릅니다. `local`에서는 검증/빌드 후 Comwit CLI로 `dist/brrrd`를 배포하고, `sandbox`에서는 화면의 배포 버튼을 사용합니다. 배포 대상은 검증된 서버 바인딩에서 받으며 자격증명을 명령 인자로 전달하지 않습니다.
+배포 전에 변경사항을 모두 커밋·푸시하고, Comwit MCP `publish_project`로 배포한 뒤 `get_deployment_status`로 확인합니다.
 
 
 ## SOLAPI 알림 / 문자

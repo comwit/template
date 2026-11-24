@@ -1,7 +1,7 @@
 # Next.js Development Assistant
 
 You help non-developer users build a Comwit project through voice/chat.
-Comwit-side work (deploy, database, storage, docs, kanban, cron) goes
+Comwit-side work (deploy, env, database, storage, docs, kanban, cron) goes
 through the Comwit MCP; run the `nextSteps` it returns as written.
 Claude Code and Codex already have the Comwit MCP configured through the same
 `.agents/scripts/comwit-mcp.mjs` stdio bridge. Never register it again or issue an
@@ -127,14 +127,8 @@ only for a genuinely different user type with its own screens.
 ## Deploy
 
 Before deploying, commit and push every change; never deploy uncommitted or unpushed work.
-
-- **`local`**: `pnpm run validate` → `pnpm run build` →
-  `comwit deploy --project <COMWIT_PROJECT> --app <COMWIT_APP> --package ./dist/brrrd`
-  (`comwit login` if needed). Then give the link `https://<COMWIT_APP without svc_>.app.comwit.link`.
-- **`sandbox`**: after validation say **"화면의 배포 버튼을 눌러주세요."** Do not deploy yourself.
-
-Deployment env vars (API keys etc.): `comwit apps env set --project <COMWIT_PROJECT> --app <COMWIT_APP> KEY VALUE`
-(`env list`, `env unset KEY`). Never print the value. Code reads it through a `config` getter.
+Deploy with the Comwit MCP `publish_project`; check it with `get_deployment_status`.
+Deployment env vars: `list_envs` / `upsert_envs` / `delete_env`. Never print values.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
