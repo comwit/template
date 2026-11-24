@@ -105,7 +105,7 @@ only for a genuinely different user type with its own screens.
 ## Deploy
 
 Before deploying, run `pnpm run validate` and commit and push every change; never deploy
-uncommitted, unpushed or unvalidated work. Type checking runs in validate (`tsc --noEmit`);
-the remote build skips it (`typescript.ignoreBuildErrors`).
+uncommitted, unpushed or unvalidated work. `pnpm run build` type checks in a separate step
+before `next build` and stops on type errors (`scripts/typecheck.mjs`).
 Deploy with the Comwit MCP `publish_project`; check it with `get_deployment_status`.
 Deployment env vars: `list_envs` / `upsert_envs` / `delete_env`. Never print values.

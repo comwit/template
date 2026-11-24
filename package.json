@@ -12,10 +12,10 @@
   "scripts": {
     "postinstall": "node scripts/patch-next-router.mjs",
     "dev": "node scripts/patch-next-router.mjs && node ./.tools/dev.js",
-    "build": "node scripts/patch-next-router.mjs && pnpm run sw:build && next build",
+    "build": "node scripts/patch-next-router.mjs && pnpm run sw:build && pnpm run typecheck && next build",
     "sw:build": "node scripts/write-version.mjs && node scripts/build-service-worker.mjs",
     "lint": "node scripts/lint.mjs",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "node scripts/typecheck.mjs",
     "validate": "pnpm run --parallel \"/^(typecheck|lint)$/\"",
     "knip": "knip",
     "ui": "comwit-ui",

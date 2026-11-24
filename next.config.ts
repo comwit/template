@@ -30,8 +30,8 @@ const nextConfig: NextConfig = {
   // brrrd runtime loads it from the packaged node_modules tree.
   serverExternalPackages: ["@libsql/isomorphic-ws"],
   reactStrictMode: false,
-  // Type checking inside `next build` exceeds the remote build's heap limit. Types are
-  // checked before deploying by `pnpm run validate` (tsc --noEmit); the build skips them.
+  // `pnpm run build` type checks first in its own process (scripts/typecheck.mjs) and
+  // stops on errors; Next's check inside `next build` would share the build's heap.
   typescript: { ignoreBuildErrors: true },
   deploymentId: appVersion,
   // Cache Components separates reusable static shells/RSC payloads from
