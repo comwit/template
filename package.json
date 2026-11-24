@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@brrrd/adapter": "0.1.12",
-    "@comwit/state": "2.7.0",
+    "@comwit/state": "2.8.0",
     "@comwit/ui": "0.6.1",
     "@gsap/react": "^2.1.1",
     "@hookform/resolvers": "^5.2.2",

@@ -234,7 +234,8 @@ Elsewhere read `s.me.data`. Load profile or member tables with their own query o
 
 - Derived state: `computed()` or model `derive` getters.
 - Validation: model `rules`; read `$validation`.
-- Persistence: `persist({ key, defaultValue, storage? })`.
+- Persistence: `persist({ key, defaultValue, storage?, debounceMs? })`. Memory updates at once; storage writes after 300ms
+  (`debounceMs: 0` writes every change) and flushes on page leave.
 - URL state: `searchParam({ key, type?, defaultValue? })`.
 - History: `history: true`; use `$history.undo()` / `redo()`.
 
