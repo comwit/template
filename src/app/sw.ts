@@ -16,12 +16,11 @@ import {
 
 import { activateUpdate } from "../lib/service-worker/activate-update";
 import {
-  ASSET_CACHE,
   CROSS_ORIGIN_CACHE,
   DYNAMIC_CACHE,
   PRECACHE,
-  STATIC_CACHE,
-  isImmutableAsset,
+  assetCacheName,
+  assetKind,
   outdatedCacheNames,
   withoutDeploymentQuery,
 } from "../lib/service-worker/cache-policy";
@@ -40,7 +39,7 @@ declare global {
 declare const self: ServiceWorkerGlobalScope;
 
 const APP_VERSION = __COMWIT_APP_VERSION__;
-// Only documents and RSC payloads are deployment caches; see lib/service-worker/cache-policy.ts.
+// Deployment caches: documents, RSC, build-id files and unhashed code; see lib/service-worker/cache-policy.ts.
 const CACHE_NAMESPACE = `comwit-${APP_VERSION}`;
 const STATIC_RSC_STALE_SECONDS = 365 * 24 * 60 * 60;
 const OFFLINE_URL = "/offline";
@@ -51,22 +50,14 @@ const DYNAMIC_PREFIXES = [
   "/mcp/",
   "/storage/",
 ];
-const STATIC_ASSET_EXTENSIONS =
-  /\.(?:css|js|mjs|woff2?|ttf|otf|eot|png|jpe?g|gif|svg|webp|avif|ico|webmanifest)$/i;
 
 function hasDynamicPrefix(pathname: string) {
   return DYNAMIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
-function isStaticAsset(request: Request, url: URL) {
-  if (hasDynamicPrefix(url.pathname)) return false;
-  if (url.pathname.startsWith("/_next/static/")) return true;
-  if (url.pathname.startsWith("/_next/image")) return true;
-  if (STATIC_ASSET_EXTENSIONS.test(url.pathname)) return true;
-
-  return ["font", "image", "manifest", "script", "style", "worker"].includes(
-    request.destination,
-  );
+function staticAssetKind(request: Request, url: URL) {
+  if (hasDynamicPrefix(url.pathname)) return null;
+  return assetKind(url, request.destination);
 }
 
 function hasPrivateCacheControl(response: Response) {
@@ -120,7 +111,7 @@ const cacheStaticRscResponse: SerwistPlugin = {
 
 // Content-hashed files never change in place: serve from cache, keep the recently used ones.
 const immutableAssets = new CacheFirst({
-  cacheName: STATIC_CACHE,
+  cacheName: assetCacheName("hashed", CACHE_NAMESPACE),
   plugins: [
     deploymentFreeKey,
     cacheSuccessfulResponse,
@@ -132,9 +123,21 @@ const immutableAssets = new CacheFirst({
     }),
   ],
 });
-// Unhashed files can change under the same URL: answer from cache, refresh in the background.
-const staticAssets = new StaleWhileRevalidate({
-  cacheName: ASSET_CACHE,
+// Build-id files keep their path across builds; the deployment query and this
+// deployment's cache keep them apart.
+const buildAssets = new CacheFirst({
+  cacheName: assetCacheName("build", CACHE_NAMESPACE),
+  plugins: [cacheSuccessfulResponse],
+});
+// Unhashed scripts and styles must match the deployed app: network first, cache offline only.
+const codeAssets = new NetworkFirst({
+  cacheName: assetCacheName("code", CACHE_NAMESPACE),
+  networkTimeoutSeconds: 4,
+  plugins: [cacheSuccessfulResponse],
+});
+// Unhashed images and fonts: answer from cache, refresh in the background.
+const mediaAssets = new StaleWhileRevalidate({
+  cacheName: assetCacheName("media", CACHE_NAMESPACE),
   plugins: [
     deploymentFreeKey,
     cacheSuccessfulResponse,
@@ -198,13 +201,24 @@ const serwist = new Serwist({
       handler: new NetworkOnly(),
     },
     {
-      matcher: ({ sameOrigin, url }) => sameOrigin && isImmutableAsset(url),
+      matcher: ({ request, sameOrigin, url }) =>
+        sameOrigin && staticAssetKind(request, url) === "hashed",
       handler: immutableAssets,
     },
     {
       matcher: ({ request, sameOrigin, url }) =>
-        sameOrigin && isStaticAsset(request, url),
-      handler: staticAssets,
+        sameOrigin && staticAssetKind(request, url) === "build",
+      handler: buildAssets,
+    },
+    {
+      matcher: ({ request, sameOrigin, url }) =>
+        sameOrigin && staticAssetKind(request, url) === "code",
+      handler: codeAssets,
+    },
+    {
+      matcher: ({ request, sameOrigin, url }) =>
+        sameOrigin && staticAssetKind(request, url) === "media",
+      handler: mediaAssets,
     },
     {
       matcher: ({ request, sameOrigin, url }) =>
@@ -265,8 +279,9 @@ const serwist = new Serwist({
 
 serwist.addEventListeners();
 
-// A new deployment removes only older deployment caches (documents, RSC) and caches
-// of older workers. Hashed files, the precache and data caches stay.
+// A new deployment removes only older deployment caches (documents, RSC, build-id
+// files, unhashed code) and caches of older workers. Hashed files, unhashed media,
+// the precache and data caches stay.
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) =>

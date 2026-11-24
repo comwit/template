@@ -167,9 +167,11 @@ node .agents/skills/app-setup/scripts/setup.mjs --tabs .agents/state/app-setup-t
 ```
 
 The template's service worker stays as is: a deployment clears only its own
-documents and RSC caches. Hashed `/_next/static` files (fonts included), the
+caches (documents, RSC, build-id files, unhashed scripts and styles).
+Content-named `/_next/static/chunks|media` files (fonts included), the
 precache (revision-based) and data caches keep fixed names, so an installed app
-reopened after a deploy downloads only what changed. Do not add a new cache name
+reopened after a deploy downloads only what changed, and changed code always
+arrives under a new name. Do not add a new cache name
 with the app version, or clear `comwit-*` caches from app code.
 
 The CLI first runs the project's `comwit-ui add app-shell app-group-layout
