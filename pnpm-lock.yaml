@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@brrrd/adapter':
-        specifier: 0.1.12
-        version: 0.1.12(next@16.4.6(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
+        specifier: ^0.1.13
+        version: 0.1.13(next@16.4.6(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
       '@comwit/state':
         specifier: 2.8.0
         version: 2.8.0(react@19.2.4)
@@ -319,8 +319,8 @@ packages:
   '@better-fetch/fetch@1.1.21':
     resolution: {integrity: sha512-/ImESw0sskqlVR94jB+5+Pxjf+xBwDZF/N5+y2/q4EqD7IARUTSpPfIo8uf39SYpCxyOCtbyYpUrZ3F/k0zT4A==}
 
-  '@brrrd/adapter@0.1.12':
-    resolution: {integrity: sha512-QcQYrno2fMPm43xPj5KOam/0wYmiyJxQuhWH4gWjP/YCuEtfHDuIMS6N9A7CzOaC/RwdIL7Ak7hiFXsQmf/5Iw==}
+  '@brrrd/adapter@0.1.13':
+    resolution: {integrity: sha512-2m/B2ZoBsozbWWj2KO1dwKmmTfbDlIj/0zFQQBAx0Qoqy2wu7ez2g7s9Kx8RwFqtMy7oM3hoQ5VAbMHnS62qfQ==}
     peerDependencies:
       next: ^16.2
 
@@ -4434,7 +4434,7 @@ snapshots:
 
   '@better-fetch/fetch@1.1.21': {}
 
-  '@brrrd/adapter@0.1.12(next@16.4.6(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))':
+  '@brrrd/adapter@0.1.13(next@16.4.6(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))':
     dependencies:
       esbuild: 0.25.12
       next: 16.4.6(@babel/core@7.29.0(supports-color@7.2.0))(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
